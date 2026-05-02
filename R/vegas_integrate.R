@@ -9,19 +9,18 @@
 #' @importFrom glue glue
 #' @examples
 #' library(mvtnorm)
-#'
-#' myf<-function(x){
-#'  #x <- as.matrix(x) # necessary to avoid R auto-flattening arrays
-#'  res<-dmvnorm(x, mean =
-#'                 matrix(c(0.5, -0.2, 0.1),nrow=1),
-#'               sigma = matrix(data=c(
+#' mu<-matrix(c(0.5, -0.2, 0.1),nrow=1)
+#' cov<-matrix(data=c(
 #'                 1.0, 0.5, 0.2,
 #'                 0.5, 1.2, 0.3,
-#'                 0.2, 0.3, 0.8),ncol=3,byrow=FALSE))
+#'                 0.2, 0.3, 0.8),ncol=3,byrow=FALSE)
+#'
+#'myf<-function(x,mu,cov){
+#'  res<-dmvnorm(x,mean = mu,sigma=cov)
 #'  return(res)
 #'  }
 #'
-#' vegas_integrate(f=myf,lower=c(-5.,-5.,-5.),upper=c(5.,5.,5.))
+#' vegas_integrate(f=myf,lower=c(-0.5,-0.5,-0.5),upper=c(0.5,0.5,0.5),mu=mu,cov=cov)
 #'
 #' @export
 vegas_integrate <- function(f, lower,upper, nitn = 10, neval = 1000, ...) {
@@ -42,37 +41,67 @@ vegas_integrate <- function(f, lower,upper, nitn = 10, neval = 1000, ...) {
   main$Rlower<-as.numeric(lower)
   main$Rupper<-as.numeric(upper)
 
-  stringpart1<-r"(
-  #### now use R function
-  )"
+  if (length(list(...)) > 0){
+    cat("parsing additional arguments\n")
+    m<-length(list(...));
+    args<-list(...)
+    noms<-names(args)
+    for(i in 1:m){
+      print(args[[i]])
+      vegasr_pyassign(noms[i],args[[i]])
 
-str1<-r"(r_func(x))"
+    }
+    cat("names of extra args=\n");print(noms);cat("\n")
+  }
+
+
+# 1. find ou
+str1<-paste(paste(paste(noms,"=",sep=""),noms,sep=""),collapse=",") # y=y,z=z
+str2<-paste(c("x",noms),collapse=",") # x,y,z
+str3<-paste(c(noms),collapse=",") # y,z
+str4<-paste(paste("self",noms,sep="."),collapse=",") # self.y, self.z
+str5<-paste(paste(paste("        self",noms,sep="."),"=",noms),collapse="\n") # self.y=y\nself.z=y
+#  stringpart1<-r"(
+#  #### now use R function
+#  )"
+
+#str1<-r"(r_func(theta,self.y,self.z))"
+#str2<-r"(r_func(x,y,z))"
 
 stringpart<-glue::glue('
-# Integration limits
-#lower = np.array([-5.0, -5.0, -5.0])
-#upper = np.array([5.0, 5.0, 5.0])
-lower = np.array(Rlower,dtype=np.float64)
-upper = np.array(Rupper,dtype=np.float64)
-
 
 ## this decorator is using (BATCH,dim) - C-row-order
 @vegas.lbatchintegrand
-def ff(x):
+def ff({str2}):
   #print(x.shape)
-  return {str1}
+  return r_func({str2})
+
+@vegas.lbatchintegrand
+class vegasHelper:
+    def __init__(self,{str3}):
+{str5}
+
+    def __call__(self, theta):
+        return(r_func(theta,{str4}))
+
+#newf = vegasHelper(y=y,z=z) # str1
+newf = vegasHelper({str1})
+
+# Integration limits
+lower = np.array(Rlower,dtype=np.float64)
+upper = np.array(Rupper,dtype=np.float64)
 
 # Initialize the integrator
 integ2 = vegas.Integrator([[l, u] for l, u in zip(lower, upper)])
 # Adaptation phase
-integ2(ff, nitn=10, neval=1000)
+integ2(newf, nitn=10, neval=1000)
 # Final integration
-result2 = integ2(ff, nitn=10, neval=1000)
+result2 = integ2(newf, nitn=10, neval=1000)
 #print(result2.summary())
 ',.trim=FALSE)
 
 bigstring<-paste(stringpart,sep="")
-  #return(bigstring)
+#  return(bigstring)
 reticulate::py_run_string(bigstring)
 main <- reticulate::import_main(convert = FALSE)
 cat(reticulate::py_to_r(main$result2$summary()))

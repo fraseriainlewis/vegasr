@@ -24,18 +24,17 @@ Multidimensional Integration using Vegas
 }
 \examples{
 library(mvtnorm)
-
-myf<-function(x){
- #x <- as.matrix(x) # necessary to avoid R auto-flattening arrays
- res<-dmvnorm(x, mean =
-                matrix(c(0.5, -0.2, 0.1),nrow=1),
-              sigma = matrix(data=c(
+mu<-matrix(c(0.5, -0.2, 0.1),nrow=1)
+cov<-matrix(data=c(
                 1.0, 0.5, 0.2,
                 0.5, 1.2, 0.3,
-                0.2, 0.3, 0.8),ncol=3,byrow=FALSE))
+                0.2, 0.3, 0.8),ncol=3,byrow=FALSE)
+
+myf<-function(x,mu,cov){
+ res<-dmvnorm(x,mean = mu,sigma=cov)
  return(res)
  }
 
-vegas_integrate(f=myf,lower=c(-5.,-5.,-5.),upper=c(5.,5.,5.))
+vegas_integrate(f=myf,lower=c(-0.5,-0.5,-0.5),upper=c(0.5,0.5,0.5),mu=mu,cov=cov)
 
 }

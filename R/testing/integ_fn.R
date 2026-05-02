@@ -11,9 +11,9 @@
 
 library(mvtnorm)
 
-myf<-function(x){
-   print(dim(x))
-   x <- as.matrix(x)
+myf<-function(x,y,z){
+   #print(dim(x))
+   #x <- as.matrix(x)
    #hard code mean and var for ease so no params to pass
    res<-dmvnorm(x, mean =
                   matrix(c(0.5, -0.2, 0.1),nrow=1),

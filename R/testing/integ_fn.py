@@ -16,8 +16,8 @@ mvn = multivariate_normal(mean=mu, cov=cov)
 print(mvn.pdf(np.array([0.1,0.1,0.1])))
 
 # Integration limits
-lower = np.array([-5.0, -5.0, -5.0])
-upper = np.array([5.0, 5.0, 5.0])
+lower = np.array([-0.5, -0.5, -0.5])
+upper = np.array([0.5, 0.5, 0.5])
 
 # Define the integrand
 # vegas expects a function that takes a (n, dim) array and returns a (n,) array
@@ -26,16 +26,30 @@ mvn = multivariate_normal(mean=mu, cov=cov)
 print(mvn.pdf(np.array([0.1,0.1,0.1])))
 
 @vegas.lbatchintegrand
-def f(x):
+def f(x,y,z):
   print(x.shape)
   return mvn.pdf(x)
+
+@vegas.lbatchintegrand
+class vegasHelper:
+    def __init__(self, y, z):
+        self.y = y
+        self.z = z
+      
+    def __call__(self, theta):
+        return(f(theta,self.y,self.z))
+
+y=1.0
+z=1.0
+
+newf = vegasHelper(y=y,z=z)
 
 # Initialize the integrator
 integ = vegas.Integrator([[l, u] for l, u in zip(lower, upper)])
 # Adaptation phase
-integ(f, nitn=10, neval=1000)
+integ(newf, nitn=10, neval=1000)
 # Final integration
-result = integ(f, nitn=10, neval=1000)
+result = integ(newf, nitn=10, neval=1000)
 print(result.summary())
 
 #### now use R function
