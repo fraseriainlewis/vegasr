@@ -41,3 +41,11 @@ py_check_version <- function(package, ...) {
   packages <- reticulate::py_list_packages(...)
   packages$version[packages$package == package]
 }
+
+run_checks<-function(){
+  # placeholder - to chech named arguments are used
+}
+
+
+
+

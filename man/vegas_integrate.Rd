@@ -4,7 +4,17 @@
 \alias{vegas_integrate}
 \title{Multidimensional Integration using Vegas}
 \usage{
-vegas_integrate(f, lower, upper, nitn = 10, neval = 1000, ...)
+vegas_integrate(
+  f,
+  lower,
+  upper,
+  nitn_warm = 10,
+  neval_warm = 1000,
+  nitn = 10,
+  neval = 1000,
+  cleanstart = TRUE,
+  ...
+)
 }
 \arguments{
 \item{f}{An R function that takes a numeric vector and returns a numeric value.}
@@ -13,9 +23,15 @@ vegas_integrate(f, lower, upper, nitn = 10, neval = 1000, ...)
 
 \item{upper}{A vector of upper integration limits for each dimension, e.g. c(1.,1.1)}
 
+\item{nitn_warm}{Number of iterations for warmup}
+
+\item{neval_warm}{Number of function evaluations per iteration in warmup}
+
 \item{nitn}{Number of iterations.}
 
 \item{neval}{Number of function evaluations per iteration.}
+
+\item{cleanstart}{Logical, default TRUE means erase any stored results and include grid warmup. See details.}
 
 \item{...}{Additional arguments passed to the vegas integrator.}
 }
@@ -35,6 +51,22 @@ myf<-function(x,mu,cov){
  return(res)
  }
 
-vegas_integrate(f=myf,lower=c(-0.5,-0.5,-0.5),upper=c(0.5,0.5,0.5),mu=mu,cov=cov)
+########### Estimate integal using defaults
+########### cleanstart erases any previous results and grid
+result<-vegas_integrate(f=myf,
+                       lower=c(-5,-5,-5), upper=c(5,5,5),
+                       nitn_warm = 10, neval_warm = 1000,
+                       nitn = 5, neval = 1000,
+                       cleanstart=TRUE,
+                       mu=mu,cov=cov)
+cat("Estimate = ",result$mean," error = ",result$error,"\n")
 
+########## Add additional iterations to improve precision
+result<-vegas_integrate(f=myf,
+                        lower=c(-5,-5,-5),upper=c(5,5,5),
+                        nitn_warm = 10, neval_warm = 1000,
+                        nitn = 10, neval = 1000,
+                        cleanstart=FALSE,
+                        mu=mu,cov=cov)
+cat("New Estimate = ",result$mean," new error = ",result$error,"\n")
 }

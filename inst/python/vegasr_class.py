@@ -5,7 +5,20 @@ import math
 
 class vegasr_wrapper:
     def __init__(self):
-        self.integrators = {}
+        self.integresults = []
+
+    def clear_results(self):
+        self.integresults.clear()
+    
+    def add_results(self, integ):
+        self.integresults.append(integ)
+
+    def get_final_wt_results(self):
+        res=vegas.ravg(self.integresults)
+        return(np.array([res.mean,res.sdev]))
+    
+    def get_all_wt_results(self):
+        return(self.integresults)
 
     def create_integrator(self, bounds):
         itg = vegas.Integrator(bounds)

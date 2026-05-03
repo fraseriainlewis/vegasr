@@ -3,8 +3,11 @@
 #' @param f An R function that takes a numeric vector and returns a numeric value.
 #' @param lower A vector of lower integration limits for each dimension, e.g. c(-1.,-1.-1)
 #' @param upper A vector of upper integration limits for each dimension, e.g. c(1.,1.1)
+#' @param nitn_warm Number of iterations for warmup
+#' @param neval_warm Number of function evaluations per iteration in warmup
 #' @param nitn Number of iterations.
 #' @param neval Number of function evaluations per iteration.
+#' @param cleanstart Logical, default TRUE means erase any stored results and include grid warmup. See details.
 #' @param ... Additional arguments passed to the vegas integrator.
 #' @importFrom glue glue
 #' @examples
@@ -20,14 +23,34 @@
 #'  return(res)
 #'  }
 #'
-#' vegas_integrate(f=myf,lower=c(-0.5,-0.5,-0.5),upper=c(0.5,0.5,0.5),mu=mu,cov=cov)
+#' ########### Estimate integal using defaults
+#' ########### cleanstart erases any previous results and grid
+#' result<-vegas_integrate(f=myf,
+#'                        lower=c(-5,-5,-5), upper=c(5,5,5),
+#'                        nitn_warm = 10, neval_warm = 1000,
+#'                        nitn = 5, neval = 1000,
+#'                        cleanstart=TRUE,
+#'                        mu=mu,cov=cov)
+#' cat("Estimate = ",result$mean," error = ",result$error,"\n")
 #'
+#' ########## Add additional iterations to improve precision
+#' result<-vegas_integrate(f=myf,
+#'                         lower=c(-5,-5,-5),upper=c(5,5,5),
+#'                         nitn_warm = 10, neval_warm = 1000,
+#'                         nitn = 10, neval = 1000,
+#'                         cleanstart=FALSE,
+#'                         mu=mu,cov=cov)
+#' cat("New Estimate = ",result$mean," new error = ",result$error,"\n")
 #' @export
-vegas_integrate <- function(f, lower,upper, nitn = 10, neval = 1000, ...) {
+vegas_integrate <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000,
+                                            nitn = 10, neval = 1000, cleanstart=TRUE,
+                                            ...) {
 
   if (is.null(getOption("vegas_initialized"))) {
     vegas_initialize()
   }
+
+  run_checks() # empty - to be completed - named argument checks etc
 
   # conversion. Important because R uses fortran col-order
   # scoping matters - r_to_py() has auto conversion but does not scope inside function calls
@@ -41,8 +64,15 @@ vegas_integrate <- function(f, lower,upper, nitn = 10, neval = 1000, ...) {
   main$Rlower<-as.numeric(lower)
   main$Rupper<-as.numeric(upper)
 
+  main$cleanstart<-as.logical((cleanstart[1]))
+
+  main$nitn_warm<-as.integer((nitn_warm[1]))
+  main$neval_warm<-as.integer((neval_warm[1]))
+  main$nitn<-as.integer((nitn[1]))
+  main$neval<-as.integer((neval[1]))
+
   if (length(list(...)) > 0){
-    cat("parsing additional arguments\n")
+    #cat("parsing additional arguments\n")
     m<-length(list(...));
     args<-list(...)
     noms<-names(args)
@@ -51,7 +81,7 @@ vegas_integrate <- function(f, lower,upper, nitn = 10, neval = 1000, ...) {
       vegasr_pyassign(noms[i],args[[i]])
 
     }
-    cat("names of extra args=\n");print(noms);cat("\n")
+    #cat("names of extra args=\n");print(noms);cat("\n")
   }
 
 
@@ -72,7 +102,7 @@ stringpart<-glue::glue('
 
 ## this decorator is using (BATCH,dim) - C-row-order
 @vegas.lbatchintegrand
-def ff({str2}):
+def r_func_lbatch({str2}):
   #print(x.shape)
   return r_func({str2})
 
@@ -82,7 +112,7 @@ class vegasHelper:
 {str5}
 
     def __call__(self, theta):
-        return(r_func(theta,{str4}))
+        return(r_func_lbatch(theta,{str4}))
 
 #newf = vegasHelper(y=y,z=z) # str1
 newf = vegasHelper({str1})
@@ -92,11 +122,15 @@ lower = np.array(Rlower,dtype=np.float64)
 upper = np.array(Rupper,dtype=np.float64)
 
 # Initialize the integrator
-integ2 = vegas.Integrator([[l, u] for l, u in zip(lower, upper)])
-# Adaptation phase
-integ2(newf, nitn=10, neval=1000)
-# Final integration
-result2 = integ2(newf, nitn=10, neval=1000)
+if cleanstart:
+    vegas_obj.clear_results()
+    integ2 = vegas.Integrator([[l, u] for l, u in zip(lower, upper)])
+    # Adaptation phase # no results stored
+    integ2(newf, nitn=nitn_warm, neval=neval_warm)
+
+# integration storing interative results, still potentially adapting grid
+result2 = integ2(newf, nitn=nitn, neval=neval)
+vegas_obj.add_results(result2) # save into object
 #print(result2.summary())
 ',.trim=FALSE)
 
@@ -105,8 +139,15 @@ bigstring<-paste(stringpart,sep="")
 reticulate::py_run_string(bigstring)
 main <- reticulate::import_main(convert = FALSE)
 cat(reticulate::py_to_r(main$result2$summary()))
+#return(main$vegas_obj)
+summary_res<-reticulate::py_to_r(main$vegas_obj$get_final_wt_results())
+names(summary_res)<-c("mean","error")
+summary_res<-as.list(summary_res)
+return(summary_res)
 
+# py$vegas$ravg(a$get_results())
 #return(results)
+#a$get_wt_result()
 
 }
 
