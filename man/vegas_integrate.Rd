@@ -2,7 +2,7 @@
 % Please edit documentation in R/vegas_integrate.R
 \name{vegas_integrate}
 \alias{vegas_integrate}
-\title{Multidimensional Integration using Vegas}
+\title{Multidimensional Integration using Vegas+}
 \usage{
 vegas_integrate(
   f,
@@ -18,31 +18,48 @@ vegas_integrate(
 )
 }
 \arguments{
-\item{f}{An R function that takes a numeric vector and returns a numeric value.}
+\item{f}{An R function that takes a matrix and returns a vector. See details and examples.}
 
 \item{lower}{A vector of lower integration limits for each dimension, e.g. c(-1.,-1.-1)}
 
 \item{upper}{A vector of upper integration limits for each dimension, e.g. c(1.,1.1)}
 
-\item{nitn_warm}{Number of iterations for warmup}
+\item{nitn_warm}{Number of iterations for Vegas warmup}
 
 \item{neval_warm}{Number of function evaluations per iteration in warmup}
 
-\item{nitn}{Number of iterations.}
+\item{nitn}{Number of iterations post-warmup.}
 
-\item{neval}{Number of function evaluations per iteration.}
+\item{neval}{Number of function evaluations per iteration post-warmup.}
 
-\item{errTol}{the \% error default is 1, error is 1\% of estimated integral value}
+\item{errTol}{the \% error target, default is 1, i.e. error is 1\% of current estimated integral value}
 
-\item{maxIter}{max iters to run}
+\item{maxIter}{max number of iteration blocks to run to achieve errTol. Each block comprises nitn iterations.}
 
-\item{...}{Additional arguments passed to the vegas integrator.}
+\item{...}{Additional arguments passed to the function f. These must be numeric vectors or matrices. See details.}
 }
 \description{
-Multidimensional Integration using Vegas
+An R wrapper for the Python numerical integration library vegas. This allows integrals defined as R functions to be passed to the python library for computation. Some minimal requirements apply to the functions. See Details.
+}
+\details{
+The \href{https://pypi.org/project/vegas/}{vegas} Python library implements the 2020 VEGAS+ adaptive Monte Carlo numerical integration algorithm.
+This is update of the original vegas algorithm from 1978 and by the original author G. P. Lepage, who also maintains the Python library. This library is a thin R wrapper making the key functions accessible from R.
+For more information on the Vegas algorithm, visit \url{https://vegas.readthedocs.io/} and the VEGAS+ arXiv article is \href{https://arxiv.org/abs/2009.05112}{here}.
+
+The R function passed defines an integral and its structure and arguments need to meet some minimum requirements:
+
+\itemize{
+\item The first argument passed to the R function from Python vegas will be a numerical matrix of shape \code{[BATCH,Dim]}, and vegas will expect back a numerical vector of length Dim. Each row in the matrix is a single set of values of the integration variables, e.g. for a 5-D integrand then this matrix must have 5 columns. Reticulate takes care of conversion between R and Python matrices and vectors but the dimensions must be as described.
+\item Additional named arguments can be passed and these should always be matrix() objects, with integers converted to float (or have trailing period added to avoi ambiguity)
+\item  If an additional argument is a scalar, say svalue, then use mvalue<-matrix(data=c(svalue,nrow=1), coercing to float first if necessary, and in the R function use \code{mvalue[1]}.
+}
 }
 \examples{
 \dontrun{
+library(vegasr)
+vegas_initialize() # only needed once per session
+
+### EXAMPLE 1 - use of additional matrix arguments
 library(mvtnorm)
 mu<-matrix(c(0.5, -0.2, 0.1),nrow=1)
 cov<-matrix(data=c(
@@ -55,17 +72,53 @@ myf<-function(x,mu,cov){
  return(res)
  }
 
-########### Estimate integal using defaults
-########### cleanstart erases any previous results and grid
 result<-vegas_integrate(f=myf,
-                       lower=c(-5,-5,-5), upper=c(5,5,5),
-                       nitn_warm = 10, neval_warm = 1000,
-                       nitn = 5, neval = 1000,
-                       errTol=1,maxIter=5,
-                       mu=mu,cov=cov)
-cat("Estimate = ",result$mean," error = ",result$error,
-    "Met error tolerance =",result$metTolerance,"\n")
+                        lower=c(-5,-5,-5), upper=c(5,5,5),
+                        nitn_warm = 10, neval_warm = 10000,
+                        nitn = 10, neval = 10000,
+                        errTol=0.1,maxIter=20,
+                        mu=mu,cov=cov)
+print(result)
+# mean should be very close to 0.999 and error close to 0.005
+
+########### Estimate 5-D integral with known solution to check correctness
+# define integrand
+gaus<-function(x,alpha){
+       # x shape is (batch, dim)
+       # alpha is scalar - note the alpha[1] below
+       # Compute sum of squared differences from 0.5
+       dx2 = apply((x-0.5)**2,1,sum)
+       return(exp(-alpha[1] * dx2))
+ }
+ # check function will work with matrix argument and return vector
+ myx<-matrix(data=rep(0.7,10),ncol=5) # 2 row 5 col
+ alpha<-matrix(data=c(1.),nrow=1) # scalar stored in matrix
+ print(gaus(x=myx,alpha=alpha)) # should return vector of length 2
+
+ # compute Vegas estimate
+ result2<-vegas_integrate(f=gaus,lower=rep(0,5), upper=rep(1,5),
+ nitn_warm = 10, neval_warm = 10000, nitn = 5, neval = 10000,
+ errTol=0.01,maxIter=100,
+ alpha=alpha)
+ print(result2)
+
+ #compute known numerical result
+ alpha<-matrix(data=c(1.),nrow=1)
+ erf<-function(x){return(2 * pnorm(x * sqrt(2)) - 1)}
+ oneD<-sqrt(pi / alpha[1]) * erf(sqrt(alpha[1]) / 2.0)
+ true.val<-oneD**5
+ print(true.val)
+ cat("Vegas =",result2$mean," known estimate =",true.val,"\n")
+
+}
+
 
 
 }
+\references{
+G. P. Lepage, “A New Algorithm for Adaptive Multidimensional Integration” J. Comp. Phys. 27, 192–203 (1978).
+
+G. P. Lepage, “Adaptive multidimensional integration: vegas enhanced” J. Comp. Phys. 439 (2021) 110386.
+
+\url{https://doi.org/10.1016/j.jcp.2021.110386}
 }
