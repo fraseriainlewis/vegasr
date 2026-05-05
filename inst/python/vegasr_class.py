@@ -6,6 +6,7 @@ import math
 class vegasr_wrapper:
     def __init__(self):
         self.integresults = []
+        self.success = True
 
     def clear_results(self):
         self.integresults.clear()
@@ -19,6 +20,9 @@ class vegasr_wrapper:
     
     def get_all_wt_results(self):
         return(self.integresults)
+
+
+
 
     def create_integrator(self, bounds):
         itg = vegas.Integrator(bounds)

@@ -7,10 +7,14 @@
 #' @param neval_warm Number of function evaluations per iteration in warmup
 #' @param nitn Number of iterations.
 #' @param neval Number of function evaluations per iteration.
-#' @param cleanstart Logical, default TRUE means erase any stored results and include grid warmup. See details.
+#' @param errTol  the % error default is 1, error is 1% of estimated integral value
+#' @param maxIter max iters to run
 #' @param ... Additional arguments passed to the vegas integrator.
 #' @importFrom glue glue
 #' @examples
+#' \dontrun{
+#' library(vegasr)
+#' vegas_initialize()
 #' library(mvtnorm)
 #' mu<-matrix(c(0.5, -0.2, 0.1),nrow=1)
 #' cov<-matrix(data=c(
@@ -29,21 +33,16 @@
 #'                        lower=c(-5,-5,-5), upper=c(5,5,5),
 #'                        nitn_warm = 10, neval_warm = 1000,
 #'                        nitn = 5, neval = 1000,
-#'                        cleanstart=TRUE,
+#'                        errTol=1,maxIter=5,
 #'                        mu=mu,cov=cov)
-#' cat("Estimate = ",result$mean," error = ",result$error,"\n")
+#' cat("Estimate = ",result$mean," error = ",result$error,
+#'     "Met error tolerance =",result$metTolerance,"\n")
 #'
-#' ########## Add additional iterations to improve precision
-#' result<-vegas_integrate(f=myf,
-#'                         lower=c(-5,-5,-5),upper=c(5,5,5),
-#'                         nitn_warm = 10, neval_warm = 1000,
-#'                         nitn = 10, neval = 1000,
-#'                         cleanstart=FALSE,
-#'                         mu=mu,cov=cov)
-#' cat("New Estimate = ",result$mean," new error = ",result$error,"\n")
+#'
+#' }
 #' @export
 vegas_integrate <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000,
-                                            nitn = 10, neval = 1000, cleanstart=TRUE,
+                                            nitn = 10, neval = 1000, errTol=1,maxIter=5,
                                             ...) {
 
   if (is.null(getOption("vegas_initialized"))) {
@@ -52,7 +51,7 @@ vegas_integrate <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000,
 
   run_checks() # empty - to be completed - named argument checks etc
 
-  # conversion. Important because R uses fortran col-order
+  # conversion. Important because R uses Fortran col-order
   # scoping matters - r_to_py() has auto conversion but does not scope inside function calls
   # so import_main is needed, but this only maps references and so conversion needed, e.g. py_func below
   # whereas python uses C row-order. e.g. so in the example
@@ -64,12 +63,15 @@ vegas_integrate <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000,
   main$Rlower<-as.numeric(lower)
   main$Rupper<-as.numeric(upper)
 
-  main$cleanstart<-as.logical((cleanstart[1]))
+  #main$cleanstart<-as.logical((cleanstart[1]))
 
   main$nitn_warm<-as.integer((nitn_warm[1]))
   main$neval_warm<-as.integer((neval_warm[1]))
   main$nitn<-as.integer((nitn[1]))
   main$neval<-as.integer((neval[1]))
+
+  main$RmaxIter<-as.integer((maxIter[1]))
+  main$RerrTol<-as.numeric((errTol[1]))
 
   if (length(list(...)) > 0){
     #cat("parsing additional arguments\n")
@@ -77,7 +79,7 @@ vegas_integrate <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000,
     args<-list(...)
     noms<-names(args)
     for(i in 1:m){
-      print(args[[i]])
+      #print(args[[i]])
       vegasr_pyassign(noms[i],args[[i]])
 
     }
@@ -121,28 +123,43 @@ newf = vegasHelper({str1})
 lower = np.array(Rlower,dtype=np.float64)
 upper = np.array(Rupper,dtype=np.float64)
 
-# Initialize the integrator
-if cleanstart:
-    vegas_obj.clear_results()
-    integ2 = vegas.Integrator([[l, u] for l, u in zip(lower, upper)])
-    # Adaptation phase # no results stored
-    integ2(newf, nitn=nitn_warm, neval=neval_warm)
+# Start from clean slate and run warm-up
+vegas_obj.clear_results()
+integ2 = vegas.Integrator([[l, u] for l, u in zip(lower, upper)])
+# Adaptation phase # no results stored
+integ2(newf, nitn=nitn_warm, neval=neval_warm)
 
-# integration storing interative results, still potentially adapting grid
-result2 = integ2(newf, nitn=nitn, neval=neval)
-vegas_obj.add_results(result2) # save into object
-#print(result2.summary())
+# now decide how many update blocks to run, if errTol=NULL
+# then run maxIter blocks, if errTol is not null then run until error hit
+i=0
+iMax=RmaxIter
+vegas_obj.success=True
+while (i==0) or (ests[1]>((RerrTol/100)*ests[0]) and i<iMax):
+    # integration storing interative results, still potentially adapting grid
+    result2 = integ2(newf, nitn=nitn, neval=neval)
+    vegas_obj.add_results(result2) # save into object
+    ests=vegas_obj.get_final_wt_results() # get the current overall estimate and error
+
+    #print(i)
+    #print(ests)
+    #print(result2.summary())
+    i+=1
+
+if ests[1]>((RerrTol/100)*ests[0]):
+    vegas_obj.success=False
+
 ',.trim=FALSE)
 
 bigstring<-paste(stringpart,sep="")
 #  return(bigstring)
 reticulate::py_run_string(bigstring)
 main <- reticulate::import_main(convert = FALSE)
-cat(reticulate::py_to_r(main$result2$summary()))
+#cat(reticulate::py_to_r(main$result2$summary())) #
 #return(main$vegas_obj)
 summary_res<-reticulate::py_to_r(main$vegas_obj$get_final_wt_results())
-names(summary_res)<-c("mean","error")
-summary_res<-as.list(summary_res)
+tolSuccess<-reticulate::py_to_r(main$vegas_obj$success)
+summary_res<-as.list(c(summary_res,tolSuccess))
+names(summary_res)<-c("mean","error","metTolerance")
 return(summary_res)
 
 # py$vegas$ravg(a$get_results())

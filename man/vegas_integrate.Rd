@@ -12,7 +12,8 @@ vegas_integrate(
   neval_warm = 1000,
   nitn = 10,
   neval = 1000,
-  cleanstart = TRUE,
+  errTol = 1,
+  maxIter = 5,
   ...
 )
 }
@@ -31,7 +32,9 @@ vegas_integrate(
 
 \item{neval}{Number of function evaluations per iteration.}
 
-\item{cleanstart}{Logical, default TRUE means erase any stored results and include grid warmup. See details.}
+\item{errTol}{the \% error default is 1, error is 1\% of estimated integral value}
+
+\item{maxIter}{max iters to run}
 
 \item{...}{Additional arguments passed to the vegas integrator.}
 }
@@ -39,6 +42,7 @@ vegas_integrate(
 Multidimensional Integration using Vegas
 }
 \examples{
+\dontrun{
 library(mvtnorm)
 mu<-matrix(c(0.5, -0.2, 0.1),nrow=1)
 cov<-matrix(data=c(
@@ -57,16 +61,11 @@ result<-vegas_integrate(f=myf,
                        lower=c(-5,-5,-5), upper=c(5,5,5),
                        nitn_warm = 10, neval_warm = 1000,
                        nitn = 5, neval = 1000,
-                       cleanstart=TRUE,
+                       errTol=1,maxIter=5,
                        mu=mu,cov=cov)
-cat("Estimate = ",result$mean," error = ",result$error,"\n")
+cat("Estimate = ",result$mean," error = ",result$error,
+    "Met error tolerance =",result$metTolerance,"\n")
 
-########## Add additional iterations to improve precision
-result<-vegas_integrate(f=myf,
-                        lower=c(-5,-5,-5),upper=c(5,5,5),
-                        nitn_warm = 10, neval_warm = 1000,
-                        nitn = 10, neval = 1000,
-                        cleanstart=FALSE,
-                        mu=mu,cov=cov)
-cat("New Estimate = ",result$mean," new error = ",result$error,"\n")
+
+}
 }
