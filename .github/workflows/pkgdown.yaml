@@ -37,9 +37,9 @@ jobs:
       - name: Build site (articles pre-built locally)
         run: |
           pkgdown::init_site()
-          pkgdown::build_home(new_process = FALSE, install = FALSE)
-          pkgdown::build_reference(new_process = FALSE)
-          pkgdown::build_news(new_process = FALSE)
+          pkgdown::build_home()
+          pkgdown::build_reference()
+          pkgdown::build_news()
         shell: Rscript {0}
 
       - name: Deploy to GitHub pages 🚀
