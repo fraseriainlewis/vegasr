@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# vegasr
+# vegasr <img src="man/figures/logo.png" align="right" width="200"/>
 
 <!-- badges: start -->
 
@@ -78,10 +78,10 @@ result<-vegas_integrate(f=myf,
 #> 0
 print(result)
 #> $mean
-#> [1] 1.000134
+#> [1] 0.9993956
 #> 
 #> $error
-#> [1] 0.0005660864
+#> [1] 0.0005678474
 #> 
 #> $metTolerance
 #> [1] 1
@@ -133,14 +133,14 @@ result2<-vegas_integrate(f=gaus,
 #> 0
 print(result2)
 #> $mean
-#> [1] 0.6683469
+#> [1] 0.6683124
 #> 
 #> $error
-#> [1] 4.875857e-05
+#> [1] 4.795281e-05
 #> 
 #> $metTolerance
 #> [1] 1
 
 cat("using pnorm() = ", true.val, " using vegas = ", result2$mean,"\n")
-#> using pnorm() =  0.6683098  using vegas =  0.6683469
+#> using pnorm() =  0.6683098  using vegas =  0.6683124
 ```
