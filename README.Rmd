@@ -2,8 +2,6 @@
 output: github_document
 ---
 
-<img src="man/figures/logo.png" align="right" width="300"/>
- 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r, include = FALSE}
@@ -26,7 +24,7 @@ The vegas algorithm performs efficient Monte Carlo integration for integrals of 
 
 ## Installation
 
-An essential pre-requisite is Python must be available.
+An essential pre-requisite is Python must be available. The repo is [here](https://github.com/fraseriainlewis/vegasr)
 
 You can install the development version of vegasr from [GitHub](https://github.com/) with:
 
@@ -81,6 +79,10 @@ print(result)
 # Example 2
 This example is 5 dimensions and has a known numerical solution as a validation check. 
 ```{r example2}
+library(vegasr)
+## Important - run next line in each R session to ensure python is ready
+vegas_initialize()
+
 # 5-D Gaussian density
 
 # true numerical value using pnorm()

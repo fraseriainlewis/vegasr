@@ -1,6 +1,4 @@
 
-<img src="man/figures/logo.png" align="right" width="300"/>
-
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # vegasr
@@ -26,7 +24,8 @@ algorithm. For the original vegas article see J. Comput. Phys. 27 (1978)
 
 ## Installation
 
-An essential pre-requisite is Python must be available.
+An essential pre-requisite is Python must be available. The repo is
+[here](https://github.com/fraseriainlewis/vegasr)
 
 You can install the development version of vegasr from
 [GitHub](https://github.com/) with:
@@ -79,10 +78,10 @@ result<-vegas_integrate(f=myf,
 #> 0
 print(result)
 #> $mean
-#> [1] 1.000369
+#> [1] 1.000134
 #> 
 #> $error
-#> [1] 0.0005739065
+#> [1] 0.0005660864
 #> 
 #> $metTolerance
 #> [1] 1
@@ -95,6 +94,12 @@ This example is 5 dimensions and has a known numerical solution as a
 validation check.
 
 ``` r
+library(vegasr)
+## Important - run next line in each R session to ensure python is ready
+vegas_initialize()
+#> vegas is already initialized
+#> NULL
+
 # 5-D Gaussian density
 
 # true numerical value using pnorm()
@@ -128,14 +133,14 @@ result2<-vegas_integrate(f=gaus,
 #> 0
 print(result2)
 #> $mean
-#> [1] 0.6682302
+#> [1] 0.6683469
 #> 
 #> $error
-#> [1] 4.738901e-05
+#> [1] 4.875857e-05
 #> 
 #> $metTolerance
 #> [1] 1
 
 cat("using pnorm() = ", true.val, " using vegas = ", result2$mean,"\n")
-#> using pnorm() =  0.6683098  using vegas =  0.6682302
+#> using pnorm() =  0.6683098  using vegas =  0.6683469
 ```
