@@ -3,21 +3,20 @@
 // [[Rcpp::plugins(cpp14)]]
 
 //' Multivariate Normal Density (RcppArmadillo)
- //'
- //' @param x   Matrix of integration variables (BATCH x N)
- //' @param mu  Mean vector (length N)
- //' @param sigma Covariance matrix (N x N)
- //' @return Numeric vector of density values (length BATCH)
- // [[Rcpp::export]]
- arma::vec dmvnorm_arma(const arma::mat& x,
+//'
+//' @param x   Matrix of integration variables (BATCH x N)
+//' @param mu  Mean vector (length N)
+//' @param sigma Covariance matrix (N x N)
+//' @return Numeric vector of density values (length BATCH)
+// [[Rcpp::export]]
+arma::vec dmvnorm_arma(const arma::mat& x,
                         const arma::vec& mu,
-                        const arma::mat& sigma) {
-
+                        const arma::mat& cov) {
    //const int BATCH = x.n_rows;
    const int N = x.n_cols;
 
    // Cholesky decomposition: sigma = U^T * U, U upper triangular
-   arma::mat U = arma::chol(sigma);
+   arma::mat U = arma::chol(cov);
 
    // log|sigma| = 2 * sum(log(diag(U)))
    double log_det = 2.0 * arma::sum(arma::log(U.diag()));

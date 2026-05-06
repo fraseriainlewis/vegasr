@@ -113,6 +113,7 @@ vegas_integrate <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000,
   main <- reticulate::import_main(convert = FALSE)
   main$r_func <- reticulate::py_func(f)
 
+
   main$Rlower<-as.numeric(lower)
   main$Rupper<-as.numeric(upper)
 
@@ -143,6 +144,7 @@ vegas_integrate <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000,
 # 1. find ou
 str1<-paste(paste(paste(noms,"=",sep=""),noms,sep=""),collapse=",") # y=y,z=z
 str2<-paste(c("x",noms),collapse=",") # x,y,z
+str2b<-paste(c("x_copy",noms),collapse=",") # x_copy,y,z
 str3<-paste(c(noms),collapse=",") # y,z
 str4<-paste(paste("self",noms,sep="."),collapse=",") # self.y, self.z
 str5<-paste(paste(paste("        self",noms,sep="."),"=",noms),collapse="\n") # self.y=y\nself.z=y
@@ -159,7 +161,16 @@ stringpart<-glue::glue('
 @vegas.lbatchintegrand
 def r_func_lbatch({str2}):
   #print(x.shape)
-  return r_func({str2})
+  #
+  #print("here")
+  #return r_func({str2})
+  #return r_func(x.copy(),mu.copy(),cov.copy())
+  #return r_func(x.tolist(), mu.tolist(), cov.tolist())
+  x_copy = np.array(x, dtype=np.float64, copy=True)
+  res=np.array(r_func({str2b})) #(x_copy, mu, cov))
+  #print(f"shape={{res.shape}} and object itself is={{res}}")
+  return res
+
 
 @vegas.lbatchintegrand
 class vegasHelper:
@@ -193,7 +204,7 @@ while (i==0) or (ests[1]>((RerrTol/100)*ests[0]) and i<iMax):
     vegas_obj.add_results(result2) # save into object
     ests=vegas_obj.get_final_wt_results() # get the current overall estimate and error
 
-    #print(i)
+    print(i)
     #print(ests)
     #print(result2.summary())
     i+=1
@@ -204,7 +215,7 @@ if ests[1]>((RerrTol/100)*ests[0]):
 ',.trim=FALSE)
 
 bigstring<-paste(stringpart,sep="")
-#  return(bigstring)
+#return(bigstring)
 reticulate::py_run_string(bigstring)
 main <- reticulate::import_main(convert = FALSE)
 #cat(reticulate::py_to_r(main$result2$summary())) #

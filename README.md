@@ -1,4 +1,6 @@
 
+<img src="man/figures/logo.png" align="right" width="300"/>
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # vegasr
@@ -7,7 +9,20 @@
 
 <!-- badges: end -->
 
-The goal of vegasr is to …
+Vegasr is an R library for **multi-dimensional numerical integration**.
+It is a thin wrapper around the Python
+[vegas](https://vegas.readthedocs.io/en/latest/index.html) library which
+was developed and maintained by the author of the vegas algorithm, G. P.
+Lepage. The purpose of this library is to allow ready access to the
+latest [vegas+](https://arxiv.org/abs/2009.05112) algorithm from R.
+
+The vegas algorithm performs efficient Monte Carlo integration for
+integrals of modest to high dimension where cubature or hcubature
+methods are practically infeasible. The
+[vegas+](https://arxiv.org/abs/2009.05112) algorithm is a more efficient
+recent variant of the same author’s original and widely used vegas
+algorithm. For the original vegas article see J. Comput. Phys. 27 (1978)
+192 and for later vegas+ see J. Comput. Phys. 439 (2021) 110386)
 
 ## Installation
 

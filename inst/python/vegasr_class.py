@@ -2,6 +2,7 @@ import vegas
 import numpy as np
 import json
 import math
+import gvar
 
 class vegasr_wrapper:
     def __init__(self):
@@ -16,7 +17,8 @@ class vegasr_wrapper:
 
     def get_final_wt_results(self):
         res=vegas.ravg(self.integresults)
-        return(np.array([res.mean,res.sdev]))
+        #return(np.array([res.mean,res.sdev])) # if r_func() return array this does not work
+        return np.array([gvar.mean(res), gvar.sdev(res)])  # works for both RAvg and RAvgArray
     
     def get_all_wt_results(self):
         return(self.integresults)
