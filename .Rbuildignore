@@ -3,3 +3,9 @@
 ^LICENSE\.md$
 ^vegasr\.Rcheck$
 ^\.git$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^\.github$
+^doc$
+^Meta$
