@@ -26,43 +26,116 @@ algorithm. For the original vegas article see J. Comput. Phys. 27 (1978)
 
 ## Installation
 
+An essential pre-requisite is Python must be available.
+
 You can install the development version of vegasr from
 [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("pak")
 pak::pak("fraseriainlewis/vegasr")
+vegas_install() # this is needed in addition to install python environment
 ```
 
-## Example
+## Example 1
 
-This is a basic example which shows you how to solve a common problem:
+This is a basic example to show the integrand function structure and
+core functionality.
 
 ``` r
 library(vegasr)
-## basic example code
+## Important - run next line in each R session to ensure python is ready
+vegas_initialize()
+#> successfully initialized vegas version: 6.4.1
+
+# Use simple example of 3-D Multivariate Normal Density
+library(mvtnorm) 
+mu<-matrix(c(0.5, -0.2, 0.1),nrow=1) 
+cov<-matrix(data=c(
+                 1.0, 0.5, 0.2,
+                 0.5, 1.2, 0.3,
+                 0.2, 0.3, 0.8),ncol=3,byrow=FALSE)
+
+# the integrand function MUST take a matrix of dimension [BATCH,M] as first 
+# argument and return a vector of length M. Another other additional 
+# named arguments allowed. See ?vegas_integrate for more details.
+
+myf<-function(x,mu,cov){
+  res<-dmvnorm(x,mean = mu,sigma=cov)
+  return(res)
+  }
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
+Now run the vegas+ algorithm to achieve a tolerance of 0.1% error.
 
 ``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
+## See help page for descriptions of warm and nitn and neval.
+result<-vegas_integrate(f=myf,
+                        lower=c(-5,-5,-5), upper=c(5,5,5),
+                        nitn_warm = 10, neval_warm = 10000,
+                        nitn = 10, neval = 10000,
+                        errTol=0.1,maxIter=20,
+                        mu=mu,cov=cov) # these are additional arguments needed for myf
+#> 0
+print(result)
+#> $mean
+#> [1] 1.000369
+#> 
+#> $error
+#> [1] 0.0005739065
+#> 
+#> $metTolerance
+#> [1] 1
+#cat("Estimate = ",result$mean," error = ",result$error,"\n")
 ```
 
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date. `devtools::build_readme()` is handy for this.
+# Example 2
 
-You can also embed plots, for example:
+This example is 5 dimensions and has a known numerical solution as a
+validation check.
 
-<img src="man/figures/README-pressure-1.png" width="100%" />
+``` r
+# 5-D Gaussian density
 
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub and CRAN.
+# true numerical value using pnorm()
+alpha<-matrix(data=c(1.),nrow=1)
+erf<-function(x){return(2 * pnorm(x * sqrt(2)) - 1)}
+oneD<-sqrt(pi / alpha[1]) * erf(sqrt(alpha[1]) / 2.0)
+true.val<-oneD**5
+print(true.val)
+#> [1] 0.6683098
+
+# now define custom integrand
+gaus<-function(x,alpha){
+  # x shape is (batch, dim)
+  # Compute sum of squared differences from 0.5
+  dx2 = apply((x-0.5)**2,1,sum)
+  return(exp(-alpha[1] * dx2))
+}
+
+# check that gaus(x,alpha) does work with the correct shapes
+myx<-matrix(data=rep(0.7,10),ncol=5) # 2 row 5 col
+gaus(x=myx,alpha=alpha) # returns length 2 vector
+#> [1] 0.8187308 0.8187308
+
+# now do the Vegas estimation
+result2<-vegas_integrate(f=gaus,
+                        lower=rep(0,5), upper=rep(1,5),
+                        nitn_warm = 10, neval_warm = 10000,
+                        nitn = 5, neval = 10000,
+                        errTol=0.01,maxIter=100,
+                        alpha=alpha)
+#> 0
+print(result2)
+#> $mean
+#> [1] 0.6682302
+#> 
+#> $error
+#> [1] 4.738901e-05
+#> 
+#> $metTolerance
+#> [1] 1
+
+cat("using pnorm() = ", true.val, " using vegas = ", result2$mean,"\n")
+#> using pnorm() =  0.6683098  using vegas =  0.6682302
+```

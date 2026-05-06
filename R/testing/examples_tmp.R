@@ -10,7 +10,7 @@ cov<-matrix(data=c(
                  0.2, 0.3, 0.8),ncol=3,byrow=FALSE)
 
 myf<-function(x,mu,cov){
-  res<-dmvnorm(x,mean = mu,cov=cov)
+  res<-dmvnorm(x,mean = mu,sigma=cov)
   return(res)
   }
 
