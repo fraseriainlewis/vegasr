@@ -18,5 +18,6 @@ Imports:
 Suggests: 
     knitr,
     mvtnorm,
-    rmarkdown
+    rmarkdown,
+    extraDistr
 VignetteBuilder: knitr

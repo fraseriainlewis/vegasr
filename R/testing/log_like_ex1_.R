@@ -1,5 +1,3 @@
-
-#### 1. setup the data
 ### setup data set
 rm(list=ls())
 library(extraDistr)

@@ -1,0 +1,241 @@
+---
+title: "Bayesian Logistic Regression"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+vignette: >
+  %\VignetteIndexEntry{Two-arm trial TFP v RStan}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+# Check if running on GitHub Actions
+# This is important as otherwise Github will attempt to build this and it's missing the python libraries and will fail
+#on_github <- Sys.getenv("GITHUB_ACTIONS") == "true"
+
+# If on GitHub, set eval = FALSE for all subsequent chunks
+#knitr::opts_chunk$set(eval = !on_github)
+
+```
+
+### Quickstart
+tbc
+
+## Model Formulation
+
+The model implemented here is a non-centered parameterization (helps improve MCMC sampling) for a logistic model.
+
+$$
+\begin{aligned}
+\mu_0 &\sim \text{Normal}(0, 2.5)\\
+\sigma_0 &\sim \text{Half-Normal}(0, 2.5) \\
+\mu_1 &\sim \text{Normal}(0, 2.5) \\
+\sigma_1 &\sim \text{Half-Normal}(0, 2.5) \\
+\tilde{\theta}_j &\sim \text{Normal}(0, 1)\quad\enspace\text{for}\enspace{j=1,2}  \\
+\beta_0 &= \mu_0 + \sigma_0 \tilde{\theta}_1 \\
+\beta_1 &= \mu_1 + \sigma_1 \tilde{\theta}_2 \\
+\text{logit(}{p_i}) &= \beta_0 + \beta_1 z_i\quad\quad\enspace\enspace\text{for}\enspace{i=1,\dots,N}  \\
+y_i &\sim \text{Bernoulli}(p_i)
+\end{aligned}
+$$
+When using direct integration via Vegas we don't need the non-centered parameterization:
+
+$$
+\begin{aligned}
+\beta_0 &\sim \text{Normal}(\mu_0, \sigma_0) \\
+\beta_1 &\sim \text{Normal}(\mu_1, \sigma_1) \\
+\end{aligned}
+$$
+## Data set
+
+The R chunk below creates a simple dataset of three cols:
+
+-   a binary response variable y (0/1 = non-responder/responder),
+-   a (dummy) basket ID variable (=1)
+-   a binary treatment variable (0/1 = control/test treatment)
+
+The basket ID is currently set fixed at 1, denoting there is only one basket in this trial, i.e. a classical two arm randomized trial design. Baskets will be added in other vignettes.
+
+```{r datasets, include=TRUE,eval=TRUE}
+### Prepare model inputs
+set.seed(99999)
+# Set up data
+rr_k_ctrl <- c(0.20)        # control response rate for each basket
+rr_k_trt <- c(0.40)         # treatment response rate for each basket
+
+K<-length(rr_k_ctrl)        # number of baskets
+
+N_k_ctrl <- rep(100, K)     # number of control participants per basket
+N_k_trt <- rep(100, K)      # number of treatment participants per basket
+N_k <- N_k_ctrl + N_k_trt   # number of participants per basket (both arms combined)
+N <- sum(N_k)               # total sample size
+k_vec <- rep(1:K, N_k)      # N x 1 vector of basket indicators (1 to K)
+
+z_vec<-NULL;
+y<-NULL;
+for(i in 1:K){ # for each basket repeat 0-control 1-trt according to the specifc Ns
+  z_vec<-c(z_vec,rep(0:1,c(N_k_ctrl[i],N_k_trt[i]))) # treatment/control indicator
+  y<-c(y,
+       c(rbinom(N_k_ctrl[i],1,rr_k_ctrl[i]), # bernoulli for control
+         rbinom(N_k_trt[i],1,rr_k_trt[i]))) #           for trt
+}
+
+thedata<-data.frame(y,basketID=k_vec,Treatment=z_vec)
+
+```
+
+
+## 1. Construct Log Posterior Function 
+
+To use direct integration in Vegas the key parts are:
+
+-  define the prior density functions
+-  define the log likelihood + log priors
+
+In addition, we also implement a **change of variables** to deal with the range of integration going to $\infty$. This means we integrate over transformed variables (see below) which have finite bounds. As we are changing variables then this requires the usual Jacobian adjustment to the function being integrated to ensure the volume being computed is equivalent to that on the original scale.
+
+To map a variable $t\in(-1,1)$ to $x\in(-\infty,\infty)$ we can use the following function and it's Jacobian (J):
+$$
+\begin{aligned}
+x&=&\frac{t}{1-t^2} \\
+\\
+\enspace\text{where } \quad\enspace J &=& \frac{1+t^2}{(1-t^2)^2}
+\end{aligned}
+$$
+
+The function below `compute_log_lik(theta, y,T)` is necessary to compute the overall standardization constant - the constant which ensures the posterior density integrates to unity - and the integration here is over all parameters in the model. We work in log scale as much as possible and a scaling ``trick'' is used to help avoid numerical overflow. These technical numerical details can be found in the full quarto file.  
+
+```{r logpos,include=TRUE,eval=TRUE}
+library(extraDistr)
+
+# response
+y<-matrix(data=as.numeric(thedata$y),ncol=1)
+# treatment
+treat<-matrix(data=as.numeric(thedata$Treatment),ncol=1)
+# matrix of samole parameter values - nrow is batch, ncol is model dimension
+dummytheta<-matrix(data=c(-0.11,-0.13,0.15,0.11,0.051,0.052,
+                          -0.12,-0.1,0.17,0.12,0.052,0.051,
+                          -0.13,-0.11,0.11,0.19,0.053,0.054
+                          ),ncol=6,byrow=TRUE)
+
+## Define log posterior inclding change of variables
+r_compute_log_lik<-function(theta,   # matrix Batch x M
+                            y,       # matrix N x 1
+                            treat,   # matrix N x 1
+                            scaling, # scalar
+                            s        # scalar  
+                            ){
+
+  # this is a trimming function to avoid extreme end of integral limits, 
+  # same as -inf,+inf 
+  theta0=pmin(pmax(theta[,1], -0.9999), 0.9999)
+  theta1=pmin(pmax(theta[,2], -0.9999), 0.9999)
+  theta2=pmin(pmax(theta[,3], -0.9999), 0.9999)
+  theta3=pmin(pmax(theta[,4], -0.9999), 0.9999)
+  theta4=pmin(pmax(theta[,5], 0.0001), 0.9999)
+  theta5=pmin(pmax(theta[,6], 0.0001), 0.9999)
+
+  jacobianL = (
+    log1p(theta0^2) - 2.0*log1p(-(theta0^2))
+    + log1p(theta1^2) - 2.0*log1p(-(theta1^2))
+    + log1p(theta2^2) - 2.0*log1p(-(theta2^2))
+    + log1p(theta3^2) - 2.0*log1p(-(theta3^2))
+    + log1p(theta4^2) - 2.0*log1p(-(theta4^2))
+    + log1p(theta5^2) - 2.0*log1p(-(theta5^2))
+
+  )
+
+  a0=theta0/(1-theta0^2)
+  a1=theta1/(1-theta1^2)
+  mu0=theta2/(1-theta2^2)
+  mu1=theta3/(1-theta3^2)
+  sigma0=theta4/(1-theta4^2)
+  sigma1=theta5/(1-theta5^2)
+
+  # eta=a0+a1*treat # (10,3) where a0 and a1 = (3,) and treat is (10,1) 
+  #                                                broadcasts to (10,3)
+  # R doesn't have auto broadcast but this is equivalent
+  eta <- sweep(treat %*% rbind(a1), 2, a0, "+")
+  # logL = sum_i^n ( y_i*(a0+a1*T_i) - log(1+ exp(a0+a1*T_i) )  )
+  logL = apply(sweep(eta,1,y,"*") - log1p(exp(eta)),2,sum)
+
+  # now add the priors
+  prior_a0 = dnorm(a0,mean=mu0,sd=sigma0,log=TRUE)
+  prior_a1 = dnorm(a1,mean=mu1,sd=sigma1,log=TRUE)
+  prior_mu0 = dnorm(mu0,mean=0.,sd=2.5,log=TRUE)
+  prior_mu1 = dnorm(mu1,mean=0.,sd=2.5,log=TRUE)
+  prior_sigma0 = dhnorm(sigma0, sigma=2.5,log=TRUE)
+  prior_sigma1 = dhnorm(sigma1, sigma=2.5,log=TRUE)
+
+  logDens = logL + prior_a0 + prior_a1 + prior_mu0 + prior_mu1 + 
+                                      prior_sigma0 + prior_sigma1
+  logPost = logDens + jacobianL
+
+  if(s==1.){ # search phase for max - keep in log
+           return(logPost - scaling[1])
+  } else return(exp(logPost - scaling[1]) ) # integrand eval - use raw
+
+    }
+
+## test if log_posterior works - pass matrix of parameter values 
+r_compute_log_lik(theta=dummytheta,y=y,treat=treat,scaling=0,s=1.)
+
+
+
+```
+
+## 2. Find Scaling Factor and Integrate 
+
+To mitigate underflow we work in logs as much as possible and scaling can also assist here where all the log posterior values have a location shift so the maximum is close to zero on a log scale. This maximum need not be exact and we use a simple and fast grid search. 
+
+We use vegas to integrate over the log posterior to get the log evidence, i.e. the standardization constant, that ensures the posterior integrates to unity. 
+
+```{r logpos2,include=TRUE,eval=TRUE}
+set.seed(11111)
+start<-c(-1,-1,-1,-1,0.0001,0.0001)
+stop<-c(1,1,1,1,1,1)
+searchPts <- mapply(seq, from = start, to = stop, 
+                    MoreArgs = list(length.out = 1000))
+for(i in 1:6){searchPts[,i]<-searchPts[sample(1:nrow(searchPts)),i]}
+
+mymax<-max(r_compute_log_lik(theta=searchPts,y=y,treat=treat,
+                             scaling=0.,
+                             s=1.))
+# location shift - approx max over the integration domain
+print(mymax)
+
+
+### Now use VEGAS
+library(vegasr)
+# now setup python environment
+vegas_initialize() # this needed called once per session after library(vegas) 
+
+# perform numerical integration
+result<-vegas_integrate(f=r_compute_log_lik,
+                        lower=c(-1,-1,-1,-1,0.0001,0.0001), 
+                        upper=c(1,1,1,1,1,1),
+                        nitn_warm = 10, neval_warm = 10000,
+                        nitn = 10, neval = 10000,
+                        errTol=1,maxIter=10,
+                        y=y,treat=treat,scaling=mymax,s=0.)
+print(result)
+
+log_evidence = mymax + log(result$mean)
+cat("log evidence = ",log_evidence,"\n")
+# should be around -129.4
+
+
+
+
+```
+
+
+
