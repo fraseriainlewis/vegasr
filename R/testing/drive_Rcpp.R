@@ -4,8 +4,8 @@ library(mvtnorm)
 ## provides dmvnorm_aram(x,my,cov)
 Rcpp::sourceCpp("R/testing/test1.cpp")
 
-myf<-function(x,mu,cov){
-  res<-dmvnorm(x,mean = mu,sigma=cov)
+myf<-function(x,mu,cov,a=1.0){
+  res<-dmvnorm(x,mean = mu,sigma=cov)*a[1]
   return(res)
 }
 # Example
@@ -18,6 +18,26 @@ cov<-matrix(data=c(
   1.0, 0.5, 0.2,
   0.5, 1.2, 0.3,
   0.2, 0.3, 0.8),ncol=3,byrow=FALSE)
+
+
+dmvnorm_arma(x, mu, cov,2.0)
+
+result<-vegas_integrate(f=myf,
+                        lower=c(-5,-5,-5), upper=c(5,5,5),
+                        nitn_warm = 10, neval_warm = 10000,
+                        nitn = 10, neval = 10000,
+                        errTol=0.1,maxIter=20,
+                        mu=mu,cov=cov,a=2.)
+print(result)
+
+result<-vegas_integrate(f=dmvnorm_arma,
+                        lower=c(-5,-5,-5), upper=c(5,5,5),
+                        nitn_warm = 10, neval_warm = 10000,
+                        nitn = 10, neval = 10000,
+                        errTol=0.1,maxIter=20,
+                        mu=mu,cov=cov,a=2.)
+print(result)
+
 
 myf2<-function(x,mu,cov){
 

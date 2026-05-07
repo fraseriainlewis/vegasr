@@ -11,7 +11,7 @@
 // [[Rcpp::export]]
 arma::vec dmvnorm_arma(const arma::mat& x,
                         const arma::vec& mu,
-                        const arma::mat& cov) {
+                        const arma::mat& cov,double a) {
    //const int BATCH = x.n_rows;
    const int N = x.n_cols;
 
@@ -33,6 +33,6 @@ arma::vec dmvnorm_arma(const arma::mat& x,
 
    arma::vec mahal = arma::sum(arma::square(z), 0).t();
 
-   return arma::exp(constant - 0.5 * mahal);
+   return arma::exp(constant - 0.5 * mahal)*a;
  }
 
