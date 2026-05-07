@@ -6,7 +6,7 @@ output:
     toc_depth: 2
     number_sections: true
 vignette: >
-  %\VignetteIndexEntry{Two-arm trial TFP v RStan}
+  %\VignetteIndexEntry{Bayesian Logistic Regression}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
