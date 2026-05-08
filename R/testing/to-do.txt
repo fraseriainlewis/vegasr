@@ -1,0 +1,2 @@
+add function to do max search, i.e. vegasBayesEvidence() which has all other arguments but
+computes the scaling value and does the integration returnig the log evidence

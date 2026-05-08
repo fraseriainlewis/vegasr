@@ -127,11 +127,11 @@ dummytheta<-matrix(data=c(-0.11,-0.13,0.15,0.11,0.051,0.052,
                           ),ncol=6,byrow=TRUE)
 
 ## Define log posterior inclding change of variables
-r_compute_log_lik<-function(theta,   # matrix Batch x M
-                            y,       # matrix N x 1
-                            treat,   # matrix N x 1
-                            scaling, # scalar
-                            s        # scalar  
+r_compute_log_lik<-function(theta,      # matrix Batch x M
+                            y,          # matrix N x 1
+                            treat,      # matrix N x 1
+                            scaling,    # scalar - no scaling
+                            s           # scalar - default return exp(log())
                             ){
 
   # this is a trimming function to avoid extreme end of integral limits, 
@@ -219,13 +219,14 @@ library(vegasr)
 vegas_initialize() # this needed called once per session after library(vegas) 
 
 # perform numerical integration
-result<-vegas_integrate(f=r_compute_log_lik,
+result<-vegas(f=r_compute_log_lik,
                         lower=c(-1,-1,-1,-1,0.0001,0.0001), 
                         upper=c(1,1,1,1,1,1),
                         nitn_warm = 10, neval_warm = 10000,
                         nitn = 10, neval = 10000,
-                        errTol=1,maxIter=10,
-                        y=y,treat=treat,scaling=mymax,s=0.)
+                        errTol=1,maxIter=10,seed=99999,
+                        extra_args=list(
+                        y=y,treat=treat,scaling=mymax,s=0.))
 print(result)
 
 log_evidence = mymax + log(result$mean)

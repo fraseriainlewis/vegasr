@@ -74,12 +74,12 @@ myf<-function(x,mu,cov){
 }
 
 ## See help page for descriptions of warm and nitn and neval.
-vegas_result<-vegas_integrate(f=myf,
+vegas_result<-vegas(f=myf,
                         lower=lower, upper=upper,
                         nitn_warm = 10, neval_warm = 10000,
                         nitn = 10, neval = 10000,
-                        errTol=0.1,maxIter=20,
-                        mu=mu,cov=cov) # these are additional arguments needed for myf
+                        errTol=0.1,maxIter=20,seed=99999,
+                        extra_args=list(mu=mu,cov=cov)) # these are additional arguments needed for myf
 print(vegas_result)
 
 ```

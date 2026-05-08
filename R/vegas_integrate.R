@@ -30,73 +30,62 @@
 #' @param nitn Number of iterations post-warmup.
 #' @param neval Number of function evaluations per iteration post-warmup.
 #' @param errTol  the % error target, default is 1, i.e. error is 1% of current estimated integral value
-#' @param maxIter max number of iteration blocks to run to achieve errTol. Each block comprises nitn iterations.
-#' @param ... Additional arguments passed to the function f. These must be numeric vectors or matrices. See details.
+#' @param maxIter max number of iteration blocks to run to achieve errTol. Each block comprises nitn iterations
+#' @param seed random number seed for vegas sampling generating. set for reproducible results.
+#' @param extra_args a named list of additional arguments passed to the function f.
+#' These must be numeric vectors or matrices. See details.
 #' @importFrom glue glue
 #' @examples
 #' \dontrun{
-#' library(vegasr)
-#' vegas_initialize() # only needed once per session
-#'
-#' ### EXAMPLE 1 - use of additional matrix arguments
+#' # Use library(mvtnorm) first for 3-D Multivariate Normal Density
 #' library(mvtnorm)
-#' mu<-matrix(c(0.5, -0.2, 0.1),nrow=1)
+#' mu<-matrix(c(0.5, -0.2, 0.1),nrow=1) # note matrix
 #' cov<-matrix(data=c(
-#'                 1.0, 0.5, 0.2,
-#'                 0.5, 1.2, 0.3,
-#'                 0.2, 0.3, 0.8),ncol=3,byrow=FALSE)
+#'  1.0, 0.5, 0.2,
+#'  0.5, 1.2, 0.3,
+#'  0.2, 0.3, 0.8),ncol=3,byrow=FALSE)
 #'
-#'myf<-function(x,mu,cov){
-#'  res<-dmvnorm(x,mean = mu,sigma=cov)
-#'  return(res)
-#'  }
+#' # use built-in pmvnorm()
+#' lower=c(-0.5,-0.5,-0.5); upper=c(2.,1.,3.)
+#' res_builtin<-pmvnorm(lower=lower,upper=upper,
+#'                     mean=as.numeric(mu), # coercion as needs vector
+#'                     sigma=cov)
+#' print(res_builtin)
 #'
-#' result<-vegas_integrate(f=myf,
-#'                         lower=c(-5,-5,-5), upper=c(5,5,5),
-#'                         nitn_warm = 10, neval_warm = 10000,
-#'                         nitn = 10, neval = 10000,
-#'                         errTol=0.1,maxIter=20,
-#'                         mu=mu,cov=cov)
-#' print(result)
-#' # mean should be very close to 0.999 and error close to 0.005
+#' ## now use vegas to compute same integral
+#' library(vegasr)
+#' ## Important - run next line in each R session to ensure python is ready
+#' vegas_initialize()
 #'
-#' ########### Estimate 5-D integral with known solution to check correctness
-#' # define integrand
-#' gaus<-function(x,alpha){
-#'        # x shape is (batch, dim)
-#'        # alpha is scalar - note the alpha[1] below
-#'        # Compute sum of squared differences from 0.5
-#'        dx2 = apply((x-0.5)**2,1,sum)
-#'        return(exp(-alpha[1] * dx2))
-#'  }
-#'  # check function will work with matrix argument and return vector
-#'  myx<-matrix(data=rep(0.7,10),ncol=5) # 2 row 5 col
-#'  alpha<-matrix(data=c(1.),nrow=1) # scalar stored in matrix
-#'  print(gaus(x=myx,alpha=alpha)) # should return vector of length 2
+#' # the integrand function MUST take a matrix of dimension [BATCH,M] as first
+#' # argument and return a vector of length M (or 1-row matrix).
+#' # Any number of other additional *named* arguments are allowed and should all
+#' # be matrices. See ?vegas_integrate for more details.
+#' myf<-function(x,mu,cov){
+#'   res<-dmvnorm(x,
+#'                mean = mu, # this is a 1-row matrix, dmvnorm accepts this
+#'                sigma=cov)
+#'   return(res)
+#' }
 #'
-#'  # compute Vegas estimate
-#'  result2<-vegas_integrate(f=gaus,lower=rep(0,5), upper=rep(1,5),
-#'  nitn_warm = 10, neval_warm = 10000, nitn = 5, neval = 10000,
-#'  errTol=0.01,maxIter=100,
-#'  alpha=alpha)
-#'  print(result2)
-#'
-#'  #compute known numerical result
-#'  alpha<-matrix(data=c(1.),nrow=1)
-#'  erf<-function(x){return(2 * pnorm(x * sqrt(2)) - 1)}
-#'  oneD<-sqrt(pi / alpha[1]) * erf(sqrt(alpha[1]) / 2.0)
-#'  true.val<-oneD**5
-#'  print(true.val)
-#'  cat("Vegas =",result2$mean," known estimate =",true.val,"\n")
+#' ## See help page for descriptions of warm and nitn and neval.
+#' vegas_result<-vegas(f=myf,
+#'                               lower=lower, upper=upper,
+#'                               nitn_warm = 10, neval_warm = 10000,
+#'                               nitn = 10, neval = 10000,
+#'                               errTol=0.1, maxIter=20,seed=99999,
+#'                               extra_args=list(mu=mu, cov=cov))
+#' # extra_args are additional arguments needed for myf
+#' print(vegas_result)
 #'
 #' }
 #'
 #'
 #'
 #' @export
-vegas_integrate <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000,
+vegas <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000,
                                             nitn = 10, neval = 1000, errTol=1,maxIter=5,
-                                            ...) {
+                                            seed = 99999,extra_args = list()) {
 
   if (is.null(getOption("vegas_initialized"))) {
     vegas_initialize()
@@ -127,10 +116,17 @@ vegas_integrate <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000,
   main$RmaxIter<-as.integer((maxIter[1]))
   main$RerrTol<-as.numeric((errTol[1]))
 
-  if (length(list(...)) > 0){
+  main$Rseed<-as.integer((seed[1]))
+
+  # 1. Initialize local variables
+  noms <- character(0)
+  args <- extra_args
+  #args <- list(...)
+
+  if (length(args) > 0){
     #cat("parsing additional arguments\n")
-    m<-length(list(...));
-    args<-list(...)
+    m<-length(args);
+    #args<-list(...)
     noms<-names(args)
     for(i in 1:m){
       #print(args[[i]])
@@ -189,6 +185,8 @@ upper = np.array(Rupper,dtype=np.float64)
 
 # Start from clean slate and run warm-up
 vegas_obj.clear_results()
+#explicitly set seed
+gvar.ranseed(Rseed)
 integ2 = vegas.Integrator([[l, u] for l, u in zip(lower, upper)])
 # Adaptation phase # no results stored
 integ2(newf, nitn=nitn_warm, neval=neval_warm)
