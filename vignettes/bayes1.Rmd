@@ -54,7 +54,8 @@ $$
 \beta_1 &\sim \text{Normal}(\mu_1, \sigma_1) \\
 \end{aligned}
 $$
-## Data set
+
+### Data set
 
 The R chunk below creates a simple dataset of three cols:
 
@@ -65,7 +66,6 @@ The R chunk below creates a simple dataset of three cols:
 The basket ID is currently set fixed at 1, denoting there is only one basket in this trial, i.e. a classical two arm randomized trial design. Baskets will be added in other vignettes.
 
 ```{r datasets, include=TRUE,eval=TRUE}
-### Prepare model inputs
 set.seed(99999)
 # Set up data
 rr_k_ctrl <- c(0.20)        # control response rate for each basket
@@ -130,8 +130,8 @@ dummytheta<-matrix(data=c(-0.11,-0.13,0.15,0.11,0.051,0.052,
 r_compute_log_lik<-function(theta,      # matrix Batch x M
                             y,          # matrix N x 1
                             treat,      # matrix N x 1
-                            scaling,    # scalar - no scaling
-                            s           # scalar - default return exp(log())
+                            shiftby,    # scalar - no scaling
+                            uselog           # scalar - default return exp(log())
                             ){
 
   # this is a trimming function to avoid extreme end of integral limits, 
@@ -179,27 +179,44 @@ r_compute_log_lik<-function(theta,      # matrix Batch x M
                                       prior_sigma0 + prior_sigma1
   logPost = logDens + jacobianL
 
-  if(s==1.){ # search phase for max - keep in log
-           return(logPost - scaling[1])
-  } else return(exp(logPost - scaling[1]) ) # integrand eval - use raw
+  if(uselog[1]==1.){ # search phase for max - keep in log
+           return(logPost - shiftby[1])
+  } else return(exp(logPost - shiftby[1]) ) # integrand eval - use raw
 
     }
 
 ## test if log_posterior works - pass matrix of parameter values 
-r_compute_log_lik(theta=dummytheta,y=y,treat=treat,scaling=0,s=1.)
+r_compute_log_lik(theta=dummytheta,y=y,treat=treat,shiftby=0,uselog=1.)
 
 
 
 ```
 
-## 2. Find Scaling Factor and Integrate 
+## 2. Find Log Evidence
 
-To mitigate underflow we work in logs as much as possible and scaling can also assist here where all the log posterior values have a location shift so the maximum is close to zero on a log scale. This maximum need not be exact and we use a simple and fast grid search. 
+We use vegas to integrate over the log posterior to get the log evidence, i.e. the standardization constant, that ensures the posterior integrates to unity. Also known as the log marginal likelihood.
 
-We use vegas to integrate over the log posterior to get the log evidence, i.e. the standardization constant, that ensures the posterior integrates to unity. 
 
-```{r logpos2,include=TRUE,eval=TRUE}
-set.seed(11111)
+```{r logpos2a,include=TRUE,eval=TRUE}
+### Now use VEGAS
+library(vegasr)
+# now setup python environment
+vegas_initialize() # this needed called once per session after library(vegas) 
+
+result<-vegasBayesEvidence(f=r_compute_log_lik,
+              lower=c(-1,-1,-1,-1,0.0001,0.0001), 
+              upper=c(1,1,1,1,1,1),
+              nitn_warm = 10, neval_warm = 10000,
+              nitn = 10, neval = 10000,
+              errTol=1,maxIter=10,seed=99999,nsearch=10000,
+              extra_args=list(
+                y=y,treat=treat,shiftby=0,uselog=1.))
+print(result)
+
+```
+
+```{r logpos2,include=FALSE,eval=FALSE}
+set.seed(99999)
 start<-c(-1,-1,-1,-1,0.0001,0.0001)
 stop<-c(1,1,1,1,1,1)
 searchPts <- mapply(seq, from = start, to = stop, 
@@ -207,8 +224,8 @@ searchPts <- mapply(seq, from = start, to = stop,
 for(i in 1:6){searchPts[,i]<-searchPts[sample(1:nrow(searchPts)),i]}
 
 mymax<-max(r_compute_log_lik(theta=searchPts,y=y,treat=treat,
-                             scaling=0.,
-                             s=1.))
+                             shiftby=0.,
+                             uselog=1.))
 # location shift - approx max over the integration domain
 print(mymax)
 
@@ -226,7 +243,7 @@ result<-vegas(f=r_compute_log_lik,
                         nitn = 10, neval = 10000,
                         errTol=1,maxIter=10,seed=99999,
                         extra_args=list(
-                        y=y,treat=treat,scaling=mymax,s=0.))
+                        y=y,treat=treat,shiftby=mymax,uselog=0.))
 print(result)
 
 log_evidence = mymax + log(result$mean)

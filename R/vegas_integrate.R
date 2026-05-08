@@ -230,4 +230,65 @@ return(summary_res)
 
 }
 
+################################################################################
+################################################################################
+#' Bayesian Log Evidence via Vegas+
+#'
+#' @description tbc
+#'
+#' @details tbc
+#'
+#' @param f An R function that takes a matrix and returns a vector. See details and examples.
+#' @param lower A vector of lower integration limits for each dimension, e.g. c(-1.,-1.-1)
+#' @param upper A vector of upper integration limits for each dimension, e.g. c(1.,1.1)
+#' @param nitn_warm Number of iterations for Vegas warmup
+#' @param neval_warm Number of function evaluations per iteration in warmup
+#' @param nitn Number of iterations post-warmup.
+#' @param neval Number of function evaluations per iteration post-warmup.
+#' @param errTol  the % error target, default is 1, i.e. error is 1% of current estimated integral value
+#' @param maxIter max number of iteration blocks to run to achieve errTol. Each block comprises nitn iterations
+#' @param seed random number seed for vegas sampling generating. set for reproducible results.
+#' @param nsearch number of points to evaluate log_posterior to find approx max value for shiftby. See details.
+#' @param extra_args a named list of additional arguments passed to the function f.
+#' @export
+vegasBayesEvidence <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000,
+                  nitn = 10, neval = 1000, errTol=1,maxIter=5,seed=99999,
+                  nsearch=1000,
+                  extra_args=list()){
+
+  set.seed(seed)
+  start<-lower
+  stop<-upper
+  searchPts <- mapply(seq, from = start, to = stop,
+                      MoreArgs = list(length.out = nsearch))
+  for(i in 1:length(start)){searchPts[,i]<-searchPts[sample(1:nrow(searchPts)),i]}
+
+  #print(extra_args)
+  #print(searchPts)
+  if(!"uselog"%in%names(extra_args)){stop("extra_args list must have named member 'uselog'. see help page")}
+  if(!"shiftby"%in%names(extra_args)){stop("extra_args list must have named member 'shiftby'. see help page")}
+
+  extra_args$uselog[1]<-1.0 # force this - use log return values
+  extra_args$shiftby[1]<-0.0 # force this - no shifting, might get some -inf which is fine
+
+  ## join search points into args as first argument and evaluation all search point
+  mymax<-max(do.call(f,c(list(searchPts),extra_args)))
+
+  # location shift - approx max over the integration domain
+  cat("max log value found = ",mymax,"\n")
+
+  extra_args$uselog[1]<-0.0 #force this
+  extra_args$shiftby[1]<-mymax
+
+  result<-vegas(f=f, lower=lower,upper=upper, nitn_warm = nitn_warm, neval_warm = neval_warm,
+                nitn = nitn, neval = neval, errTol=errTol,maxIter=maxIter,
+                seed = seed,
+                extra_args = extra_args)
+
+  log_evidence = mymax + log(result$mean)
+  cat("log evidence = ",log_evidence,"\n")
+  # should be around -129.4
+  return(log_evidence)
+
+}
 
