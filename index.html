@@ -121,7 +121,7 @@
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="co">## See help page for descriptions of warm and nitn and neval.</span></span>
-<span><span class="va">vegas_result</span><span class="op">&lt;-</span><span class="fu"><a href="reference/vegas_integrate.html">vegas_integrate</a></span><span class="op">(</span>f<span class="op">=</span><span class="va">myf</span>,</span>
+<span><span class="va">vegas_result</span><span class="op">&lt;-</span><span class="fu">vegas_integrate</span><span class="op">(</span>f<span class="op">=</span><span class="va">myf</span>,</span>
 <span>                        lower<span class="op">=</span><span class="va">lower</span>, upper<span class="op">=</span><span class="va">upper</span>,</span>
 <span>                        nitn_warm <span class="op">=</span> <span class="fl">10</span>, neval_warm <span class="op">=</span> <span class="fl">10000</span>,</span>
 <span>                        nitn <span class="op">=</span> <span class="fl">10</span>, neval <span class="op">=</span> <span class="fl">10000</span>,</span>
@@ -143,7 +143,7 @@
 <li><p>Error is technically the estimated standard deviation of the mean estimate of the value of the integrand.</p></li>
 <li><p>Parameters <code>nitn_warm, neval_warm, nitn, neval</code> control the computational accuracy and in effect add more and more Monte Carlo samples until the desired accuracy is achieved. The final integrand value and error are weighted across all samples.</p></li>
 <li><p>An adaptive grid is used and very early samples are discarded (the warm-up period) as these may be noisy until the grid has adapted and including may result in a larger than necessary error estimate.</p></li>
-<li><p>An important remark on the function passed to <code><a href="reference/vegas_integrate.html">vegas_integrate()</a></code> is that if using an existing R function then it may be best to wrap it into a simpler function template. A concrete example of this issue is using <code>f=dmvnorm</code> in the above call to <code><a href="reference/vegas_integrate.html">vegas_integrate()</a></code> does not work and throws and error about <em>esoteric Python-incompatible constructs</em></p></li>
+<li><p>An important remark on the function passed to <code>vegas_integrate()</code> is that if using an existing R function then it may be best to wrap it into a simpler function template. A concrete example of this issue is using <code>f=dmvnorm</code> in the above call to <code>vegas_integrate()</code> does not work and throws and error about <em>esoteric Python-incompatible constructs</em></p></li>
 </ul>
 </div>
 </div>
