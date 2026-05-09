@@ -2,6 +2,7 @@
 
 export(vegas)
 export(vegasBayesEvidence)
+export(vegasBayesPosterior)
 export(vegas_initialize)
 export(vegas_install)
 importFrom(glue,glue)

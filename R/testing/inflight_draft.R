@@ -44,7 +44,8 @@ vegasBayesEvidence <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000
 
 
 ### Prepare model inputs
-set.seed(99999)
+fn_create_data_1<-function(seed){
+set.seed(seed)
 # Set up data
 rr_k_ctrl <- c(0.20)        # control response rate for each basket
 rr_k_trt <- c(0.40)         # treatment response rate for each basket
@@ -66,8 +67,10 @@ for(i in 1:K){ # for each basket repeat 0-control 1-trt according to the specifc
          rbinom(N_k_trt[i],1,rr_k_trt[i]))) #           for trt
 }
 
-thedata<-data.frame(y,basketID=k_vec,Treatment=z_vec)
+return(thedata<-data.frame(y,basketID=k_vec,Treatment=z_vec))
+}
 
+thedata<-fn_create_data_1(99999)
 
 # response
 y<-matrix(data=as.numeric(thedata$y),ncol=1)
@@ -80,7 +83,7 @@ dummytheta<-matrix(data=c(-0.11,-0.13,0.15,0.11,0.051,0.052,
 ),ncol=6,byrow=TRUE)
 
 ## Define log posterior inclding change of variables
-r_compute_log_lik<-function(theta,      # matrix Batch x M
+fn_log_post_1<-function(theta,      # matrix Batch x M
                             y,          # matrix N x 1
                             treat,      # matrix N x 1
                             shiftby,    # scalar - no scaling
@@ -139,12 +142,12 @@ r_compute_log_lik<-function(theta,      # matrix Batch x M
 }
 
 ## test if log_posterior works - pass matrix of parameter values
-r_compute_log_lik(theta=dummytheta,y=y,treat=treat,shiftby=0,uselog=1.)
+fn_log_post_1(theta=dummytheta,y=y,treat=treat,shiftby=0,uselog=1.)
 
 
 
 
-result_logEv<-vegasBayesEvidence(f=r_compute_log_lik,
+result_logEv<-vegasBayesEvidence(f=fn_log_post_1,
               lower=c(-1,-1,-1,-1,0.0001,0.0001),
               upper=c(1,1,1,1,1,1),
               nitn_warm = 10, neval_warm = 10000,
@@ -241,7 +244,7 @@ dummytheta<-matrix(data=c(-0.11,-0.13,0.15,0.11,0.051,0.052,
 ),ncol=6,byrow=TRUE)
 
 ## Define log posterior inclding change of variables
-r_compute_log_lik_marg<-function(theta,      # matrix Batch x M
+fn_marg_1_1<-function(theta,      # matrix Batch x M
                             y,          # matrix N x 1
                             treat,      # matrix N x 1
                             shiftby,    # scalar - no scaling
@@ -305,12 +308,12 @@ r_compute_log_lik_marg<-function(theta,      # matrix Batch x M
 }
 
 ## test if log_posterior works - pass matrix of parameter values
-r_compute_log_lik_marg(theta=dummytheta,y=y,treat=treat,shiftby=0,uselog=1.,z=-1.)
+fn_marg_1_1(theta=dummytheta[,-1],y=y,treat=treat,shiftby=0,uselog=1.,z=-1.)
 
 
 
 
-mymarg<-vegasBayesPosterior(f=r_compute_log_lik_marg,
+mymarg<-vegasBayesPosterior(f=fn_marg_1_1,
                            lower=c(-1,-1,-1,0.0001,0.0001),
                            upper=c(1,1,1,1,1),
                            nitn_warm = 10, neval_warm = 10000,
@@ -333,7 +336,7 @@ registerDoParallel(cl)
 myz<-seq(-2.5,-0.,len=50)
 tic("Parallel Vegas Loop") # Start timer with a label
 f_z<-foreach(z= myz,.packages = c("extraDistr", "vegasr")) %dopar% {
- vegasBayesPosterior(f=r_compute_log_lik_marg,
+ vegasBayesPosterior(f=fn_marg_1_1,
                       lower=c(-1,-1,-1,0.0001,0.0001),
                       upper=c(1,1,1,1,1),
                       nitn_warm = 10, neval_warm = 10000,

@@ -19,5 +19,9 @@ Suggests:
     knitr,
     mvtnorm,
     rmarkdown,
-    extraDistr
+    extraDistr,
+    doParallel,
+    foreach,
+    tictoc,
+    ggplot2
 VignetteBuilder: knitr
