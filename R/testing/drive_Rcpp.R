@@ -1,6 +1,6 @@
 # assume getwd() at root of package
 library(mvtnorm)
-
+library(RcppArmadillo)
 ## provides dmvnorm_aram(x,my,cov)
 Rcpp::sourceCpp("R/testing/test1.cpp")
 
@@ -22,20 +22,21 @@ cov<-matrix(data=c(
 
 dmvnorm_arma(x, mu, cov,2.0)
 
-result<-vegas_integrate(f=myf,
+result<-vegas(f=myf,
                         lower=c(-5,-5,-5), upper=c(5,5,5),
                         nitn_warm = 10, neval_warm = 10000,
                         nitn = 10, neval = 10000,
-                        errTol=0.1,maxIter=20,
-                        mu=mu,cov=cov,a=2.)
+                        errTol=0.1,maxIter=20,extra_args = list(
+                        mu=mu,cov=cov,a=2.))
 print(result)
 
-result<-vegas_integrate(f=dmvnorm_arma,
+result<-vegas(f=dmvnorm_arma,
                         lower=c(-5,-5,-5), upper=c(5,5,5),
                         nitn_warm = 10, neval_warm = 10000,
                         nitn = 10, neval = 10000,
                         errTol=0.1,maxIter=20,
-                        mu=mu,cov=cov,a=2.)
+              extra_args = list(
+                          mu=mu,cov=cov,a=10.))
 print(result)
 
 

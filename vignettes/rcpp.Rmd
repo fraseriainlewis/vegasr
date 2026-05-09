@@ -1,0 +1,103 @@
+---
+title: "rcpp"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+vignette: >
+  %\VignetteIndexEntry{rcpp}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+# Check if running on GitHub Actions
+# This is important as otherwise Github will attempt to build this and it's missing the python libraries and will fail
+on_github <- Sys.getenv("GITHUB_ACTIONS") == "true"
+
+   
+# If on GitHub, set eval = FALSE for all subsequent chunks
+knitr::opts_chunk$set(eval = !on_github)
+
+```
+
+```{r cran_check_setting,include=FALSE,eval=TRUE}
+# this is to de-tune all examples to get past cran checks
+is_checking <- nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))
+if (is_checking) {
+     n_cores <- 2 # number of cores for computing marginal density on cran
+     no_den_pts<-5 # very ligth grid for on cran
+    } else { # running locally to go higher
+    n_cores <- parallel::detectCores() - 1
+    no_den_pts=50
+}
+
+```
+
+### Quickstart
+tbc
+
+## Model Formulation
+
+
+### Data set
+
+```{r datasets, include=TRUE,eval=TRUE}
+thedata<-vegasr:::fn_create_data_1(99999) # a list of y and treat as matrices
+```
+
+
+ 
+
+```{r logpos,include=TRUE,eval=TRUE}
+### Now use VEGAS
+library(mvtnorm)
+library(RcppArmadillo)
+library(vegasr)
+# now setup python environment
+vegas_initialize() # this needed called once per session after library(vegas) 
+
+# Example
+x   <- matrix(rnorm(3*4), ncol = 3)
+#mu  <- rep(0, 3)
+#cov <- diag(3)
+
+mu<-matrix(c(0.5, -0.2, 0.1),nrow=1)
+cov<-matrix(data=c(
+  1.0, 0.5, 0.2,
+  0.5, 1.2, 0.3,
+  0.2, 0.3, 0.8),ncol=3,byrow=FALSE)
+
+
+print(vegasr::dmvnorm_arma(x, mu, cov, 2.0))
+
+result<-vegas(f=vegasr::dmvnorm_arma,
+                        lower=c(-5,-5,-5), upper=c(5,5,5),
+                        nitn_warm = 10, neval_warm = 10000,
+                        nitn = 10, neval = 10000,
+                        errTol=0.1,maxIter=20,
+              extra_args = list(
+                          mu=mu,cov=cov,a=10.))
+print(result)
+
+#result_logEv<-vegasBayesEvidence(f=vegasr:::fn_log_post_1,
+#              lower=c(-1,-1,-1,-1,0.0001,0.0001), 
+#              upper=c(1,1,1,1,1,1),
+#              nitn_warm = 10, neval_warm = 10000,
+#              nitn = 10, neval = 10000,
+#              errTol=1,maxIter=10,seed=99999,nsearch=10000,
+#              extra_args=list(
+#                y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
+#cat("log evidence = ",result_logEv,"\n")
+
+
+
+```
+
+

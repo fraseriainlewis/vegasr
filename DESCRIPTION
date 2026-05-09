@@ -14,7 +14,8 @@ BugReports: https://github.com/fraseriainlewis/vegasr/issues
 Imports: 
     methods,
     reticulate,
-    glue
+    glue,
+    Rcpp
 Suggests: 
     knitr,
     mvtnorm,
@@ -23,5 +24,9 @@ Suggests:
     doParallel,
     foreach,
     tictoc,
-    ggplot2
+    ggplot2,
+    RcppArmadillo
 VignetteBuilder: knitr
+LinkingTo: 
+    Rcpp,
+    RcppArmadillo
