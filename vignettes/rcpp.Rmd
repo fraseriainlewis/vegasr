@@ -49,11 +49,21 @@ tbc
 ### Data set
 
 ```{r datasets, include=TRUE,eval=TRUE}
+library(vegasr)
 thedata<-vegasr:::fn_create_data_1(99999) # a list of y and treat as matrices
 ```
 
+```{r logpos,include=TRUE,eval=TRUE}
+### Now use VEGAS
+library(RcppArmadillo)
 
- 
+theta   <- matrix(rnorm(3*length(thedata$treat)), ncol = 3)
+
+vegasr::arma_fn_log_post_1(theta, thedata$y, thedata$treat,1.0, 0.0)
+
+
+```
+
 
 ```{r logpos,include=TRUE,eval=TRUE}
 ### Now use VEGAS

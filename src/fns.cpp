@@ -38,3 +38,24 @@ arma::vec dmvnorm_arma(const arma::mat& x,
    return arma::exp(constant - 0.5 * mahal)*a;
  }
 
+
+//' Multivariate Normal Density (RcppArmadillo)
+ //'
+ //' @param theta   Matrix of integration variables (BATCH x N)
+ //' @param y  Mean vector (length N)
+ //' @param treat Covariance matrix (N x N)
+ //' @param shiftby   Scaling factor
+ //' @param uselog fff
+ //' @return vector of density values (length BATCH)
+ //' @export
+ // [[Rcpp::export]]
+ arma::vec arma_fn_log_post_1(const arma::mat& theta,
+                              const arma::vec& y,
+                        const arma::vec& treat,
+                        double shiftby, double doubleuselog) {
+
+
+
+   return y;
+
+ }
