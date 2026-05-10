@@ -94,7 +94,7 @@ arma::vec dmvnorm_arma(const arma::mat& x,
  arma::vec arma_fn_log_post_1(const arma::mat& theta,
                               const arma::vec& y,
                         const arma::vec& treat,
-                        double shiftby, double doubleuselog) {
+                        double shiftby, double uselog) {
 
    arma::vec theta0 = arma::clamp(theta.col(0), -0.9999, 0.9999);
    arma::vec theta1 = arma::clamp(theta.col(1), -0.9999, 0.9999);
@@ -160,6 +160,11 @@ arma::vec dmvnorm_arma(const arma::mat& x,
 
    arma::vec logDens = logL.t() + prior_a0 + prior_a1 + prior_mu0 + prior_mu1 + prior_sigma0 + prior_sigma1;
 
-   return logDens + jacobianL; //# this will be (3,)
+   arma::vec logPost = logDens + jacobianL;
+   //return logDens + jacobianL; //# this will be (3,)
+   if(uselog==1.){ //# search phase for max - keep in log
+   return(logPost - shiftby);
+   } else return(arma::exp(logPost - shiftby) ); //# integrand eval - use raw
+
 
  }

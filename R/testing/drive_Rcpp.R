@@ -5,7 +5,13 @@ library(vegasr)
 
 theta   <- matrix(data=rep(0.1,length=4*6), ncol = 6)
 
-arma_fn_log_post_1(theta, thedata$y, thedata$treat,1.0, 0.0)
+arma_fn_log_post_1(theta, thedata$y, thedata$treat,0.0, 1.0)
+
+vegasr:::fn_log_post_1(theta, thedata$y, thedata$treat,.0, 1.0)
+
+arma_fn_log_post_1(theta, thedata$y, thedata$treat,-10.0, 1.0)
+
+vegasr:::fn_log_post_1(theta, thedata$y, thedata$treat,-10.0, 1.0)
 
 
 
