@@ -5,6 +5,22 @@
 
 using namespace Rcpp;
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+// [[Rcpp::export]]
+void check_parallel() {
+      #ifdef _OPENMP
+      Rcpp::Rcout << "OpenMP is ENABLED." << std::endl;
+      Rcpp::Rcout << "Threads available: " << omp_get_max_threads() << std::endl;
+      #else
+         Rcpp::Rcout << "OpenMP is DISABLED (Single-core only)." << std::endl;
+     #endif
+  }
+
+
+
 // not exported
 arma::vec arma_norm_logpdf(const arma::vec& x, const arma::vec& loc, const arma::vec& scale) {
   // 1. Calculate the squared standardized residuals: ((x - loc) / scale)^2 element-wise
@@ -96,13 +112,15 @@ arma::vec dmvnorm_arma(const arma::mat& x,
                         const arma::vec& treat,
                         double shiftby, double uselog) {
 
+   //Rcpp::Rcout <<"theta batch size="<<theta.n_rows<<std::endl;
+
    arma::vec theta0 = arma::clamp(theta.col(0), -0.9999, 0.9999);
    arma::vec theta1 = arma::clamp(theta.col(1), -0.9999, 0.9999);
    arma::vec theta2 = arma::clamp(theta.col(2), -0.9999, 0.9999);
    arma::vec theta3 = arma::clamp(theta.col(3), -0.9999, 0.9999);
    arma::vec theta4 = arma::clamp(theta.col(4), 0.0001, 0.9999);
    arma::vec theta5 = arma::clamp(theta.col(5), 0.0001, 0.9999);
-   Rcpp::Rcout << "trimmed theta0 has " << theta0.n_elem << " rows." << std::endl;
+   //Rcpp::Rcout << "trimmed theta0 has " << theta0.n_elem << " rows." << std::endl;
 
 
    arma::vec jacobianL =
@@ -113,7 +131,7 @@ arma::vec dmvnorm_arma(const arma::mat& x,
      (arma::log1p(arma::square(theta4)) - 2.0 * arma::log1p(-arma::square(theta4))) +
      (arma::log1p(arma::square(theta5)) - 2.0 * arma::log1p(-arma::square(theta5)));
 
-   Rcpp::Rcout <<"jacoL="<<jacobianL.subvec(0,3)<<std::endl;
+   //Rcpp::Rcout <<"jacoL="<<jacobianL.subvec(0,3)<<std::endl;
 
    arma::vec a0=theta0/(1-arma::square(theta0));
    arma::vec a1=theta1/(1-arma::square(theta1));
@@ -125,7 +143,7 @@ arma::vec dmvnorm_arma(const arma::mat& x,
    // equivalent to broadcasting from eta=a0+a1*treat; //// (10,3) where T_vec = (3,) and (10,1) broadcast to (10,3)
    arma::mat eta = treat * a1.t();
    eta.each_row() += a0.t();
-   Rcpp::Rcout <<"eta size="<<eta.n_rows<< " "<<eta.n_cols<<std::endl;
+   //Rcpp::Rcout <<"eta size="<<eta.n_rows<< " "<<eta.n_cols<<std::endl;
 
    //y_data*eta - mx.log(1+mx.exp(eta)) this is (10,3) - want col sums, so collapse over rows
    // logL = mx.sum(y*eta - mx.log1p(mx.exp(eta)),axis=0) #
@@ -139,11 +157,11 @@ arma::vec dmvnorm_arma(const arma::mat& x,
    // sum(..., 0) returns a row vector of length 4
    arma::rowvec logL = arma::sum(term1 - term2, 0);
 
-   Rcpp::Rcout <<"logL="<<logL<<std::endl;
+   /*Rcpp::Rcout <<"logL="<<logL<<std::endl;
    Rcpp::Rcout <<"a0="<<a0<<std::endl;
    Rcpp::Rcout <<"mu0="<<mu0<<std::endl;
    Rcpp::Rcout <<"sigma0="<<sigma0<<std::endl;
-
+*/
    arma::vec prior_a0 = arma_norm_logpdf(a0,mu0,sigma0);
    arma::vec prior_a1 = arma_norm_logpdf(a1,mu1,sigma1);
    arma::vec prior_mu0 = arma_norm_logpdf(mu0,0.0,2.5);
@@ -151,13 +169,13 @@ arma::vec dmvnorm_arma(const arma::mat& x,
    arma::vec prior_sigma0 = arma_half_norm_logpdf(sigma0, 2.5);
    arma::vec prior_sigma1 = arma_half_norm_logpdf(sigma1, 2.5);
 
-   Rcpp::Rcout <<"prior_a0="<<prior_a0<<std::endl;
+   /*Rcpp::Rcout <<"prior_a0="<<prior_a0<<std::endl;
    Rcpp::Rcout <<"prior_a1="<<prior_a1<<std::endl;
    Rcpp::Rcout <<"prior_mu0="<<prior_mu0<<std::endl;
    Rcpp::Rcout <<"prior_mu1="<<prior_mu1<<std::endl;
    Rcpp::Rcout <<"prior_sigma0="<<prior_sigma0<<std::endl;
    Rcpp::Rcout <<"prior_sigma1="<<prior_sigma1<<std::endl;
-
+*/
    arma::vec logDens = logL.t() + prior_a0 + prior_a1 + prior_mu0 + prior_mu1 + prior_sigma0 + prior_sigma1;
 
    arma::vec logPost = logDens + jacobianL;
