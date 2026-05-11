@@ -65,9 +65,9 @@ res_builtin<-pmvnorm(lower=lower,upper=upper,
                      mean=as.numeric(mu), # coercion as needs vector
                      sigma=cov)
 print(res_builtin)
-#> [1] 0.3103377
+#> [1] 0.3103351
 #> attr(,"error")
-#> [1] 4.571866e-05
+#> [1] 3.768512e-05
 #> attr(,"msg")
 #> [1] "Normal Completion"
 
@@ -123,9 +123,8 @@ print(vegas_result)
   warm-up period) as these may be noisy until the grid has adapted and
   including may result in a larger than necessary error estimate.
 
-- An important remark on the function passed to `vegas_integrate()` is
-  that if using an existing R function then it may be best to wrap it
-  into a simpler function template. A concrete example of this issue is
-  using `f=dmvnorm` in the above call to `vegas_integrate()` does not
-  work and throws and error about *esoteric Python-incompatible
-  constructs*
+- An important remark on the function passed to `vegas()` is that if
+  using an existing R function then it may be best to wrap it into a
+  simpler function template. A concrete example of this issue is using
+  `f=dmvnorm` in the above call to `vegas()` does not work and throws
+  and error about *esoteric Python-incompatible constructs*

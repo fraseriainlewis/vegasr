@@ -94,7 +94,7 @@ print(vegas_result)
 
 - An adaptive grid is used and very early samples are discarded (the warm-up period) as these may be noisy until the grid has adapted and including may result in a larger than necessary error estimate.   
 
-- An important remark on the function passed to `vegas_integrate()` is that if using an existing R function then it may be best to wrap it into a simpler function template. A concrete example of this issue is using `f=dmvnorm` in the above call to `vegas_integrate()` does not work and throws and error about *esoteric Python-incompatible constructs*
+- An important remark on the function passed to `vegas()` is that if using an existing R function then it may be best to wrap it into a simpler function template. A concrete example of this issue is using `f=dmvnorm` in the above call to `vegas()` does not work and throws and error about *esoteric Python-incompatible constructs*
 
 
 
