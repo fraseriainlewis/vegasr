@@ -94,7 +94,7 @@ result_logEv<-vegasBayesEvidence(f=arma_fn_log_post_1,
                                  upper=c(1,1,1,1,1,1),
                                  nitn_warm = 5, neval_warm = 1e5,
                                  nitn = 5, neval = 1e5,
-                                 errTol=1,maxIter=10,seed=99999,nsearch=10000,
+                                 errTol=0.1,maxIter=10,seed=99999,nsearch=10000,
                                  extra_args=list(
                                    y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
 toc()
