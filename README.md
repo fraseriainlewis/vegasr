@@ -23,7 +23,7 @@ original vegas article see J. Comput. Phys. 27 (1978) 192 and for later
 vegas+ see J. Comput. Phys. 439 (2021) 110386).
 
 [Getting Started
-vignette](https://fraseriainlewis.github.io/vegasr/articles/introduction.html).
+vignette](https://fraseriainlewis.github.io/vegasr/articles/introduction.html)
 
 ## Installation
 
@@ -65,9 +65,9 @@ res_builtin<-pmvnorm(lower=lower,upper=upper,
                      mean=as.numeric(mu), # coercion as needs vector
                      sigma=cov)
 print(res_builtin)
-#> [1] 0.3103326
+#> [1] 0.3103377
 #> attr(,"error")
-#> [1] 4.593293e-05
+#> [1] 4.571866e-05
 #> attr(,"msg")
 #> [1] "Normal Completion"
 
@@ -89,19 +89,18 @@ myf<-function(x,mu,cov){
 }
 
 ## See help page for descriptions of warm and nitn and neval.
-vegas_result<-vegas_integrate(f=myf,
+vegas_result<-vegas(f=myf,
                         lower=lower, upper=upper,
                         nitn_warm = 10, neval_warm = 10000,
                         nitn = 10, neval = 10000,
-                        errTol=0.1,maxIter=20,
-                        mu=mu,cov=cov) # these are additional arguments needed for myf
-#> 0
+                        errTol=0.1,maxIter=20,seed=99999,
+                        extra_args=list(mu=mu,cov=cov)) # these are additional arguments needed for myf
 print(vegas_result)
 #> $mean
-#> [1] 0.3102848
+#> [1] 0.3103397
 #> 
 #> $error
-#> [1] 4.645047e-05
+#> [1] 4.470286e-05
 #> 
 #> $metTolerance
 #> [1] 1
