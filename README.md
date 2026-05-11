@@ -22,8 +22,7 @@ version of the original and widely used vegas algorithm. For the
 original vegas article see J. Comput. Phys. 27 (1978) 192 and for later
 vegas+ see J. Comput. Phys. 439 (2021) 110386).
 
-[Getting Started
-vignette](https://fraseriainlewis.github.io/vegasr/articles/introduction.html)
+<!-- [Getting Started vignette](https://fraseriainlewis.github.io/vegasr/articles/introduction.html) -->
 
 ## Installation
 
@@ -65,9 +64,9 @@ res_builtin<-pmvnorm(lower=lower,upper=upper,
                      mean=as.numeric(mu), # coercion as needs vector
                      sigma=cov)
 print(res_builtin)
-#> [1] 0.3103351
+#> [1] 0.3103132
 #> attr(,"error")
-#> [1] 3.768512e-05
+#> [1] 5.839828e-05
 #> attr(,"msg")
 #> [1] "Normal Completion"
 

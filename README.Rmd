@@ -22,7 +22,7 @@ Vegasr is an R library for **multi-dimensional numerical integration**. It is a 
 
 The vegas algorithm performs efficient Monte Carlo integration for integrals of modest to high dimension where cubature or hcubature methods are computationally impractical. The [vegas+](https://arxiv.org/abs/2009.05112) algorithm is a more efficient version of the original and widely used vegas algorithm. For the original vegas article see J. Comput. Phys. 27 (1978) 192 and for later vegas+ see J. Comput. Phys. 439 (2021) 110386). 
 
- [Getting Started vignette](https://fraseriainlewis.github.io/vegasr/articles/introduction.html)
+ <!-- [Getting Started vignette](https://fraseriainlewis.github.io/vegasr/articles/introduction.html) -->
 
 
 ## Installation
