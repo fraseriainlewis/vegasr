@@ -67,7 +67,7 @@
 <!-- badges: end -->
 <p>Vegasr is an R library for <strong>multi-dimensional numerical integration</strong>. It is a thin wrapper around the Python <a href="https://vegas.readthedocs.io/en/latest/index.html" class="external-link">vegas</a> library which was developed is maintained by the author of the vegas algorithm, G. P. Lepage. The purpose of this library is to allow ready access to the latest <a href="https://arxiv.org/abs/2009.05112" class="external-link">vegas+</a> algorithm from R.</p>
 <p>The vegas algorithm performs efficient Monte Carlo integration for integrals of modest to high dimension where cubature or hcubature methods are computationally impractical. The <a href="https://arxiv.org/abs/2009.05112" class="external-link">vegas+</a> algorithm is a more efficient version of the original and widely used vegas algorithm. For the original vegas article see J. Comput. Phys. 27 (1978) 192 and for later vegas+ see J. Comput. Phys. 439 (2021) 110386).</p>
-<p><a href="https://fraseriainlewis.github.io/vegasr/articles/introduction.html">Getting Started vignette</a>.</p>
+<p><a href="https://fraseriainlewis.github.io/vegasr/articles/introduction.html">Getting Started vignette</a></p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -97,9 +97,9 @@
 <span>                     mean<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">mu</span><span class="op">)</span>, <span class="co"># coercion as needs vector</span></span>
 <span>                     sigma<span class="op">=</span><span class="va">cov</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">res_builtin</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.3103326</span></span>
+<span><span class="co">#&gt; [1] 0.3103377</span></span>
 <span><span class="co">#&gt; attr(,"error")</span></span>
-<span><span class="co">#&gt; [1] 4.593293e-05</span></span>
+<span><span class="co">#&gt; [1] 4.571866e-05</span></span>
 <span><span class="co">#&gt; attr(,"msg")</span></span>
 <span><span class="co">#&gt; [1] "Normal Completion"</span></span>
 <span></span>
@@ -121,19 +121,18 @@
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="co">## See help page for descriptions of warm and nitn and neval.</span></span>
-<span><span class="va">vegas_result</span><span class="op">&lt;-</span><span class="fu">vegas_integrate</span><span class="op">(</span>f<span class="op">=</span><span class="va">myf</span>,</span>
+<span><span class="va">vegas_result</span><span class="op">&lt;-</span><span class="fu"><a href="reference/vegas.html">vegas</a></span><span class="op">(</span>f<span class="op">=</span><span class="va">myf</span>,</span>
 <span>                        lower<span class="op">=</span><span class="va">lower</span>, upper<span class="op">=</span><span class="va">upper</span>,</span>
 <span>                        nitn_warm <span class="op">=</span> <span class="fl">10</span>, neval_warm <span class="op">=</span> <span class="fl">10000</span>,</span>
 <span>                        nitn <span class="op">=</span> <span class="fl">10</span>, neval <span class="op">=</span> <span class="fl">10000</span>,</span>
-<span>                        errTol<span class="op">=</span><span class="fl">0.1</span>,maxIter<span class="op">=</span><span class="fl">20</span>,</span>
-<span>                        mu<span class="op">=</span><span class="va">mu</span>,cov<span class="op">=</span><span class="va">cov</span><span class="op">)</span> <span class="co"># these are additional arguments needed for myf</span></span>
-<span><span class="co">#&gt; 0</span></span>
+<span>                        errTol<span class="op">=</span><span class="fl">0.1</span>,maxIter<span class="op">=</span><span class="fl">20</span>,seed<span class="op">=</span><span class="fl">99999</span>,</span>
+<span>                        extra_args<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mu<span class="op">=</span><span class="va">mu</span>,cov<span class="op">=</span><span class="va">cov</span><span class="op">)</span><span class="op">)</span> <span class="co"># these are additional arguments needed for myf</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">vegas_result</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $mean</span></span>
-<span><span class="co">#&gt; [1] 0.3102848</span></span>
+<span><span class="co">#&gt; [1] 0.3103397</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $error</span></span>
-<span><span class="co">#&gt; [1] 4.645047e-05</span></span>
+<span><span class="co">#&gt; [1] 4.470286e-05</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $metTolerance</span></span>
 <span><span class="co">#&gt; [1] 1</span></span></code></pre></div>
