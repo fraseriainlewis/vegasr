@@ -1,12 +1,12 @@
 ---
-title: "Bayesian Logistic Regression"
+title: "Bayesian Posterior Densities"
 output:
   rmarkdown::html_vignette:
     toc: true
     toc_depth: 2
     number_sections: true
 vignette: >
-  %\VignetteIndexEntry{Bayesian Logistic Regression}
+  %\VignetteIndexEntry{Bayesian Posterior Densities}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -40,7 +40,7 @@ if (is_checking) {
 ```
 
 ### Quickstart
-tbc
+11th-May-update: A first example of how to compute posterior density using vegasr with integrand written as an R function. This will include a comparison with stan (to be completed).
 
 ## Model Formulation
 

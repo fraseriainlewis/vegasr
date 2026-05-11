@@ -13,3 +13,16 @@ dmvnorm_arma <- function(x, mu, cov, a) {
     .Call(`_vegasr_dmvnorm_arma`, x, mu, cov, a)
 }
 
+#' Multivariate Normal Density (RcppArmadillo)
+#'
+#' @param theta   Matrix of integration variables (BATCH x N)
+#' @param y  Mean vector (length N)
+#' @param treat Covariance matrix (N x N)
+#' @param shiftby   Scaling factor
+#' @param uselog fff
+#' @return vector of density values (length BATCH)
+#' @export
+arma_fn_log_post_1 <- function(theta, y, treat, shiftby, uselog) {
+    .Call(`_vegasr_arma_fn_log_post_1`, theta, y, treat, shiftby, uselog)
+}
+

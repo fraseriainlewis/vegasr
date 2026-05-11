@@ -1,12 +1,12 @@
 ---
-title: "rcpp"
+title: "Using Rcpp in Vegasr"
 output:
   rmarkdown::html_vignette:
     toc: true
     toc_depth: 2
     number_sections: true
 vignette: >
-  %\VignetteIndexEntry{rcpp}
+  %\VignetteIndexEntry{Using Rcpp in Vegasr}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -41,7 +41,7 @@ if (is_checking) {
 ```
 
 ### Quickstart
-tbc
+11th-May-update: An example of how to use RcppArmadillo to compute an integrand, which is typically much faster than using R directly. This compares the R function and the Rcpp function each passed to vegas.  
 
 ## Model Formulation
 
@@ -50,63 +50,55 @@ tbc
 
 ```{r datasets, include=TRUE,eval=TRUE}
 library(vegasr)
+vegas_initialize()
 thedata<-vegasr:::fn_create_data_1(99999) # a list of y and treat as matrices
+# this function is in vegasr/R/fn_internal.R
 ```
 
 ```{r logpos,include=TRUE,eval=TRUE}
 ### Now use VEGAS
 library(RcppArmadillo)
 
-theta   <- matrix(rnorm(3*length(thedata$treat)), ncol = 3)
+theta<- matrix(data=rep(0.1,length=4*6), ncol = 6)
 
-vegasr::arma_fn_log_post_1(theta, thedata$y, thedata$treat,1.0, 0.0)
+vegasr:::fn_log_post_1(theta, thedata$y, thedata$treat,.0, 1.0)
+# this function is in vegasr/R/fn_internal.R
 
+vegasr::arma_fn_log_post_1(theta, thedata$y, thedata$treat,0.0, 1.0)
+# this function is in vegasr/src/fns.cpp
 
 ```
-
-
-```{r logpos,include=TRUE,eval=TRUE}
-### Now use VEGAS
-library(mvtnorm)
-library(RcppArmadillo)
+```{r logpos2,include=TRUE,eval=TRUE}
 library(vegasr)
 # now setup python environment
-vegas_initialize() # this needed called once per session after library(vegas) 
-
-# Example
-x   <- matrix(rnorm(3*4), ncol = 3)
-#mu  <- rep(0, 3)
-#cov <- diag(3)
-
-mu<-matrix(c(0.5, -0.2, 0.1),nrow=1)
-cov<-matrix(data=c(
-  1.0, 0.5, 0.2,
-  0.5, 1.2, 0.3,
-  0.2, 0.3, 0.8),ncol=3,byrow=FALSE)
+vegas_initialize() # this needed called once per session after library(vegas)
+library(tictoc)
 
 
-print(vegasr::dmvnorm_arma(x, mu, cov, 2.0))
-
-result<-vegas(f=vegasr::dmvnorm_arma,
-                        lower=c(-5,-5,-5), upper=c(5,5,5),
-                        nitn_warm = 10, neval_warm = 10000,
-                        nitn = 10, neval = 10000,
-                        errTol=0.1,maxIter=20,
-              extra_args = list(
-                          mu=mu,cov=cov,a=10.))
-print(result)
-
-#result_logEv<-vegasBayesEvidence(f=vegasr:::fn_log_post_1,
-#              lower=c(-1,-1,-1,-1,0.0001,0.0001), 
-#              upper=c(1,1,1,1,1,1),
-#              nitn_warm = 10, neval_warm = 10000,
-#              nitn = 10, neval = 10000,
-#              errTol=1,maxIter=10,seed=99999,nsearch=10000,
-#              extra_args=list(
-#                y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
-#cat("log evidence = ",result_logEv,"\n")
+tic()
+result_logEv<-vegasBayesEvidence(f=vegasr:::fn_log_post_1,
+                                 lower=c(-1,-1,-1,-1,0.0001,0.0001),
+                                 upper=c(1,1,1,1,1,1),
+                                 nitn_warm = 5, neval_warm = 1e5,
+                                 nitn = 5, neval = 1e5,
+                                 errTol=0.1,maxIter=10,seed=99999,nsearch=10000,
+                                 extra_args=list(
+                                   y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
+toc()
+cat("log evidence = ",result_logEv,"\n")
 
 
+tic()
+result_logEv<-vegasBayesEvidence(f=arma_fn_log_post_1,
+                                 lower=c(-1,-1,-1,-1,0.0001,0.0001),
+                                 upper=c(1,1,1,1,1,1),
+                                 nitn_warm = 5, neval_warm = 1e5,
+                                 nitn = 5, neval = 1e5,
+                                 errTol=1,maxIter=10,seed=99999,nsearch=10000,
+                                 extra_args=list(
+                                   y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
+toc()
+cat("log evidence = ",result_logEv,"\n")
 
 ```
 
