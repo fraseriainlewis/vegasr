@@ -91,6 +91,7 @@ compares the R function and the Rcpp function each passed to vegas.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">### Now use VEGAS</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/RcppCore/RcppArmadillo" class="external-link">RcppArmadillo</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: package 'RcppArmadillo' was built under R version 4.2.3</span></span>
 <span></span>
 <span><span class="va">theta</span><span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span>data<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.1</span>,length<span class="op">=</span><span class="fl">4</span><span class="op">*</span><span class="fl">6</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
 <span></span>
@@ -112,6 +113,7 @@ compares the R function and the Rcpp function each passed to vegas.</p>
 <span><span class="co">#&gt; vegas is already initialized</span></span>
 <span><span class="co">#&gt; NULL</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jabiru/tictoc" class="external-link">tictoc</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: package 'tictoc' was built under R version 4.2.3</span></span>
 <span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -124,7 +126,7 @@ compares the R function and the Rcpp function each passed to vegas.</p>
 <span>                                 extra_args<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>                                   y<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">y</span>,treat<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>,shiftby<span class="op">=</span><span class="fl">0</span>,uselog<span class="op">=</span><span class="fl">1.</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; 16.398 sec elapsed</span></span>
+<span><span class="co">#&gt; 113.83 sec elapsed</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"log evidence = "</span>,<span class="va">result_logEv</span>,<span class="st">"\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; log evidence =  -129.4151</span></span>
 <span></span>
@@ -139,7 +141,7 @@ compares the R function and the Rcpp function each passed to vegas.</p>
 <span>                                 extra_args<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>                                   y<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">y</span>,treat<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>,shiftby<span class="op">=</span><span class="fl">0</span>,uselog<span class="op">=</span><span class="fl">1.</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; 4.773 sec elapsed</span></span>
+<span><span class="co">#&gt; 17.33 sec elapsed</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"log evidence = "</span>,<span class="va">result_logEv</span>,<span class="st">"\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; log evidence =  -129.4151</span></span></code></pre></div>
 </div>
@@ -155,7 +157,7 @@ compares the R function and the Rcpp function each passed to vegas.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

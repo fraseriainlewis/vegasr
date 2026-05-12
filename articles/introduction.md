@@ -2,7 +2,7 @@
 
 ## PLACEHOLDER - to be completed.
 
-Rcpp examples etc. \## Multivariate Normal density
+Rcpp examples etc \## Multivariate Normal density
 ``` math
 
  f(\mathbf{x}) = \frac{1}{(2\pi)^{N/2} |\Sigma|^{1/2}} \exp!\left(-\frac{1}{2}(\mathbf{x}-\boldsymbol{\mu})^\top
@@ -38,19 +38,18 @@ myf<-function(x,mu,cov){
 
 ########### Estimate integal using defaults
 ########### cleanstart erases any previous results and grid
-result<-vegas_integrate(f=myf,
+result<-vegas(f=myf,
                         lower=c(-5,-5,-5), upper=c(5,5,5),
                         nitn_warm = 10, neval_warm = 10000,
                         nitn = 10, neval = 10000,
                         errTol=0.1,maxIter=20,
-                        mu=mu,cov=cov)
-#> 0
+                        extra_args=list(mu=mu,cov=cov))
 print(result)
 #> $mean
-#> [1] 1.000776
+#> [1] 1.000148
 #> 
 #> $error
-#> [1] 0.0005585197
+#> [1] 0.0005671046
 #> 
 #> $metTolerance
 #> [1] 1
@@ -75,19 +74,18 @@ myx<-matrix(data=rep(0.7,10),ncol=5) # 2 row 5 col
 gaus(x=myx,alpha=alpha)
 #> [1] 0.8187308 0.8187308
 
-result2<-vegas_integrate(f=gaus,
+result2<-vegas(f=gaus,
                         lower=rep(0,5), upper=rep(1,5),
                         nitn_warm = 10, neval_warm = 10000,
                         nitn = 5, neval = 10000,
                         errTol=0.01,maxIter=100,
-                        alpha=alpha)
-#> 0
+                        extra_args=list(alpha=alpha))
 print(result2)
 #> $mean
-#> [1] 0.6682127
+#> [1] 0.6682837
 #> 
 #> $error
-#> [1] 4.936168e-05
+#> [1] 4.805747e-05
 #> 
 #> $metTolerance
 #> [1] 1
