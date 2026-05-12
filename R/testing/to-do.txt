@@ -1,2 +1,23 @@
 add function to do max search, i.e. vegasBayesEvidence() which has all other arguments but
 computes the scaling value and does the integration returnig the log evidence
+
+
+# Your spline density
+ f <- splinefun(x, y, method = "natural")
+
+ x_min <- min(x); x_max <- max(x)
+
+ # 1. Build CDF by numerical integration
+ x_grid <- seq(x_min, x_max, length.out = 2000)
+ dx     <- x_grid[2] - x_grid[1]
+ cdf    <- cumsum(f(x_grid) * dx)
+ cdf    <- cdf / tail(cdf, 1)   # normalize to [0,1]
+
+ # 2. Invert CDF for quantiles
+ cdf_fun <- splinefun(cdf, x_grid, method = "monoH.FC")  # monotone spline!
+
+ # 3. Query any quantile
+ cdf_fun(0.5)    # median
+ cdf_fun(0.025)  # 2.5th percentile
+ cdf_fun(c(0.25, 0.5, 0.75))  # quartiles
+

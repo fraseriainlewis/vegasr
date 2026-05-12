@@ -1,7 +1,20 @@
 library(RcppArmadillo)
 ## provides dmvnorm_aram(x,my,cov)
-Rcpp::sourceCpp("src/testing/test2.cpp")
+Rcpp::sourceCpp("src/testing/rcmp_parallel_test.cpp")
 #check_parallel()
+library(tictoc)
+
+x<-rnorm(1e8)
+tic()
+exp_x<-exp(x)
+toc()
+
+tic()
+exp_xx<-parallel_arma_exp(x)
+toc()
+
+
+
 library(vegasr)
 
 theta   <- matrix(data=rep(0.1,length=4*6), ncol = 6)
