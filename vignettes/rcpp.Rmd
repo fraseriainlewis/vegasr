@@ -41,7 +41,9 @@ if (is_checking) {
 ```
 
 ### Quickstart
-11th-May-update: An example of how to use RcppArmadillo to compute an integrand, which is typically much faster than using R directly. This compares the R function and the Rcpp function each passed to vegas.  
+13th-May-update: Using Rcpp to write the log posterior function will almost surely be faster, perhaps many times faster, than an R function even when vectorized. Examples of the timing comparison are below. 
+
+Example log posterior functions are given below using two Rcpp linear algebra libraries, [RcppArmadillo](https://github.com/rcppcore/rcpparmadillo) and [RcppEigen](https://github.com/RcppCore/RcppEigen). These libraries have different pros and cons. In short RcppArmadillo has some built-in parallelization while RcppEigen does not, but both are highly efficient in their own way. RcppEigen works well with [RcppParallel](https://github.com/rcppcore/rcppparallel) which can be more problematic with RcppArmadillo. 
 
 ## Model Formulation
 
@@ -58,6 +60,7 @@ thedata<-vegasr:::fn_create_data_1(99999) # a list of y and treat as matrices
 ```{r logpos,include=TRUE,eval=TRUE}
 ### Now use VEGAS
 library(RcppArmadillo)
+library(RcppEigen)
 
 theta<- matrix(data=rep(0.1,length=4*6), ncol = 6)
 
@@ -65,7 +68,10 @@ vegasr:::fn_log_post_1(theta, thedata$y, thedata$treat,.0, 1.0)
 # this function is in vegasr/R/fn_internal.R
 
 vegasr::arma_fn_log_post_1(theta, thedata$y, thedata$treat,0.0, 1.0)
-# this function is in vegasr/src/fns.cpp
+# this function is in vegasr/src/fns_arma.cpp
+
+vegasr::eigen_fn_log_post_1(theta, thedata$y, thedata$treat,0.0, 1.0)
+# this function is in vegasr/src/fns_eigen.cpp
 
 ```
 ```{r logpos2,include=TRUE,eval=TRUE}
@@ -89,7 +95,19 @@ cat("log evidence = ",result_logEv,"\n")
 
 
 tic()
-result_logEv<-vegasBayesEvidence(f=arma_fn_log_post_1,
+result_logEv<-vegasBayesEvidence(f=vegasr::arma_fn_log_post_1,
+                                 lower=c(-1,-1,-1,-1,0.0001,0.0001),
+                                 upper=c(1,1,1,1,1,1),
+                                 nitn_warm = 5, neval_warm = 1e5,
+                                 nitn = 5, neval = 1e5,
+                                 errTol=0.1,maxIter=10,seed=99999,nsearch=10000,
+                                 extra_args=list(
+                                   y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
+toc()
+cat("log evidence = ",result_logEv,"\n")
+
+tic()
+result_logEv<-vegasBayesEvidence(f=vegasr::eigen_fn_log_post_1,
                                  lower=c(-1,-1,-1,-1,0.0001,0.0001),
                                  upper=c(1,1,1,1,1,1),
                                  nitn_warm = 5, neval_warm = 1e5,

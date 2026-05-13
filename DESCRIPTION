@@ -25,8 +25,10 @@ Suggests:
     foreach,
     tictoc,
     ggplot2,
-    RcppArmadillo
+    RcppArmadillo,
+    RcppEigen
 VignetteBuilder: knitr
 LinkingTo: 
     Rcpp,
-    RcppArmadillo
+    RcppArmadillo,
+    RcppEigen

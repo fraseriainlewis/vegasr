@@ -2,6 +2,7 @@
 
 export(arma_fn_log_post_1)
 export(dmvnorm_arma)
+export(eigen_fn_log_post_1)
 export(vegas)
 export(vegasBayesEvidence)
 export(vegasBayesPosterior)
