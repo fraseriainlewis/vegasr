@@ -59,8 +59,6 @@ thedata<-vegasr:::fn_create_data_1(99999) # a list of y and treat as matrices
 
 ```{r logpos,include=TRUE,eval=TRUE}
 ### Now use VEGAS
-library(RcppArmadillo)
-library(RcppEigen)
 
 theta<- matrix(data=rep(0.1,length=4*6), ncol = 6)
 

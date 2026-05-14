@@ -24,9 +24,7 @@ Suggests:
     doParallel,
     foreach,
     tictoc,
-    ggplot2,
-    RcppArmadillo,
-    RcppEigen
+    ggplot2
 VignetteBuilder: knitr
 LinkingTo: 
     Rcpp,
