@@ -1,4 +1,3 @@
-# Link to Armadillo and use OpenMP
-PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)
-PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
-
+# Generated from src/Makevars.in by configure
+PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) -D_REENTRANT
+PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) -L/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/library/RcppParallel/lib -ltbb -ltbbmalloc /Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/library/RcppParallel/libs/RcppParallel.so -Wl,-rpath,/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/library/RcppParallel/lib -Wl,-rpath,/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/library/RcppParallel/libs

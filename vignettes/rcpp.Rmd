@@ -116,6 +116,118 @@ result_logEv<-vegasBayesEvidence(f=vegasr::eigen_fn_log_post_1,
 toc()
 cat("log evidence = ",result_logEv,"\n")
 
+tic()
+result_logEv<-vegasBayesEvidence(f=vegasr::eigen_fn_log_post_1_par,
+                                 lower=c(-1,-1,-1,-1,0.0001,0.0001),
+                                 upper=c(1,1,1,1,1,1),
+                                 nitn_warm = 5, neval_warm = 1e5,
+                                 nitn = 5, neval = 1e5,
+                                 errTol=0.1,maxIter=10,seed=99999,nsearch=10000,
+                                 extra_args=list(
+                                   y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
+toc()
+cat("log evidence = ",result_logEv,"\n")
+
+
+```
+## 2. Find Marginal
+
+tbc
+
+```{r marg_single,include=TRUE,eval=TRUE}
+
+tic()
+mymarg<-vegasBayesPosterior(f=vegasr::eigen_fn_marg_1_1_par,
+                            lower=c(-1,-1,-1,0.0001,0.0001),
+                            upper=c(1,1,1,1,1),
+                            nitn_warm = 10, neval_warm = 10000,
+                            nitn = 10, neval = 10000,
+                            errTol=1,maxIter=10,seed=99999,nsearch=10000,
+                            log_evidence = result_logEv,
+                            extra_args=list(
+                              y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.,z=-1.))
+cat("Marginal density f(z) at z = -1. = ",mymarg,"\n")
+toc()
+
+myz<-seq(-2.5,-0.,len=no_den_pts)
+tic("") # Start timer with a label
+f_z<-rep(0,length(myz));
+i<-1;
+for(z in myz){
+  f_z[i]<-vegasBayesPosterior(f=vegasr::eigen_fn_marg_1_1_par,
+                            lower=c(-1,-1,-1,0.0001,0.0001),
+                            upper=c(1,1,1,1,1),
+                            nitn_warm = 10, neval_warm = 10000,
+                            nitn = 10, neval = 10000,
+                            errTol=1,maxIter=10,seed=99999,nsearch=10000,
+                            log_evidence = result_logEv,
+                            extra_args=list(
+                              y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.,z=z))
+  i<-i+1
+}
+
+toc() # Stops timer and prints
+
+```
+```{r plot_marg, include=FALSE, eval=TRUE, fig.width=10, fig.height=6, out.width="100%", fig.align='center'}
+#plot(myz,f_z,main="Vegas R",col="blue",lwd=2,type="n")
+#points(myz,f_z,col="brown",pch=21,bg="brown")
+#f_interp <- splinefun(myz, f_z, method = "fmm")
+#lines(myz,f_interp(myz),col="magenta")
+
+library(ggplot2)
+
+# 1. Prepare data for plotting
+# Ensure f_z is a numeric vector (in case it is a list from foreach)
+if (is.list(f_z)) {
+  # If it's a list of results, extract the 'mean' component
+  if (is.list(f_z[[1]]) && "mean" %in% names(f_z[[1]])) {
+    f_z_vec <- unlist(lapply(f_z, function(x) x$mean))
+  } else {
+    f_z_vec <- unlist(f_z)
+  }
+} else {
+  f_z_vec <- f_z
+}
+
+# Create a smooth interpolation for the line
+z_grid <- seq(min(myz), max(myz), length.out = 500)
+f_interp <- splinefun(myz, f_z_vec, method = "fmm")
+
+# Prepare data frames
+plot_data <- data.frame(z = as.numeric(myz), f = as.numeric(f_z_vec))
+line_data <- data.frame(z = as.numeric(z_grid), f = as.numeric(f_interp(z_grid)))
+
+# 2. Create the plot
+p <- ggplot(plot_data, aes(x = z, y = f)) +
+  # Draw the interpolated smooth line from the line_data frame
+  geom_line(data = line_data, color = "#8E44AD", linewidth = 1, alpha = 0.8) +
+  # Draw the actual data points from the plot_data frame (inherited)
+  geom_point(fill = "#D35400", color = "white", shape = 21, size = 3, stroke = 0.5) +
+  # Labels and Title
+  labs(
+    title = "Marginal Posterior Density Estimation",
+    subtitle = "Calculated via Vegas Integration with Spline Interpolation",
+    x = "Parameter Space (z)",
+    y = "Density",
+    caption = "Source: Vegas R Integration"
+  ) +
+  # Apply a professional theme
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(color = "grey30", size = 11),
+    axis.title = element_text(face = "bold"),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(20, 20, 20, 20)
+  )
+
 ```
 
+```{r plot_marg2, include=TRUE, eval=TRUE, fig.width=10, fig.height=6, out.width="100%", fig.align='center'}
+# 3. Display the plot
+# plotting code above in hidden chunk
+print(p)
+
+```
 

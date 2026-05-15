@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# Get paths from R
+RCPPP_LIB_PATH=`"${R_HOME}/bin/Rscript" -e "cat(system.file('lib', package = 'RcppParallel'))"`
+RCPPP_LIBS_PATH=`"${R_HOME}/bin/Rscript" -e "cat(system.file('libs', package = 'RcppParallel'))"`
+RCPPP_LDFLAGS=`"${R_HOME}/bin/Rscript" -e "RcppParallel::LdFlags()"`
+
+# Detect OS
+OS=`uname`
+
+# Base LIBS
+LIBS="${RCPPP_LDFLAGS} ${RCPPP_LIBS_PATH}/RcppParallel.so"
+
+# Add macOS specific rpath fix
+if [ "$OS" = "Darwin" ]; then
+  LIBS="${LIBS} -Wl,-rpath,${RCPPP_LIB_PATH} -Wl,-rpath,${RCPPP_LIBS_PATH}"
+fi
+
+# Generate src/Makevars from src/Makevars.in
+sed -e "s|@PKG_LIBS@|${LIBS}|g" src/Makevars.in > src/Makevars

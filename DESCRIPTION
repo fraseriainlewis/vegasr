@@ -15,7 +15,8 @@ Imports:
     methods,
     reticulate,
     glue,
-    Rcpp
+    Rcpp,
+    RcppParallel
 Suggests: 
     knitr,
     mvtnorm,
@@ -29,4 +30,5 @@ VignetteBuilder: knitr
 LinkingTo: 
     Rcpp,
     RcppArmadillo,
-    RcppEigen
+    RcppEigen,
+    RcppParallel

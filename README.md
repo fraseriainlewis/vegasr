@@ -64,9 +64,9 @@ res_builtin<-pmvnorm(lower=lower,upper=upper,
                      mean=as.numeric(mu), # coercion as needs vector
                      sigma=cov)
 print(res_builtin)
-#> [1] 0.3103082
+#> [1] 0.3102985
 #> attr(,"error")
-#> [1] 5.853441e-05
+#> [1] 5.392972e-05
 #> attr(,"msg")
 #> [1] "Normal Completion"
 
