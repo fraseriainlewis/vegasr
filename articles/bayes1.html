@@ -158,7 +158,7 @@ the full quarto file.</p>
 <span><span class="fu"><a href="../reference/vegas_initialize.html">vegas_initialize</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># this needed called once per session after library(vegas) </span></span>
 <span><span class="co">#&gt; successfully initialized vegas version: 6.4.1</span></span>
 <span></span>
-<span><span class="va">result_logEv</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesEvidence.html">vegasBayesEvidence</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">:::</span><span class="va">fn_log_post_1</span>,</span>
+<span><span class="va">result_logEv</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesEvidence.html">vegasBayesEvidence</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">:::</span><span class="va"><a href="../reference/fn_log_post_1.html">fn_log_post_1</a></span>,</span>
 <span>              lower<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="fl">0.0001</span>,<span class="fl">0.0001</span><span class="op">)</span>, </span>
 <span>              upper<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span>,</span>
 <span>              nitn_warm <span class="op">=</span> <span class="fl">10</span>, neval_warm <span class="op">=</span> <span class="fl">10000</span>,</span>
@@ -177,7 +177,7 @@ evidence, i.e. the standardization constant, that ensures the posterior
 integrates to unity. Also known as the log marginal likelihood.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="va">mymarg</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesPosterior.html">vegasBayesPosterior</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">:::</span><span class="va">fn_marg_1_1</span>,</span>
+<span><span class="va">mymarg</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesPosterior.html">vegasBayesPosterior</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">:::</span><span class="va"><a href="../reference/fn_marg_1_1.html">fn_marg_1_1</a></span>,</span>
 <span>                           lower<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="fl">0.0001</span>,<span class="fl">0.0001</span><span class="op">)</span>,</span>
 <span>                           upper<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span>,</span>
 <span>                           nitn_warm <span class="op">=</span> <span class="fl">10</span>, neval_warm <span class="op">=</span> <span class="fl">10000</span>,</span>
@@ -204,7 +204,7 @@ integrates to unity. Also known as the log marginal likelihood.</p>
 <span><span class="va">myz</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2.5</span>,<span class="op">-</span><span class="fl">0.</span>,len<span class="op">=</span><span class="va">no_den_pts</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="st">"Parallel Vegas Loop"</span><span class="op">)</span> <span class="co"># Start timer with a label</span></span>
 <span><span class="va">f_z</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/pkg/foreach/man/foreach.html" class="external-link">foreach</a></span><span class="op">(</span>z<span class="op">=</span> <span class="va">myz</span>,.packages <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"extraDistr"</span>, <span class="st">"vegasr"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/foreach/man/foreach.html" class="external-link">%dopar%</a></span> <span class="op">{</span></span>
-<span> <span class="fu"><a href="../reference/vegasBayesPosterior.html">vegasBayesPosterior</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">:::</span><span class="va">fn_marg_1_1</span>,</span>
+<span> <span class="fu"><a href="../reference/vegasBayesPosterior.html">vegasBayesPosterior</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">:::</span><span class="va"><a href="../reference/fn_marg_1_1.html">fn_marg_1_1</a></span>,</span>
 <span>                      lower<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="fl">0.0001</span>,<span class="fl">0.0001</span><span class="op">)</span>,</span>
 <span>                      upper<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span>,</span>
 <span>                      nitn_warm <span class="op">=</span> <span class="fl">10</span>, neval_warm <span class="op">=</span> <span class="fl">10000</span>,</span>
@@ -218,7 +218,7 @@ integrates to unity. Also known as the log marginal likelihood.</p>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/parallel/makeCluster.html" class="external-link">stopCluster</a></span><span class="op">(</span><span class="va">cl</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># Stops timer and prints</span></span>
-<span><span class="co">#&gt; Parallel Vegas Loop: 12.855 sec elapsed</span></span></code></pre></div>
+<span><span class="co">#&gt; Parallel Vegas Loop: 12.987 sec elapsed</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># 3. Display the plot</span></span>
 <span><span class="co"># plotting code above in hidden chunk</span></span>
@@ -232,7 +232,7 @@ integrates to unity. Also known as the log marginal likelihood.</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by First Last.</p>
+  <p>Developed by Fraser Lewis.</p>
 </div>
 
 <div class="pkgdown-footer-right">
