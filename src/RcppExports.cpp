@@ -12,20 +12,6 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// dmvnorm_arma
-arma::vec dmvnorm_arma(const arma::mat& x, const arma::vec& mu, const arma::mat& cov, double a);
-RcppExport SEXP _vegasr_dmvnorm_arma(SEXP xSEXP, SEXP muSEXP, SEXP covSEXP, SEXP aSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type cov(covSEXP);
-    Rcpp::traits::input_parameter< double >::type a(aSEXP);
-    rcpp_result_gen = Rcpp::wrap(dmvnorm_arma(x, mu, cov, a));
-    return rcpp_result_gen;
-END_RCPP
-}
 // arma_fn_log_post_1
 arma::vec arma_fn_log_post_1(const arma::mat& theta, const arma::vec& y, const arma::vec& treat, double shiftby, double uselog);
 RcppExport SEXP _vegasr_arma_fn_log_post_1(SEXP thetaSEXP, SEXP ySEXP, SEXP treatSEXP, SEXP shiftbySEXP, SEXP uselogSEXP) {
@@ -89,7 +75,6 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_vegasr_dmvnorm_arma", (DL_FUNC) &_vegasr_dmvnorm_arma, 4},
     {"_vegasr_arma_fn_log_post_1", (DL_FUNC) &_vegasr_arma_fn_log_post_1, 5},
     {"_vegasr_eigen_fn_log_post_1", (DL_FUNC) &_vegasr_eigen_fn_log_post_1, 5},
     {"_vegasr_eigen_fn_log_post_1_par", (DL_FUNC) &_vegasr_eigen_fn_log_post_1_par, 5},
