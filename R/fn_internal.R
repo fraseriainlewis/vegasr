@@ -1,7 +1,7 @@
-
 ##############################################################################################
 ##############################################################################################
-### Prepare model inputs
+# internal function used to create data set for use in vignettes.
+# two arm binary outcome
 fn_create_data_1<-function(seed){
   set.seed(seed)
   # Set up data
@@ -37,7 +37,29 @@ fn_create_data_1<-function(seed){
 }
 ##############################################################################################
 ##############################################################################################
-## Define log posterior inclding change of variables
+#' @title Posterior Density Function - Example 1
+#'
+#' @description An example showing how to write a function for use with \code{\link{vegasBayesEvidence}} for
+#' Bayesian computation.
+#' This example function describes a simple Bayesian hierarchical model comprising of a logistic regression with
+#' intercept and single binary covariate for treatment effect each with a hierarchical prior.
+#' This has six parameters in total.
+#'
+#' @details The is an example function written purely in R. It uses a transformation so the density
+#' can be integrated across the full domain of each parameter, i.e. the density includes a Jacobian
+#'  See \code{vignette("bayes1", package = "vegasr")} for more details.
+#'
+#' @param theta a numerical matrix of dimension Batch x M, where M is number of parameters, here M=6
+#' Batch can be any positive integer
+#' @param y a numeric matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
+#' entries only
+#' @param treat a numeric matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
+#' entries only
+#' @param shiftby a numerical scalar used to help avoid underflow. Used in \code{\link{vegasBayesEvidence}}
+#' @param uselog a numerical flag value takes either 1.0 or 0.0 and used to return either log or real scale
+#' value. Used in \code{\link{vegasBayesEvidence}}
+#' @export
+## Define log posterior including change of variables
 fn_log_post_1<-function(theta,      # matrix Batch x M
                         y,          # matrix N x 1
                         treat,      # matrix N x 1
@@ -116,7 +138,29 @@ if(FALSE){ # to test
 
 ##############################################################################################
 ##############################################################################################
-## Define log posterior inclding change of variables
+#' @title Marginal Posterior Density Function - Example 1
+#'
+#' @description An example showing how to write a function for use with \code{\link{vegasBayesPosterior}} for
+#' Bayesian computation. This is almost identical to \code{\link{fn_log_post_1}} but we now reduce the dimension
+#' by 1 and pass a fixed value the missing dimension for the variable who marginal we want to compute.
+#'
+#' @details The is an example function written purely in R. It uses a transformation so the density
+#' can be integrated across the full domain of each parameter, i.e. the density includes a Jacobian
+#'  See \code{vignette("bayes1", package = "vegasr")} for more details.
+#'
+#' @param theta a numerical matrix of dimension Batch x M, where M is number of parameters, here M=6
+#' Batch can be any positive integer
+#' @param y a numeric matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
+#' entries only
+#' @param treat a numeric matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
+#' entries only
+#' @param shiftby a numerical scalar used to help avoid underflow. Used in \code{\link{vegasBayesPosterior}}
+#' @param uselog a numerical flag value takes either 1.0 or 0.0 and used to return either log or real scale
+#' value. Used in \code{\link{vegasBayesPosterior}}
+#' @param z a numerical and the function call computes the density at this value, i.e. f(x).
+#' Used in \code{\link{vegasBayesPosterior}}
+#' @export
+## Define log posterior for a marginal calclation including change of variables
 fn_marg_1_1<-function(theta,      # matrix Batch x M
                       y,          # matrix N x 1
                       treat,      # matrix N x 1

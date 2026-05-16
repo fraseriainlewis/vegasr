@@ -7,6 +7,6 @@
 ^docs$
 ^pkgdown$
 ^\.github$
+^README\.Rmd$
 ^doc$
 ^Meta$
-^README\.Rmd$

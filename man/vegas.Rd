@@ -25,25 +25,27 @@ vegas(
 
 \item{upper}{A vector of upper integration limits for each dimension, e.g. c(1.,1.1)}
 
-\item{nitn_warm}{Number of iterations for Vegas warmup}
+\item{nitn_warm}{Number of iterations for Vegas warm-up.}
 
-\item{neval_warm}{Number of function evaluations per iteration in warmup}
+\item{neval_warm}{Number of function evaluations per iteration in warm-up.}
 
-\item{nitn}{Number of iterations post-warmup.}
+\item{nitn}{Number of iterations post-warm-up, these results contribute to final estimate and final error.}
 
-\item{neval}{Number of function evaluations per iteration post-warmup.}
+\item{neval}{Number of function evaluations per iteration post-warm-up, these results contribute to final
+estimate and final error.}
 
 \item{errTol}{the \% error target, default is 1, i.e. error is 1\% of current estimated integral value}
 
 \item{maxIter}{max number of iteration blocks to run to achieve errTol. Each block comprises nitn iterations}
 
-\item{seed}{random number seed for vegas sampling generating. set for reproducible results.}
+\item{seed}{random number seed for vegas sampling generating. set for reproducible results. This is vegas' python
+random number generator not R's.}
 
 \item{extra_args}{a named list of additional arguments passed to the function f.
 These must be numeric vectors or matrices. See details.}
 }
 \description{
-An R wrapper for the Python numerical integration library vegas. This allows integrals defined as R functions to be passed to the python library for computation. Some minimal requirements apply to the functions. See Details.
+An R wrapper for the Python numerical integration library vegas. This allows integrals defined as R functions (including using Rcpp and associated packages) to be passed to the python library for computation. Some minimal requirements apply to the functions. See Details.
 }
 \details{
 The \href{https://pypi.org/project/vegas/}{vegas} Python library implements the 2020 VEGAS+ adaptive Monte Carlo numerical integration algorithm.
@@ -54,8 +56,10 @@ The R function passed defines an integral and its structure and arguments need t
 
 \itemize{
 \item The first argument passed to the R function from Python vegas will be a numerical matrix of shape \code{[BATCH,Dim]}, and vegas will expect back a numerical vector of length Dim. Each row in the matrix is a single set of values of the integration variables, e.g. for a 5-D integrand then this matrix must have 5 columns. Reticulate takes care of conversion between R and Python matrices and vectors but the dimensions must be as described.
-\item Additional named arguments can be passed and these should always be matrix() objects, with integers converted to float (or have trailing period added to avoi ambiguity)
+\item Additional named arguments can be passed and these should always be matrix() objects, with integers converted to float (or have trailing period added to avoid ambiguity)
 \item  If an additional argument is a scalar, say svalue, then use mvalue<-matrix(data=c(svalue,nrow=1), coercing to float first if necessary, and in the R function use \code{mvalue[1]}.
+\item The warm-up period is mandatory although it can be reduced to only one iteration. The warm-up is the very start of grid adaptation. Warm-up results are discarded as while they do not bias the result there inclusion can be inefficient due to increasing the estimated error.
+\item The python vegas function takes nitn and neval arguments but does not have a tolerance argument. This function runs the python vegas function repeatedly if necessary to reduce the error down to the target errTol level. The repeats are in blocks of nitn and neval and the final estimate and error from these blocks is combined into an overall weighted final estimate and final error. The functions necessary for this weighting and combining are provided in the vegas python library, specifically vegas.ravg().
 }
 }
 \examples{

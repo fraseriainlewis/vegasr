@@ -4,11 +4,11 @@
 \name{vegasr-package}
 \alias{vegasr}
 \alias{vegasr-package}
-\title{vegasr: What the Package Does (One Line, Title Case)}
+\title{vegasr: Bayesian Computation via Vegas Python library}
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-What the package does (one paragraph).
+Numerical Integration for Bayesian Computation via wrapping the vegas Python library. This library provides the most updated vegas algorithm, vegas+ from 2020.
 }
 \seealso{
 Useful links:
@@ -20,7 +20,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: First Last \email{first.last@example.com}
+\strong{Maintainer}: Fraser Lewis \email{fraser.iain.lewis@gmail.com}
 
 }
 \keyword{internal}

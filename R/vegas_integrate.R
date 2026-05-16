@@ -1,6 +1,6 @@
-#' Multidimensional Integration using Vegas+
+#' @title Multidimensional Integration using Vegas+
 #'
-#' @description An R wrapper for the Python numerical integration library vegas. This allows integrals defined as R functions to be passed to the python library for computation. Some minimal requirements apply to the functions. See Details.
+#' @description An R wrapper for the Python numerical integration library vegas. This allows integrals defined as R functions (including using Rcpp and associated packages) to be passed to the python library for computation. Some minimal requirements apply to the functions. See Details.
 #'
 #' @details
 #' The \href{https://pypi.org/project/vegas/}{vegas} Python library implements the 2020 VEGAS+ adaptive Monte Carlo numerical integration algorithm.
@@ -11,8 +11,11 @@
 #'
 #' \itemize{
 #'   \item The first argument passed to the R function from Python vegas will be a numerical matrix of shape \code{[BATCH,Dim]}, and vegas will expect back a numerical vector of length Dim. Each row in the matrix is a single set of values of the integration variables, e.g. for a 5-D integrand then this matrix must have 5 columns. Reticulate takes care of conversion between R and Python matrices and vectors but the dimensions must be as described.
-#'   \item Additional named arguments can be passed and these should always be matrix() objects, with integers converted to float (or have trailing period added to avoi ambiguity)
+#'   \item Additional named arguments can be passed and these should always be matrix() objects, with integers converted to float (or have trailing period added to avoid ambiguity)
 #'   \item  If an additional argument is a scalar, say svalue, then use mvalue<-matrix(data=c(svalue,nrow=1), coercing to float first if necessary, and in the R function use \code{mvalue[1]}.
+#'   \item The warm-up period is mandatory although it can be reduced to only one iteration. The warm-up is the very start of grid adaptation. Warm-up results are discarded as while they do not bias the result there inclusion can be inefficient due to increasing the estimated error.
+#'   \item The python vegas function takes nitn and neval arguments but does not have a tolerance argument. This function runs the python vegas function repeatedly if necessary to reduce the error down to the target errTol level. The repeats are in blocks of nitn and neval and the final estimate and error from these blocks is combined into an overall weighted final estimate and final error. The functions necessary for this weighting and combining are provided in the vegas python library, specifically vegas.ravg().
+
 #' }
 #'
 #' @references
@@ -25,13 +28,15 @@
 #' @param f An R function that takes a matrix and returns a vector. See details and examples.
 #' @param lower A vector of lower integration limits for each dimension, e.g. c(-1.,-1.-1)
 #' @param upper A vector of upper integration limits for each dimension, e.g. c(1.,1.1)
-#' @param nitn_warm Number of iterations for Vegas warmup
-#' @param neval_warm Number of function evaluations per iteration in warmup
-#' @param nitn Number of iterations post-warmup.
-#' @param neval Number of function evaluations per iteration post-warmup.
+#' @param nitn_warm Number of iterations for Vegas warm-up.
+#' @param neval_warm Number of function evaluations per iteration in warm-up.
+#' @param nitn Number of iterations post-warm-up, these results contribute to final estimate and final error.
+#' @param neval Number of function evaluations per iteration post-warm-up, these results contribute to final
+#' estimate and final error.
 #' @param errTol  the % error target, default is 1, i.e. error is 1% of current estimated integral value
 #' @param maxIter max number of iteration blocks to run to achieve errTol. Each block comprises nitn iterations
-#' @param seed random number seed for vegas sampling generating. set for reproducible results.
+#' @param seed random number seed for vegas sampling generating. set for reproducible results. This is vegas' python
+#' random number generator not R's.
 #' @param extra_args a named list of additional arguments passed to the function f.
 #' These must be numeric vectors or matrices. See details.
 #' @importFrom glue glue
@@ -232,24 +237,41 @@ return(summary_res)
 
 ################################################################################
 ################################################################################
-#' Bayesian Log Evidence
+#' @title Compute Bayesian Log Evidence
 #'
-#' @description tbc
+#' @description This function takes a log posterior density function and integrates
+#' in out to give the log evidence also known as log marginal likelihood.
 #'
-#' @details tbc
+#' @details The function passed must meet some specific criteria and a range of example
+#' functions are included in the package, e.g. see \code{\link{fn_log_post_1}}, in
+#' particular the function deal with integration limits via transformation if
+#' necessary. Example functions using Rcpp are also provided, see \code{\link{arma_fn_log_post_1}}
+#' which uses RcppArmadillo, \code{\link{eigen_fn_log_post_1}} which uses Eigen
+#' and \code{\link{eigen_fn_log_post_1_par}} which used Eigen and RcppParallel.
+#'
+#' See \code{vignette("bayes1", package = "vegasr")} for examples
+#' and usage and \code{vignette("rcpp", package = "vegasr")} for examples using
+#' functions written in Rcpp
+#'
+#' To help avoid numerical underflow the log posterior values are location shifted
+#' where a maximum value is subtracted on the log scale. This maximum value
+#' is estimated using a simple grid search between the upper and lower bounds. This
+#' maximum value does not need to be precise but a higher nsearch value may potentially
+#' help in case of NaN or underflow.
 #'
 #' @param f An R function that takes a matrix and returns a vector. See details and examples.
 #' @param lower A vector of lower integration limits for each dimension, e.g. c(-1.,-1.-1)
 #' @param upper A vector of upper integration limits for each dimension, e.g. c(1.,1.1)
-#' @param nitn_warm Number of iterations for Vegas warmup
-#' @param neval_warm Number of function evaluations per iteration in warmup
-#' @param nitn Number of iterations post-warmup.
-#' @param neval Number of function evaluations per iteration post-warmup.
+#' @param nitn_warm Number of iterations for Vegas warm-up
+#' @param neval_warm Number of function evaluations per iteration in warm-up
+#' @param nitn Number of iterations post-warm-up.
+#' @param neval Number of function evaluations per iteration post-warm-up.
 #' @param errTol  the % error target, default is 1, i.e. error is 1% of current estimated integral value
 #' @param maxIter max number of iteration blocks to run to achieve errTol. Each block comprises nitn iterations
 #' @param seed random number seed for vegas sampling generating. set for reproducible results.
 #' @param nsearch number of points to evaluate log_posterior to find approx max value for shiftby. See details.
-#' @param extra_args a named list of additional arguments passed to the function f.
+#' @param extra_args a named list of additional arguments passed to the function f. This must include at
+#' least uselog and shiftby arguments which are mandatory for the function f.
 #' @export
 vegasBayesEvidence <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000,
                   nitn = 10, neval = 1000, errTol=1,maxIter=5,seed=99999,
@@ -293,26 +315,40 @@ vegasBayesEvidence <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000
 }
 
 ################################################################################
-#' Bayesian Posterior Density at single value
+################################################################################
+#' @title Compute Bayesian Marginal Posterior
 #'
-#' @description tbc
+#' @description This function returns the estimated marginal posterior density, f(z)
+#' at a value of random variable z, where the remaining dimensions/variables are
+#' integrated out. See \code{vignette("bayes1", package = "vegasr")} and
+#' \code{vignette("rcpp", package = "vegasr")}for examples and usage.
 #'
-#' @details tbc
+#' @details The function passed must meet some specific criteria and a range of example
+#' functions are included in the package, e.g. see \code{\link{fn_log_post_1}}, in
+#' particular the function deal with integration limits via transformation if
+#' necessary. Example functions using Rcpp are also provided, see \code{\link{arma_fn_log_post_1}}
+#' which uses RcppArmadillo, \code{\link{eigen_fn_log_post_1}} which uses Eigen
+#' and \code{\link{eigen_fn_log_post_1_par}} which used Eigen and RcppParallel.
+#'
+#' To help avoid numerical underflow the log posterior values are location shifted
+#' where a maximum value is subtracted on the log scale. This maximum value
+#' is estimated using a simple grid search between the upper and lower bounds. This
+#' maximum value does not need to be precise but a higher nsearch value may potentially
+#' help in case of NaN or underflow.
 #'
 #' @param f An R function that takes a matrix and returns a vector. See details and examples.
 #' @param lower A vector of lower integration limits for each dimension, e.g. c(-1.,-1.-1)
 #' @param upper A vector of upper integration limits for each dimension, e.g. c(1.,1.1)
-#' @param nitn_warm Number of iterations for Vegas warmup
-#' @param neval_warm Number of function evaluations per iteration in warmup
-#' @param nitn Number of iterations post-warmup.
-#' @param neval Number of function evaluations per iteration post-warmup.
+#' @param nitn_warm Number of iterations for Vegas warm-up
+#' @param neval_warm Number of function evaluations per iteration in warm-up
+#' @param nitn Number of iterations post-warm-up.
+#' @param neval Number of function evaluations per iteration post-warm-up.
 #' @param errTol  the % error target, default is 1, i.e. error is 1% of current estimated integral value
 #' @param maxIter max number of iteration blocks to run to achieve errTol. Each block comprises nitn iterations
 #' @param seed random number seed for vegas sampling generating. set for reproducible results.
 #' @param nsearch number of points to evaluate log_posterior to find approx max value for shiftby. See details.
-#' @param log_evidence log evidence value to be passed as standardization constant
-#' @param extra_args a named list of additional arguments passed to the function f.
-#' Must have shiftby, uselog and z. See details. z
+#' @param extra_args a named list of additional arguments passed to the function f. This must include at
+#' least uselog and shiftby arguments which are mandatory for the function f.
 #' @export
 ##############################################################################################
 vegasBayesPosterior <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000,

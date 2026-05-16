@@ -1,9 +1,9 @@
 Package: vegasr
-Title: What the Package Does (One Line, Title Case)
+Title: Bayesian Computation via Vegas Python library
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+    person("Fraser", "Lewis", , "fraser.iain.lewis@gmail.com", role = c("aut", "cre"))
+Description: Numerical Integration for Bayesian Computation via wrapping the vegas Python library. This library provides the most updated vegas algorithm, vegas+ from 2020.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/vegas_integrate.R
 \name{vegasBayesEvidence}
 \alias{vegasBayesEvidence}
-\title{Bayesian Log Evidence}
+\title{Compute Bayesian Log Evidence}
 \usage{
 vegasBayesEvidence(
   f,
@@ -26,13 +26,13 @@ vegasBayesEvidence(
 
 \item{upper}{A vector of upper integration limits for each dimension, e.g. c(1.,1.1)}
 
-\item{nitn_warm}{Number of iterations for Vegas warmup}
+\item{nitn_warm}{Number of iterations for Vegas warm-up}
 
-\item{neval_warm}{Number of function evaluations per iteration in warmup}
+\item{neval_warm}{Number of function evaluations per iteration in warm-up}
 
-\item{nitn}{Number of iterations post-warmup.}
+\item{nitn}{Number of iterations post-warm-up.}
 
-\item{neval}{Number of function evaluations per iteration post-warmup.}
+\item{neval}{Number of function evaluations per iteration post-warm-up.}
 
 \item{errTol}{the \% error target, default is 1, i.e. error is 1\% of current estimated integral value}
 
@@ -42,11 +42,28 @@ vegasBayesEvidence(
 
 \item{nsearch}{number of points to evaluate log_posterior to find approx max value for shiftby. See details.}
 
-\item{extra_args}{a named list of additional arguments passed to the function f.}
+\item{extra_args}{a named list of additional arguments passed to the function f. This must include at
+least uselog and shiftby arguments which are mandatory for the function f.}
 }
 \description{
-tbc
+This function takes a log posterior density function and integrates
+in out to give the log evidence also known as log marginal likelihood.
 }
 \details{
-tbc
+The function passed must meet some specific criteria and a range of example
+functions are included in the package, e.g. see \code{\link{fn_log_post_1}}, in
+particular the function deal with integration limits via transformation if
+necessary. Example functions using Rcpp are also provided, see \code{\link{arma_fn_log_post_1}}
+which uses RcppArmadillo, \code{\link{eigen_fn_log_post_1}} which uses Eigen
+and \code{\link{eigen_fn_log_post_1_par}} which used Eigen and RcppParallel.
+
+See \code{vignette("bayes1", package = "vegasr")} for examples
+and usage and \code{vignette("rcpp", package = "vegasr")} for examples using
+functions written in Rcpp
+
+To help avoid numerical underflow the log posterior values are location shifted
+where a maximum value is subtracted on the log scale. This maximum value
+is estimated using a simple grid search between the upper and lower bounds. This
+maximum value does not need to be precise but a higher nsearch value may potentially
+help in case of NaN or underflow.
 }
