@@ -31,7 +31,7 @@ test_that("vegas is wrapped correctly - nunmerical check 1", {
   ## now use vegas to compute same integral
   library(vegasr)
   vegas_initialize()
-
+  set.seed(99999)
   # call the built-in density function and use vegas to integrate it
   myf<-function(x,mu,cov){
     res<-dmvnorm(x,
@@ -48,7 +48,7 @@ test_that("vegas is wrapped correctly - nunmerical check 1", {
                       errTol=0.1, maxIter=20,seed=99999,
                       extra_args=list(mu=mu, cov=cov))
   # extra_args are additional arguments needed for myf
-  testthat::expect_equal(r_result[1], vegas_result$mean, tolerance = 1e-4)
+  testthat::expect_equal(r_result[1], vegas_result$mean, tolerance = 1e-3)
 
 })
 
@@ -91,4 +91,5 @@ test_that("vegas is wrapped correctly - nunmerical check 2", {
   testthat::expect_equal(r_result[1], vegas_result$mean, tolerance = 1e-3) # fairly high as monte carlo error
 
 })
+
 

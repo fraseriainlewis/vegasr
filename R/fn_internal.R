@@ -157,7 +157,7 @@ if(FALSE){ # to test
 #' @param shiftby a numerical scalar used to help avoid underflow. Used in \code{\link{vegasBayesPosterior}}
 #' @param uselog a numerical flag value takes either 1.0 or 0.0 and used to return either log or real scale
 #' value. Used in \code{\link{vegasBayesPosterior}}
-#' @param z a numerical and the function call computes the density at this value, i.e. f(x).
+#' @param z a numerical and the function call computes the density at this value, i.e. f(z).
 #' Used in \code{\link{vegasBayesPosterior}}
 #' @export
 ## Define log posterior for a marginal calclation including change of variables

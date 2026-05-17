@@ -19,6 +19,10 @@ class vegasr_wrapper:
         res=vegas.ravg(self.integresults)
         #return(np.array([res.mean,res.sdev])) # if r_func() return array this does not work
         return np.array([gvar.mean(res), gvar.sdev(res)])  # works for both RAvg and RAvgArray
+        # Note - this does not reach back into individual iterations but weights each summary
+        # this is mathematically correct but Lepage notes can introduce tiny bias and if neval is very small using
+        # a frozen grid might be appropriate. See python vegas website. 
+    
     
     def get_all_wt_results(self):
         return(self.integresults)

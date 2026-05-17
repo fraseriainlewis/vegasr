@@ -2,26 +2,31 @@
 % Please edit documentation in R/RcppExports.R
 \name{eigen_fn_marg_1_1_par}
 \alias{eigen_fn_marg_1_1_par}
-\title{Multivariate Normal Density (RcppParallel)}
-\usage{
-eigen_fn_marg_1_1_par(theta, y, treat, shiftby, uselog, z)
-}
+\title{Marginal Posterior Density Function using RcppParallel - Example 1}
 \arguments{
-\item{theta}{Matrix of integration variables (BATCH x N)}
+\item{theta}{pass a numerical R matrix of dimension Batch x M, where M is number of parameters, here M=6
+Batch can be any positive integer}
 
-\item{y}{Mean vector (length N)}
+\item{y}{a numeric R matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
+entries only}
 
-\item{treat}{Covariance matrix (N x N)}
+\item{treat}{a numeric R matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
+entries only}
 
-\item{shiftby}{Scaling factor}
+\item{shiftby}{a numerical scalar used to help avoid underflow. Used in \code{\link{vegasBayesPosterior}}}
 
-\item{uselog}{fff}
+\item{uselog}{a numerical flag value takes either 1.0 or 0.0 and used to return either log or real scale
+value. Used in \code{\link{vegasBayesPosterior}}}
 
-\item{z}{fff}
-}
-\value{
-vector of density values (length BATCH)
+\item{z}{a numerical and the function call computes the density at this value, i.e. f(z).}
 }
 \description{
-Multivariate Normal Density (RcppParallel)
+An example showing how to write a function for use with \code{\link{vegasBayesPosterior}} for
+Bayesian computation. This is almost identical to \code{\link{eigen_fn_log_post_1_par}} but we now reduce the dimension
+by 1 and pass a fixed value the missing dimension for the variable who marginal we want to compute.
+See \code{vignette("rcpp", package = "vegasr")} for Rcpp details.
+}
+\details{
+The is an example function written using RcppParallel and has same functionality as the R function
+\code{\link{fn_marg_1_1}}. This function is in the fns_eigen.cpp file in the source package.
 }

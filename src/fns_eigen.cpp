@@ -41,15 +41,34 @@ VectorXd eigen_half_norm_logpdf(const VectorXd& x, double sigma) {
     return (log_const + log_exp).matrix();
 }
 
-//' Multivariate Normal Density (RcppArmadillo)
+// ---------------------------------------------------------------------------
+//' @title Posterior Density Function using RcppEigen - Example 1
+//' @name eigen_fn_log_post_1
+//' @aliases eigen_fn_log_post_1
+//' @description An example showing how to write a function for use with \code{\link{vegasBayesEvidence}} for
+//' Bayesian computation using the RcppEigen library
+//' This example function describes a simple Bayesian hierarchical model comprising of a logistic regression with
+//' intercept and single binary covariate for treatment effect each with a hierarchical prior.
+//' This has six parameters in total. See \code{vignette("rcpp", package = "vegasr")} for Rcpp details.
 //'
-//' @param theta   Matrix of integration variables (BATCH x N)
-//' @param y  Mean vector (length N)
-//' @param treat Covariance matrix (N x N)
-//' @param shiftby   Scaling factor
-//' @param uselog fff
-//' @return vector of density values (length BATCH)
+//' @details The is an example function written using RcppEigen and has same functionality as the R function
+//' \code{\link{fn_log_post_1}}. It uses a transformation so the density
+//' can be integrated across the full domain of each parameter, i.e. the density includes a Jacobian
+//'  See \code{vignette("rcpp", package = "vegasr")} for more details. Several helper function are required
+//'  specifically normal and half-normal densities are also written in RcppEigen. Use Rcpp::sourceCpp()
+//'  or similar to run the functions separately. They are in the fns_eigen.cpp file in the source package.
+//'
+//' @param theta pass a numerical R matrix of dimension Batch x M, where M is number of parameters, here M=6
+//' Batch can be any positive integer
+//' @param y a numeric R matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
+//' entries only
+//' @param treat a numeric R matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
+//' entries only
+//' @param shiftby a numerical scalar used to help avoid underflow. Used in \code{\link{vegasBayesEvidence}}
+//' @param uselog a numerical flag value takes either 1.0 or 0.0 and used to return either log or real scale
+//' value. Used in \code{\link{vegasBayesEvidence}}
 //' @export
+// Define log posterior in RcppEigen including change of variables
 // [[Rcpp::export]]
 Eigen::VectorXd eigen_fn_log_post_1(const Eigen::MatrixXd& theta,
                                     const Eigen::VectorXd& y,
@@ -171,15 +190,34 @@ struct LogPostWorker : public RcppParallel::Worker {
   }
 };
 
-//' Multivariate Normal Density (RcppParallel)
+// ---------------------------------------------------------------------------
+//' @title Posterior Density Function using RcppParallel - Example 1
+//' @name eigen_fn_log_post_1_par
+//' @aliases eigen_fn_log_post_1_par
+//' @description An example showing how to write a function for use with \code{\link{vegasBayesEvidence}} for
+//' Bayesian computation using the RcppParallel library
+//' This example function describes a simple Bayesian hierarchical model comprising of a logistic regression with
+//' intercept and single binary covariate for treatment effect each with a hierarchical prior.
+//' This has six parameters in total. See \code{vignette("rcpp", package = "vegasr")} for Rcpp details.
 //'
-//' @param theta   Matrix of integration variables (BATCH x N)
-//' @param y  Mean vector (length N)
-//' @param treat Covariance matrix (N x N)
-//' @param shiftby   Scaling factor
-//' @param uselog fff
-//' @return vector of density values (length BATCH)
+//' @details The is an example function written using RcppParallel and has same functionality as the R function
+//' \code{\link{fn_log_post_1}}. It uses a transformation so the density
+//' can be integrated across the full domain of each parameter, i.e. the density includes a Jacobian
+//'  See \code{vignette("rcpp", package = "vegasr")} for more details. Several helper function are required
+//'  specifically normal and half-normal densities are also written in RcppEigen. Use Rcpp::sourceCpp()
+//'  or similar to run the functions separately. They are in the fns_eigen.cpp file in the source package.
+//'
+//' @param theta pass a numerical R matrix of dimension Batch x M, where M is number of parameters, here M=6
+//' Batch can be any positive integer
+//' @param y a numeric R matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
+//' entries only
+//' @param treat a numeric R matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
+//' entries only
+//' @param shiftby a numerical scalar used to help avoid underflow. Used in \code{\link{vegasBayesEvidence}}
+//' @param uselog a numerical flag value takes either 1.0 or 0.0 and used to return either log or real scale
+//' value. Used in \code{\link{vegasBayesEvidence}}
 //' @export
+// Define log posterior in RcppParallel including change of variables
 // [[Rcpp::export]]
 Eigen::VectorXd eigen_fn_log_post_1_par(const Eigen::MatrixXd& theta,
                                          const Eigen::VectorXd& y,
@@ -257,16 +295,29 @@ struct LogPostWorkerM : public RcppParallel::Worker {
   }
 };
 
-//' Multivariate Normal Density (RcppParallel)
+// ---------------------------------------------------------------------------
+//' @title Marginal Posterior Density Function using RcppParallel - Example 1
 //'
-//' @param theta   Matrix of integration variables (BATCH x N)
-//' @param y  Mean vector (length N)
-//' @param treat Covariance matrix (N x N)
-//' @param shiftby   Scaling factor
-//' @param uselog fff
-//' @param z fff
-//' @return vector of density values (length BATCH)
+//' @description An example showing how to write a function for use with \code{\link{vegasBayesPosterior}} for
+//' Bayesian computation. This is almost identical to \code{\link{eigen_fn_log_post_1_par}} but we now reduce the dimension
+//' by 1 and pass a fixed value the missing dimension for the variable who marginal we want to compute.
+//' See \code{vignette("rcpp", package = "vegasr")} for Rcpp details.
+//' @name eigen_fn_marg_1_1_par
+//' @details The is an example function written using RcppParallel and has same functionality as the R function
+//' \code{\link{fn_marg_1_1}}. This function is in the fns_eigen.cpp file in the source package.
+//'
+//' @param theta pass a numerical R matrix of dimension Batch x M, where M is number of parameters, here M=6
+//' Batch can be any positive integer
+//' @param y a numeric R matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
+//' entries only
+//' @param treat a numeric R matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
+//' entries only
+//' @param shiftby a numerical scalar used to help avoid underflow. Used in \code{\link{vegasBayesPosterior}}
+//' @param uselog a numerical flag value takes either 1.0 or 0.0 and used to return either log or real scale
+//' value. Used in \code{\link{vegasBayesPosterior}}
+//' @param z a numerical and the function call computes the density at this value, i.e. f(z).
 //' @export
+// Define log posterior in RcppParallel including change of variables
 // [[Rcpp::export]]
 Eigen::VectorXd eigen_fn_marg_1_1_par(const Eigen::MatrixXd& theta,
                                        const Eigen::VectorXd& y,

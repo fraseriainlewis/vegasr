@@ -59,14 +59,15 @@ cov<-matrix(data=c(
                  0.2, 0.3, 0.8),ncol=3,byrow=FALSE)
 
 # use built-in pmvnorm()
+set.seed(9999)
 lower=c(-0.5,-0.5,-0.5); upper=c(2.,1.,3.)
 res_builtin<-pmvnorm(lower=lower,upper=upper,
                      mean=as.numeric(mu), # coercion as needs vector
                      sigma=cov)
 print(res_builtin)
-#> [1] 0.3102985
+#> [1] 0.3103157
 #> attr(,"error")
-#> [1] 5.392972e-05
+#> [1] 4.263326e-05
 #> attr(,"msg")
 #> [1] "Normal Completion"
 

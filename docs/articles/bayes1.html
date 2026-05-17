@@ -72,15 +72,16 @@
 <div class="section level3">
 <h3 id="quickstart">Quickstart<a class="anchor" aria-label="anchor" href="#quickstart"></a>
 </h3>
-<p>11th-May-update: A first example of how to compute posterior density
-using vegasr with integrand written as an R function. This will include
-a comparison with stan (to be completed).</p>
+<p>A first example of how to compute a Bayesian posterior density using
+vegasr with the integrand written as an R function. Examples of how to
+use vegasr to computer general integrals can be found in the help
+pages.</p>
 </div>
 <div class="section level2">
 <h2 id="model-formulation">Model Formulation<a class="anchor" aria-label="anchor" href="#model-formulation"></a>
 </h2>
 <p>The model implemented here is a non-centered parameterization (helps
-improve MCMC sampling) for a logistic model.</p>
+improve MCMC sampling, e.g if using Stan) for a logistic model.</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>μ</mi><mn>0</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>2.5</mn><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>σ</mi><mn>0</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Half-Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>2.5</mn><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>μ</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>2.5</mn><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>σ</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Half-Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>2.5</mn><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mover><mi>θ</mi><mo accent="true">̃</mo></mover><mi>j</mi></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="1.0em"></mspace><mspace width="0.5em"></mspace><mtext mathvariant="normal">for</mtext><mspace width="0.5em"></mspace><mrow><mi>j</mi><mo>=</mo><mn>1</mn><mo>,</mo><mn>2</mn></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>β</mi><mn>0</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msub><mi>μ</mi><mn>0</mn></msub><mo>+</mo><msub><mi>σ</mi><mn>0</mn></msub><msub><mover><mi>θ</mi><mo accent="true">̃</mo></mover><mn>1</mn></msub></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>β</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msub><mi>μ</mi><mn>1</mn></msub><mo>+</mo><msub><mi>σ</mi><mn>1</mn></msub><msub><mover><mi>θ</mi><mo accent="true">̃</mo></mover><mn>2</mn></msub></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><mtext mathvariant="normal">logit(</mtext><msub><mi>p</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msub><mi>β</mi><mn>0</mn></msub><mo>+</mo><msub><mi>β</mi><mn>1</mn></msub><msub><mi>z</mi><mi>i</mi></msub><mspace width="1.0em"></mspace><mspace width="1.0em"></mspace><mspace width="0.5em"></mspace><mspace width="0.5em"></mspace><mtext mathvariant="normal">for</mtext><mspace width="0.5em"></mspace><mrow><mi>i</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>N</mi></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>y</mi><mi>i</mi></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Bernoulli</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>p</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr></mtable><annotation encoding="application/x-tex">
 \begin{aligned}
 \mu_0 &amp;\sim \text{Normal}(0, 2.5)\\
@@ -114,7 +115,7 @@ we don’t need the non-centered parameterization:</p>
 basket in this trial, i.e. a classical two arm randomized trial design.
 Baskets will be added in other vignettes.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">thedata</span><span class="op">&lt;-</span><span class="fu">vegasr</span><span class="fu">:::</span><span class="fu">fn_create_data_1</span><span class="op">(</span><span class="fl">99999</span><span class="op">)</span> <span class="co"># a list of y and treat as matrices</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">thedata</span><span class="op">&lt;-</span><span class="fu">vegasr</span><span class="fu">:::</span><span class="fu">fn_create_data_1</span><span class="op">(</span><span class="fl">99999</span><span class="op">)</span> <span class="co"># a list of y and treat with both as matrices</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -218,7 +219,7 @@ integrates to unity. Also known as the log marginal likelihood.</p>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/parallel/makeCluster.html" class="external-link">stopCluster</a></span><span class="op">(</span><span class="va">cl</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># Stops timer and prints</span></span>
-<span><span class="co">#&gt; Parallel Vegas Loop: 12.987 sec elapsed</span></span></code></pre></div>
+<span><span class="co">#&gt; Parallel Vegas Loop: 13.236 sec elapsed</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># 3. Display the plot</span></span>
 <span><span class="co"># plotting code above in hidden chunk</span></span>

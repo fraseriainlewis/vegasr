@@ -21,7 +21,7 @@ entries only}
 \item{uselog}{a numerical flag value takes either 1.0 or 0.0 and used to return either log or real scale
 value. Used in \code{\link{vegasBayesPosterior}}}
 
-\item{z}{a numerical and the function call computes the density at this value, i.e. f(x).
+\item{z}{a numerical and the function call computes the density at this value, i.e. f(z).
 Used in \code{\link{vegasBayesPosterior}}}
 }
 \description{

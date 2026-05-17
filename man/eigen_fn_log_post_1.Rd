@@ -2,24 +2,34 @@
 % Please edit documentation in R/RcppExports.R
 \name{eigen_fn_log_post_1}
 \alias{eigen_fn_log_post_1}
-\title{Multivariate Normal Density (RcppArmadillo)}
-\usage{
-eigen_fn_log_post_1(theta, y, treat, shiftby, uselog)
-}
+\title{Posterior Density Function using RcppEigen - Example 1}
 \arguments{
-\item{theta}{Matrix of integration variables (BATCH x N)}
+\item{theta}{pass a numerical R matrix of dimension Batch x M, where M is number of parameters, here M=6
+Batch can be any positive integer}
 
-\item{y}{Mean vector (length N)}
+\item{y}{a numeric R matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
+entries only}
 
-\item{treat}{Covariance matrix (N x N)}
+\item{treat}{a numeric R matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
+entries only}
 
-\item{shiftby}{Scaling factor}
+\item{shiftby}{a numerical scalar used to help avoid underflow. Used in \code{\link{vegasBayesEvidence}}}
 
-\item{uselog}{fff}
-}
-\value{
-vector of density values (length BATCH)
+\item{uselog}{a numerical flag value takes either 1.0 or 0.0 and used to return either log or real scale
+value. Used in \code{\link{vegasBayesEvidence}}}
 }
 \description{
-Multivariate Normal Density (RcppArmadillo)
+An example showing how to write a function for use with \code{\link{vegasBayesEvidence}} for
+Bayesian computation using the RcppEigen library
+This example function describes a simple Bayesian hierarchical model comprising of a logistic regression with
+intercept and single binary covariate for treatment effect each with a hierarchical prior.
+This has six parameters in total. See \code{vignette("rcpp", package = "vegasr")} for Rcpp details.
+}
+\details{
+The is an example function written using RcppEigen and has same functionality as the R function
+\code{\link{fn_log_post_1}}. It uses a transformation so the density
+can be integrated across the full domain of each parameter, i.e. the density includes a Jacobian
+See \code{vignette("rcpp", package = "vegasr")} for more details. Several helper function are required
+specifically normal and half-normal densities are also written in RcppEigen. Use Rcpp::sourceCpp()
+or similar to run the functions separately. They are in the fns_eigen.cpp file in the source package.
 }

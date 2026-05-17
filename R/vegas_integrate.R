@@ -347,6 +347,8 @@ vegasBayesEvidence <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000
 #' @param maxIter max number of iteration blocks to run to achieve errTol. Each block comprises nitn iterations
 #' @param seed random number seed for vegas sampling generating. set for reproducible results.
 #' @param nsearch number of points to evaluate log_posterior to find approx max value for shiftby. See details.
+#' @param log_evidence the standardization constant, typically from \code{\link{vegasBayesEvidence}}
+#' but any scalar can be passed including zero to get unstandardised marginal.
 #' @param extra_args a named list of additional arguments passed to the function f. This must include at
 #' least uselog and shiftby arguments which are mandatory for the function f.
 #' @export
@@ -354,7 +356,7 @@ vegasBayesEvidence <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000
 vegasBayesPosterior <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000,
                                 nitn = 10, neval = 1000, errTol=1,maxIter=5,seed=99999,
                                 nsearch=1000,
-                                log_evidence,
+                                log_evidence=0.,
                                 extra_args=list() # x must have z in f(z)
 ){
 

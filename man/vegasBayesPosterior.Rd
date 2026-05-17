@@ -16,7 +16,7 @@ vegasBayesPosterior(
   maxIter = 5,
   seed = 99999,
   nsearch = 1000,
-  log_evidence,
+  log_evidence = 0,
   extra_args = list()
 )
 }
@@ -42,6 +42,9 @@ vegasBayesPosterior(
 \item{seed}{random number seed for vegas sampling generating. set for reproducible results.}
 
 \item{nsearch}{number of points to evaluate log_posterior to find approx max value for shiftby. See details.}
+
+\item{log_evidence}{the standardization constant, typically from \code{\link{vegasBayesEvidence}}
+but any scalar can be passed including zero to get unstandardised marginal.}
 
 \item{extra_args}{a named list of additional arguments passed to the function f. This must include at
 least uselog and shiftby arguments which are mandatory for the function f.}
