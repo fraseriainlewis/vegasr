@@ -18,16 +18,17 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-Vegasr is an R library for **multi-dimensional numerical integration**. It is a thin wrapper around the Python [vegas](https://vegas.readthedocs.io/en/latest/index.html) library which was developed is maintained by the author of the vegas algorithm, G. P. Lepage. The purpose of this library is to allow ready access to the latest [vegas+](https://arxiv.org/abs/2009.05112) algorithm from R.  
+Vegasr is an R library for general **multi-dimensional numerical integration**, with an application focus on Bayesian computation as an alternative to Markov chain Monte Carlo methods. The core functionality - numerical integration routines - are handled by the Python [vegas](https://vegas.readthedocs.io/en/latest/index.html) library which was developed is maintained by the author of the vegas algorithm, G. P. Lepage. The purpose of this library is to allow ready access to the latest [vegas+](https://arxiv.org/abs/2009.05112) algorithm from R. The original vegas algorithm is available in a number of existing R libraries, vegas+ is considerably more efficient and is not available elsewhere in the R ecosystem.
 
-The vegas algorithm performs efficient Monte Carlo integration for integrals of modest to high dimension where cubature or hcubature methods are computationally impractical. The [vegas+](https://arxiv.org/abs/2009.05112) algorithm is a more efficient version of the original and widely used vegas algorithm. For the original vegas article see J. Comput. Phys. 27 (1978) 192 and for later vegas+ see J. Comput. Phys. 439 (2021) 110386). 
+The vegas algorithm performs efficient Monte Carlo integration for integrals of modest to high dimension where cubature or hcubature methods are computationally impractical. The [vegas+](https://arxiv.org/abs/2009.05112) algorithm (2021) is a more efficient mversion of the original (1978) and widely used vegas algorithm. The original algorithm is available in [GNU GSL](https://www.gnu.org/software/gsl/doc/html/montecarlo.html) and in the CRAN package [cubature](https://cran.r-project.org/web/packages/cubature/refman/cubature.html#vegas). For the original vegas article see J. Comput. Phys. 27 (1978) 192 and for later vegas+ see J. Comput. Phys. 439 (2021) 110386). 
 
+The design of this library in how it deals with Python installation, dependencies and initialization closely follows the approch used by the CRAN package [spacyr](https://cran.r-project.org/web/packages/spacyr/index.html). We are grateful to the authors of this package and some of the code in vegasr is a close adaptation from spacyr. 
  <!-- [Getting Started vignette](https://fraseriainlewis.github.io/vegasr/articles/introduction.html) -->
 
 
 ## Installation
 
-This library uses [reticulate](https://rstudio.github.io/reticulate/) to pass objects back and forth to Python vegas and so Python must be available. There is a separate install script \code{vegas_install()} which deals with the necessary Python dependencies. The vegasr GitHub repo is [here](https://github.com/fraseriainlewis/vegasr). 
+This library uses [reticulate](https://rstudio.github.io/reticulate/) to pass objects back and forth to Python vegas and so Python (>=3.10) must be available. There is a separate install script \code{vegas_install()} which deals with the necessary Python dependencies. The vegasr GitHub repository is [here](https://github.com/fraseriainlewis/vegasr). 
 
 You can install the development version of vegasr from [GitHub](https://github.com/) with:
 
@@ -37,44 +38,50 @@ pak::pak("fraseriainlewis/vegasr")
 vegas_install() # this installs necessary python libraries
 ```
 
-## Example - Integrate over Multivariate Normal Density
+## Example - Integrate over a Multivariate Normal Density
 
-This is a basic example to show the integrand function structure and core functionality. The integrand is a 3-D multivariate normal density. R has an existing function in the [mvtnorm](https://cran.r-project.org/web/packages/mvtnorm/index.html) library for efficiently computing this multivariate integral, \code{pmvnorm}.
+This is a basic example to show the integrand function structure and core functionality. The integrand is a 3-D multivariate normal density. R has an existing function in the [mvtnorm](https://cran.r-project.org/web/packages/mvtnorm/index.html) library for efficiently computing this multivariate integral \code{pmvnorm}.
 
 ```{r example1a}
-# Use library(mvtnorm) first for 3-D Multivariate Normal Density
+# Use library(mvtnorm) for 3-D Multivariate Normal Density
 library(mvtnorm) 
+# mean
 mu<-matrix(c(0.5, -0.2, 0.1),nrow=1) # note matrix
+# covariance
 cov<-matrix(data=c(
                  1.0, 0.5, 0.2,
                  0.5, 1.2, 0.3,
                  0.2, 0.3, 0.8),ncol=3,byrow=FALSE)
 
+# Integration over the density between lower and upper limits
 # use built-in pmvnorm()
 set.seed(9999)
 lower=c(-0.5,-0.5,-0.5); upper=c(2.,1.,3.)
+# res_builtin is the estimated value of the integrand
 res_builtin<-pmvnorm(lower=lower,upper=upper,
                      mean=as.numeric(mu), # coercion as needs vector
                      sigma=cov)
 print(res_builtin)
 
-## now use vegas to compute same integral
+## now use vegas to compute same integrand
 library(vegasr)
-## Important - run next line in each R session to ensure python is ready
+## IMPORTANT - run next line in each R session to ensure python is ready
 vegas_initialize()
 
-# the integrand function MUST take a matrix of dimension [BATCH,M] as first 
+# The integrand function MUST take a matrix of dimension [BATCH,M] as first 
 # argument and return a vector of length M (or 1-row matrix). 
 # Any number of other additional *named* arguments are allowed and should all 
-# be matrices. See ?vegas_integrate for more details.
+# be matrices and passed via an extra_args list in vegas(). See ?vegas for more details.
+
+# custom function which will be passed to python vegas via the package R function vegas()
 myf<-function(x,mu,cov){
-  res<-dmvnorm(x,
-               mean = mu, # this is a 1-row matrix, dmvnorm accepts this
+  res<-dmvnorm(x, # this is a matrix of size [BATCH,3]
+               mean = mu, # this is a 1-row matrix of length 3
                sigma=cov)
-  return(res)
+  return(res) # a vector of length BATCH
 }
 
-## See help page for descriptions of warm and nitn and neval.
+## See help page for descriptions of nitn_warm, neval_warm, nitn and neval.
 vegas_result<-vegas(f=myf,
                         lower=lower, upper=upper,
                         nitn_warm = 10, neval_warm = 10000,

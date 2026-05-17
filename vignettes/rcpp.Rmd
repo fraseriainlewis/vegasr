@@ -41,7 +41,7 @@ if (is_checking) {
 ```
 
 ### Quickstart
-13th-May-update: Using Rcpp to write the log posterior function will almost surely be faster, perhaps many times faster, than an R function even when vectorized. Examples of the timing comparison are below. 
+Using Rcpp to write the log posterior function will almost surely be faster, perhaps many times faster, than an R function even when vectorized. Examples of the timing comparison are below. 
 
 Example log posterior functions are given below using two Rcpp linear algebra libraries, [RcppArmadillo](https://github.com/rcppcore/rcpparmadillo) and [RcppEigen](https://github.com/RcppCore/RcppEigen). These libraries have different pros and cons. In short RcppArmadillo has some built-in parallelization while RcppEigen does not, but both are highly efficient in their own way. RcppEigen works well with [RcppParallel](https://github.com/rcppcore/rcppparallel) which can be more problematic with RcppArmadillo. 
 
@@ -72,6 +72,7 @@ vegasr::eigen_fn_log_post_1(theta, thedata$y, thedata$treat,0.0, 1.0)
 # this function is in vegasr/src/fns_eigen.cpp
 
 ```
+
 ```{r logpos2,include=TRUE,eval=TRUE}
 library(vegasr)
 # now setup python environment

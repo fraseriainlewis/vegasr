@@ -40,11 +40,11 @@ if (is_checking) {
 ```
 
 ### Quickstart
-A first example of how to compute a Bayesian posterior density using vegasr with the integrand written as an R function. Examples of how to use vegasr to computer general integrals can be found in the help pages.
+A first example of how to compute a Bayesian posterior density using vegasr with the integrand written as an R function. Examples of how to use vegasr to computer general integrals can be found in the ?vegas help page.
 
 ## Model Formulation
 
-The model implemented here is a non-centered parameterization (helps improve MCMC sampling, e.g if using Stan) for a logistic model.
+The model implemented here is:
 
 $$
 \begin{aligned}
@@ -52,22 +52,12 @@ $$
 \sigma_0 &\sim \text{Half-Normal}(0, 2.5) \\
 \mu_1 &\sim \text{Normal}(0, 2.5) \\
 \sigma_1 &\sim \text{Half-Normal}(0, 2.5) \\
-\tilde{\theta}_j &\sim \text{Normal}(0, 1)\quad\enspace\text{for}\enspace{j=1,2}  \\
-\beta_0 &= \mu_0 + \sigma_0 \tilde{\theta}_1 \\
-\beta_1 &= \mu_1 + \sigma_1 \tilde{\theta}_2 \\
-\text{logit(}{p_i}) &= \beta_0 + \beta_1 z_i\quad\quad\enspace\enspace\text{for}\enspace{i=1,\dots,N}  \\
+\beta_0 &\sim \text{Normal}(\mu_0, \sigma_0) \\
+\beta_1 &\sim \text{Normal}(\mu_1, \sigma_1) \\
+\text{logit(}{p_i}) &= \beta_0 + \beta_1 z_i\quad\quad\quad\quad\enspace\enspace\text{for}\enspace{i=1,\dots,N}  \\
 y_i &\sim \text{Bernoulli}(p_i)
 \end{aligned}
 $$
-When using direct integration via Vegas we don't need the non-centered parameterization:
-
-$$
-\begin{aligned}
-\beta_0 &\sim \text{Normal}(\mu_0, \sigma_0) \\
-\beta_1 &\sim \text{Normal}(\mu_1, \sigma_1) \\
-\end{aligned}
-$$
-
 ### Data set
 
 The R chunk below creates a simple dataset of three cols:
@@ -76,23 +66,22 @@ The R chunk below creates a simple dataset of three cols:
 -   a (dummy) basket ID variable (=1)
 -   a binary treatment variable (0/1 = control/test treatment)
 
-The basket ID is currently set fixed at 1, denoting there is only one basket in this trial, i.e. a classical two arm randomized trial design. Baskets will be added in other vignettes.
+The basket ID is currently set fixed at 1, denoting there is only one basket in this trial, i.e. it's a classical two arm randomized trial design.
 
 ```{r datasets, include=TRUE,eval=TRUE}
 thedata<-vegasr:::fn_create_data_1(99999) # a list of y and treat with both as matrices
 ```
 
 
-## 1. Construct Log Posterior Function 
+## Construct Log Posterior Function 
 
-To use direct integration in Vegas the key parts are:
+To use direct integration in Vegas for Bayesian computation the key task is to:
 
--  define the prior density functions
--  define the log likelihood + log priors
+-  write a function that computes the log likelihood + log priors + log jacobian
 
-In addition, we also implement a **change of variables** to deal with the range of integration going to $\infty$. This means we integrate over transformed variables (see below) which have finite bounds. As we are changing variables then this requires the usual Jacobian adjustment to the function being integrated to ensure the volume being computed is equivalent to that on the original scale.
+We recommend using a **change of variables** to deal with the range of integration going to $\infty$ or $-\infty$. This means we integrate over transformed variables (see below) which have finite bounds, typically $-1$, $0$ or $+1$. As we are changing variables then this requires the usual Jacobian adjustment to the function being integrated to ensure the volume being computed is equivalent to that on the original scale.
 
-To map a variable $t\in(-1,1)$ to $x\in(-\infty,\infty)$ we can use the following function and it's Jacobian (J):
+To map a variable $t\in(-1,1)$ to $x\in(-\infty,\infty)$ we can use the following function and its Jacobian (J):
 $$
 \begin{aligned}
 x&=&\frac{t}{1-t^2} \\
@@ -101,7 +90,9 @@ x&=&\frac{t}{1-t^2} \\
 \end{aligned}
 $$
 
-The function below `compute_log_lik(theta, y,T)` is necessary to compute the overall standardization constant - the constant which ensures the posterior density integrates to unity - and the integration here is over all parameters in the model. We work in log scale as much as possible and a scaling ``trick'' is used to help avoid numerical overflow. These technical numerical details can be found in the full quarto file.  
+## Find Log Evidence
+
+The function below `vegasr:::fn_log_post_1` returns the log posterior. see ?fn_log_post_1 for specifics. The function `vegasBayesEvidence()` computes the log evidence, i.e. it integrates out all parameters in the posterior `vegasr:::fn_log_post_1` to give the constant needed to standardize the posterior to unity. Details of the parameters can be found in ?vegasBayesEvidence. 
 
 ```{r logpos,include=TRUE,eval=TRUE}
 ### Now use VEGAS
@@ -124,12 +115,13 @@ cat("log evidence = ",result_logEv,"\n")
 ```
 
 
-## 2. Find Log Evidence
+## Compute the Marginal Density
 
-We use vegas to integrate over the log posterior to get the log evidence, i.e. the standardization constant, that ensures the posterior integrates to unity. Also known as the log marginal likelihood.
+We use `vegasBayesPosterior()` to compute a single density value on the marginal posterior density. This functions takes as input the log posterior for the model but where one dimension is now fixed, i.e. the integrand has one less dimension, e.g. `vegasr:::fn_log_post_1` is 6-D whereas `vegasr:::fn_marg_1_1` below is only 5-D and the 6th dimension is passed as a fix value, z. see the respective help pages for these functions for their differences. 
 
 ```{r marg_single,include=TRUE,eval=TRUE}
 
+# compute posterior marginal for intercept $\mu_0$ in the model where intercept = -1.
 mymarg<-vegasBayesPosterior(f=vegasr:::fn_marg_1_1,
                            lower=c(-1,-1,-1,0.0001,0.0001),
                            upper=c(1,1,1,1,1),
@@ -145,6 +137,8 @@ cat("Marginal density f(z) at z = -1. = ",mymarg,"\n")
 
 ```
 
+## Compute the Marginal Density over a range
+To compute the density over a necessary range one approach is to iterate across a grid of z values. The is the approach taken below using doParallel. This is embarrassingly parallel as the computation of the posterior density at each value fixed value of z are independent. Other approaches are possible e.g. see vignette rpp.Rmd. 
 
 ```{r marg_vector,include=TRUE,eval=TRUE}
 
