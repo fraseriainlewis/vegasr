@@ -12,8 +12,8 @@
 <link rel="icon" sizes="any" href="favicon.ico">
 <link rel="manifest" href="site.webmanifest">
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Bayesian Computation via Vegas Python library">
 <meta name="description" content="Numerical Integration for Bayesian Computation via wrapping the vegas Python library. This library provides the most updated vegas algorithm, vegas+ from 2020.">
@@ -65,13 +65,13 @@
 </div>
 <!-- badges: start -->
 <!-- badges: end -->
-<p>Vegasr is an R library for <strong>multi-dimensional numerical integration</strong>. It is a thin wrapper around the Python <a href="https://vegas.readthedocs.io/en/latest/index.html" class="external-link">vegas</a> library which was developed is maintained by the author of the vegas algorithm, G. P. Lepage. The purpose of this library is to allow ready access to the latest <a href="https://arxiv.org/abs/2009.05112" class="external-link">vegas+</a> algorithm from R.</p>
-<p>The vegas algorithm performs efficient Monte Carlo integration for integrals of modest to high dimension where cubature or hcubature methods are computationally impractical. The <a href="https://arxiv.org/abs/2009.05112" class="external-link">vegas+</a> algorithm is a more efficient version of the original and widely used vegas algorithm. For the original vegas article see J. Comput. Phys. 27 (1978) 192 and for later vegas+ see J. Comput. Phys. 439 (2021) 110386).</p>
-<!-- [Getting Started vignette](https://fraseriainlewis.github.io/vegasr/articles/introduction.html) -->
+<p>Vegasr is an R library for general <strong>multi-dimensional numerical integration</strong>, with an application focus on Bayesian computation as an alternative to Markov chain Monte Carlo methods. The core functionality - numerical integration routines - are handled by the Python <a href="https://vegas.readthedocs.io/en/latest/index.html" class="external-link">vegas</a> library which was developed is maintained by the author of the vegas algorithm, G. P. Lepage. The purpose of this library is to allow ready access to the latest <a href="https://arxiv.org/abs/2009.05112" class="external-link">vegas+</a> algorithm from R. The original vegas algorithm is available in a number of existing R libraries, vegas+ is considerably more efficient and is not available elsewhere in the R ecosystem.</p>
+<p>The vegas algorithm performs efficient Monte Carlo integration for integrals of modest to high dimension where cubature or hcubature methods are computationally impractical. The <a href="https://arxiv.org/abs/2009.05112" class="external-link">vegas+</a> algorithm (2021) is a more efficient mversion of the original (1978) and widely used vegas algorithm. The original algorithm is available in <a href="https://www.gnu.org/software/gsl/doc/html/montecarlo.html" class="external-link">GNU GSL</a> and in the CRAN package <a href="https://cran.r-project.org/web/packages/cubature/refman/cubature.html#vegas" class="external-link">cubature</a>. For the original vegas article see J. Comput. Phys. 27 (1978) 192 and for later vegas+ see J. Comput. Phys. 439 (2021) 110386).</p>
+<p>The design of this library in how it deals with Python installation, dependencies and initialization closely follows the approch used by the CRAN package <a href="https://cran.r-project.org/web/packages/spacyr/index.html" class="external-link">spacyr</a>. We are grateful to the authors of this package and some of the code in vegasr is a close adaptation from spacyr. <!-- [Getting Started vignette](https://fraseriainlewis.github.io/vegasr/articles/introduction.html) --></p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>This library uses <a href="https://rstudio.github.io/reticulate/" class="external-link">reticulate</a> to pass objects back and forth to Python vegas and so Python must be available. There is a separate install script which deals with the necessary Python dependencies. The vegasr GitHub repo is <a href="https://github.com/fraseriainlewis/vegasr" class="external-link">here</a>.</p>
+<p>This library uses <a href="https://rstudio.github.io/reticulate/" class="external-link">reticulate</a> to pass objects back and forth to Python vegas and so Python (&gt;=3.10) must be available. There is a separate install script which deals with the necessary Python dependencies. The vegasr GitHub repository is <a href="https://github.com/fraseriainlewis/vegasr" class="external-link">here</a>.</p>
 <p>You can install the development version of vegasr from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
@@ -79,21 +79,25 @@
 <span><span class="fu"><a href="reference/vegas_install.html">vegas_install</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># this installs necessary python libraries</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="example---integrate-over-multivariate-normal-density">Example - Integrate over Multivariate Normal Density<a class="anchor" aria-label="anchor" href="#example---integrate-over-multivariate-normal-density"></a>
+<h2 id="example---integrate-over-a-multivariate-normal-density">Example - Integrate over a Multivariate Normal Density<a class="anchor" aria-label="anchor" href="#example---integrate-over-a-multivariate-normal-density"></a>
 </h2>
-<p>This is a basic example to show the integrand function structure and core functionality. The integrand is a 3-D multivariate normal density. R has an existing function in the <a href="https://cran.r-project.org/web/packages/mvtnorm/index.html" class="external-link">mvtnorm</a> library for efficiently computing this multivariate integral, .</p>
+<p>This is a basic example to show the integrand function structure and core functionality. The integrand is a 3-D multivariate normal density. R has an existing function in the <a href="https://cran.r-project.org/web/packages/mvtnorm/index.html" class="external-link">mvtnorm</a> library for efficiently computing this multivariate integral .</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Use library(mvtnorm) first for 3-D Multivariate Normal Density</span></span>
+<code class="sourceCode R"><span><span class="co"># Use library(mvtnorm) for 3-D Multivariate Normal Density</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://mvtnorm.R-forge.R-project.org" class="external-link">mvtnorm</a></span><span class="op">)</span> </span>
+<span><span class="co"># mean</span></span>
 <span><span class="va">mu</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="op">-</span><span class="fl">0.2</span>, <span class="fl">0.1</span><span class="op">)</span>,nrow<span class="op">=</span><span class="fl">1</span><span class="op">)</span> <span class="co"># note matrix</span></span>
+<span><span class="co"># covariance</span></span>
 <span><span class="va">cov</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span>data<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>                 <span class="fl">1.0</span>, <span class="fl">0.5</span>, <span class="fl">0.2</span>,</span>
 <span>                 <span class="fl">0.5</span>, <span class="fl">1.2</span>, <span class="fl">0.3</span>,</span>
 <span>                 <span class="fl">0.2</span>, <span class="fl">0.3</span>, <span class="fl">0.8</span><span class="op">)</span>,ncol<span class="op">=</span><span class="fl">3</span>,byrow<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># Integration over the density between lower and upper limits</span></span>
 <span><span class="co"># use built-in pmvnorm()</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">9999</span><span class="op">)</span></span>
 <span><span class="va">lower</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.5</span>,<span class="op">-</span><span class="fl">0.5</span>,<span class="op">-</span><span class="fl">0.5</span><span class="op">)</span>; <span class="va">upper</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2.</span>,<span class="fl">1.</span>,<span class="fl">3.</span><span class="op">)</span></span>
+<span><span class="co"># res_builtin is the estimated value of the integrand</span></span>
 <span><span class="va">res_builtin</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/pkg/mvtnorm/man/pmvnorm.html" class="external-link">pmvnorm</a></span><span class="op">(</span>lower<span class="op">=</span><span class="va">lower</span>,upper<span class="op">=</span><span class="va">upper</span>,</span>
 <span>                     mean<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">mu</span><span class="op">)</span>, <span class="co"># coercion as needs vector</span></span>
 <span>                     sigma<span class="op">=</span><span class="va">cov</span><span class="op">)</span></span>
@@ -104,24 +108,26 @@
 <span><span class="co">#&gt; attr(,"msg")</span></span>
 <span><span class="co">#&gt; [1] "Normal Completion"</span></span>
 <span></span>
-<span><span class="co">## now use vegas to compute same integral</span></span>
+<span><span class="co">## now use vegas to compute same integrand</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/fraseriainlewis/vegasr" class="external-link">vegasr</a></span><span class="op">)</span></span>
-<span><span class="co">## Important - run next line in each R session to ensure python is ready</span></span>
+<span><span class="co">## IMPORTANT - run next line in each R session to ensure python is ready</span></span>
 <span><span class="fu"><a href="reference/vegas_initialize.html">vegas_initialize</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; successfully initialized vegas version: 6.4.1</span></span>
 <span></span>
-<span><span class="co"># the integrand function MUST take a matrix of dimension [BATCH,M] as first </span></span>
+<span><span class="co"># The integrand function MUST take a matrix of dimension [BATCH,M] as first </span></span>
 <span><span class="co"># argument and return a vector of length M (or 1-row matrix). </span></span>
 <span><span class="co"># Any number of other additional *named* arguments are allowed and should all </span></span>
-<span><span class="co"># be matrices. See ?vegas_integrate for more details.</span></span>
+<span><span class="co"># be matrices and passed via an extra_args list in vegas(). See ?vegas for more details.</span></span>
+<span></span>
+<span><span class="co"># custom function which will be passed to python vegas via the package R function vegas()</span></span>
 <span><span class="va">myf</span><span class="op">&lt;-</span><span class="kw">function</span><span class="op">(</span><span class="va">x</span>,<span class="va">mu</span>,<span class="va">cov</span><span class="op">)</span><span class="op">{</span></span>
-<span>  <span class="va">res</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/pkg/mvtnorm/man/Mvnorm.html" class="external-link">dmvnorm</a></span><span class="op">(</span><span class="va">x</span>,</span>
-<span>               mean <span class="op">=</span> <span class="va">mu</span>, <span class="co"># this is a 1-row matrix, dmvnorm accepts this</span></span>
+<span>  <span class="va">res</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/pkg/mvtnorm/man/Mvnorm.html" class="external-link">dmvnorm</a></span><span class="op">(</span><span class="va">x</span>, <span class="co"># this is a matrix of size [BATCH,3]</span></span>
+<span>               mean <span class="op">=</span> <span class="va">mu</span>, <span class="co"># this is a 1-row matrix of length 3</span></span>
 <span>               sigma<span class="op">=</span><span class="va">cov</span><span class="op">)</span></span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span> <span class="co"># a vector of length BATCH</span></span>
 <span><span class="op">}</span></span>
 <span></span>
-<span><span class="co">## See help page for descriptions of warm and nitn and neval.</span></span>
+<span><span class="co">## See help page for descriptions of nitn_warm, neval_warm, nitn and neval.</span></span>
 <span><span class="va">vegas_result</span><span class="op">&lt;-</span><span class="fu"><a href="reference/vegas.html">vegas</a></span><span class="op">(</span>f<span class="op">=</span><span class="va">myf</span>,</span>
 <span>                        lower<span class="op">=</span><span class="va">lower</span>, upper<span class="op">=</span><span class="va">upper</span>,</span>
 <span>                        nitn_warm <span class="op">=</span> <span class="fl">10</span>, neval_warm <span class="op">=</span> <span class="fl">10000</span>,</span>

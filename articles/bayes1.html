@@ -74,37 +74,25 @@
 </h3>
 <p>A first example of how to compute a Bayesian posterior density using
 vegasr with the integrand written as an R function. Examples of how to
-use vegasr to computer general integrals can be found in the help
-pages.</p>
+use vegasr to computer general integrals can be found in the ?vegas help
+page.</p>
 </div>
 <div class="section level2">
 <h2 id="model-formulation">Model Formulation<a class="anchor" aria-label="anchor" href="#model-formulation"></a>
 </h2>
-<p>The model implemented here is a non-centered parameterization (helps
-improve MCMC sampling, e.g if using Stan) for a logistic model.</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>μ</mi><mn>0</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>2.5</mn><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>σ</mi><mn>0</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Half-Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>2.5</mn><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>μ</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>2.5</mn><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>σ</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Half-Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>2.5</mn><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mover><mi>θ</mi><mo accent="true">̃</mo></mover><mi>j</mi></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="1.0em"></mspace><mspace width="0.5em"></mspace><mtext mathvariant="normal">for</mtext><mspace width="0.5em"></mspace><mrow><mi>j</mi><mo>=</mo><mn>1</mn><mo>,</mo><mn>2</mn></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>β</mi><mn>0</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msub><mi>μ</mi><mn>0</mn></msub><mo>+</mo><msub><mi>σ</mi><mn>0</mn></msub><msub><mover><mi>θ</mi><mo accent="true">̃</mo></mover><mn>1</mn></msub></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>β</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msub><mi>μ</mi><mn>1</mn></msub><mo>+</mo><msub><mi>σ</mi><mn>1</mn></msub><msub><mover><mi>θ</mi><mo accent="true">̃</mo></mover><mn>2</mn></msub></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><mtext mathvariant="normal">logit(</mtext><msub><mi>p</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msub><mi>β</mi><mn>0</mn></msub><mo>+</mo><msub><mi>β</mi><mn>1</mn></msub><msub><mi>z</mi><mi>i</mi></msub><mspace width="1.0em"></mspace><mspace width="1.0em"></mspace><mspace width="0.5em"></mspace><mspace width="0.5em"></mspace><mtext mathvariant="normal">for</mtext><mspace width="0.5em"></mspace><mrow><mi>i</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>N</mi></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>y</mi><mi>i</mi></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Bernoulli</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>p</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr></mtable><annotation encoding="application/x-tex">
+<p>The model implemented here is:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>μ</mi><mn>0</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>2.5</mn><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>σ</mi><mn>0</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Half-Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>2.5</mn><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>μ</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>2.5</mn><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>σ</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Half-Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>2.5</mn><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>β</mi><mn>0</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>μ</mi><mn>0</mn></msub><mo>,</mo><msub><mi>σ</mi><mn>0</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>β</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>μ</mi><mn>1</mn></msub><mo>,</mo><msub><mi>σ</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><mtext mathvariant="normal">logit(</mtext><msub><mi>p</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msub><mi>β</mi><mn>0</mn></msub><mo>+</mo><msub><mi>β</mi><mn>1</mn></msub><msub><mi>z</mi><mi>i</mi></msub><mspace width="1.0em"></mspace><mspace width="1.0em"></mspace><mspace width="1.0em"></mspace><mspace width="1.0em"></mspace><mspace width="0.5em"></mspace><mspace width="0.5em"></mspace><mtext mathvariant="normal">for</mtext><mspace width="0.5em"></mspace><mrow><mi>i</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>N</mi></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>y</mi><mi>i</mi></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Bernoulli</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>p</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr></mtable><annotation encoding="application/x-tex">
 \begin{aligned}
 \mu_0 &amp;\sim \text{Normal}(0, 2.5)\\
 \sigma_0 &amp;\sim \text{Half-Normal}(0, 2.5) \\
 \mu_1 &amp;\sim \text{Normal}(0, 2.5) \\
 \sigma_1 &amp;\sim \text{Half-Normal}(0, 2.5) \\
-\tilde{\theta}_j &amp;\sim \text{Normal}(0, 1)\quad\enspace\text{for}\enspace{j=1,2}  \\
-\beta_0 &amp;= \mu_0 + \sigma_0 \tilde{\theta}_1 \\
-\beta_1 &amp;= \mu_1 + \sigma_1 \tilde{\theta}_2 \\
-\text{logit(}{p_i}) &amp;= \beta_0 + \beta_1 z_i\quad\quad\enspace\enspace\text{for}\enspace{i=1,\dots,N}  \\
-y_i &amp;\sim \text{Bernoulli}(p_i)
-\end{aligned}
-</annotation></semantics></math> When using direct integration via Vegas
-we don’t need the non-centered parameterization:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>β</mi><mn>0</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>μ</mi><mn>0</mn></msub><mo>,</mo><msub><mi>σ</mi><mn>0</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>β</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>μ</mi><mn>1</mn></msub><mo>,</mo><msub><mi>σ</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd></mtr></mtable><annotation encoding="application/x-tex">
-\begin{aligned}
 \beta_0 &amp;\sim \text{Normal}(\mu_0, \sigma_0) \\
 \beta_1 &amp;\sim \text{Normal}(\mu_1, \sigma_1) \\
+\text{logit(}{p_i}) &amp;= \beta_0 + \beta_1 z_i\quad\quad\quad\quad\enspace\enspace\text{for}\enspace{i=1,\dots,N}  \\
+y_i &amp;\sim \text{Bernoulli}(p_i)
 \end{aligned}
-</annotation></semantics></math></p>
-<div class="section level3">
-<h3 id="data-set">Data set<a class="anchor" aria-label="anchor" href="#data-set"></a>
-</h3>
+</annotation></semantics></math> ### Data set</p>
 <p>The R chunk below creates a simple dataset of three cols:</p>
 <ul>
 <li>a binary response variable y (0/1 = non-responder/responder),</li>
@@ -112,32 +100,39 @@ we don’t need the non-centered parameterization:</p>
 <li>a binary treatment variable (0/1 = control/test treatment)</li>
 </ul>
 <p>The basket ID is currently set fixed at 1, denoting there is only one
-basket in this trial, i.e. a classical two arm randomized trial design.
-Baskets will be added in other vignettes.</p>
+basket in this trial, i.e. it’s a classical two arm randomized trial
+design.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">thedata</span><span class="op">&lt;-</span><span class="fu">vegasr</span><span class="fu">:::</span><span class="fu">fn_create_data_1</span><span class="op">(</span><span class="fl">99999</span><span class="op">)</span> <span class="co"># a list of y and treat with both as matrices</span></span></code></pre></div>
 </div>
-</div>
 <div class="section level2">
-<h2 id="construct-log-posterior-function">1. Construct Log Posterior Function<a class="anchor" aria-label="anchor" href="#construct-log-posterior-function"></a>
+<h2 id="construct-log-posterior-function">Construct Log Posterior Function<a class="anchor" aria-label="anchor" href="#construct-log-posterior-function"></a>
 </h2>
-<p>To use direct integration in Vegas the key parts are:</p>
+<p>To use direct integration in Vegas for Bayesian computation the key
+task is to:</p>
 <ul>
-<li>define the prior density functions</li>
-<li>define the log likelihood + log priors</li>
+<li>write a function that computes the log likelihood + log priors + log
+jacobian</li>
 </ul>
-<p>In addition, we also implement a <strong>change of variables</strong>
-to deal with the range of integration going to
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>∞</mi><annotation encoding="application/x-tex">\infty</annotation></semantics></math>.
+<p>We recommend using a <strong>change of variables</strong> to deal
+with the range of integration going to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>∞</mi><annotation encoding="application/x-tex">\infty</annotation></semantics></math>
+or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mi>∞</mi></mrow><annotation encoding="application/x-tex">-\infty</annotation></semantics></math>.
 This means we integrate over transformed variables (see below) which
-have finite bounds. As we are changing variables then this requires the
-usual Jacobian adjustment to the function being integrated to ensure the
-volume being computed is equivalent to that on the original scale.</p>
+have finite bounds, typically
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0</mn><annotation encoding="application/x-tex">0</annotation></semantics></math>
+or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>+</mi><mn>1</mn></mrow><annotation encoding="application/x-tex">+1</annotation></semantics></math>.
+As we are changing variables then this requires the usual Jacobian
+adjustment to the function being integrated to ensure the volume being
+computed is equivalent to that on the original scale.</p>
 <p>To map a variable
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>∈</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>−</mi><mn>1</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">t\in(-1,1)</annotation></semantics></math>
 to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>∈</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>−</mi><mi>∞</mi><mo>,</mo><mi>∞</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">x\in(-\infty,\infty)</annotation></semantics></math>
-we can use the following function and it’s Jacobian (J):
+we can use the following function and its Jacobian (J):
 <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><mi>x</mi></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo></mtd><mtd columnalign="right" style="text-align: right"><mfrac><mi>t</mi><mrow><mn>1</mn><mo>−</mo><msup><mi>t</mi><mn>2</mn></msup></mrow></mfrac></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><mspace width="0.5em"></mspace><mrow><mtext mathvariant="normal">where </mtext><mspace width="0.333em"></mspace></mrow><mspace width="1.0em"></mspace><mspace width="0.5em"></mspace><mi>J</mi></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo></mtd><mtd columnalign="right" style="text-align: right"><mfrac><mrow><mn>1</mn><mo>+</mo><msup><mi>t</mi><mn>2</mn></msup></mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><msup><mi>t</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup></mfrac></mtd></mtr></mtable><annotation encoding="application/x-tex">
 \begin{aligned}
 x&amp;=&amp;\frac{t}{1-t^2} \\
@@ -145,13 +140,17 @@ x&amp;=&amp;\frac{t}{1-t^2} \\
 \enspace\text{where } \quad\enspace J &amp;=&amp; \frac{1+t^2}{(1-t^2)^2}
 \end{aligned}
 </annotation></semantics></math></p>
-<p>The function below <code>compute_log_lik(theta, y,T)</code> is
-necessary to compute the overall standardization constant - the constant
-which ensures the posterior density integrates to unity - and the
-integration here is over all parameters in the model. We work in log
-scale as much as possible and a scaling ``trick’’ is used to help avoid
-numerical overflow. These technical numerical details can be found in
-the full quarto file.</p>
+</div>
+<div class="section level2">
+<h2 id="find-log-evidence">Find Log Evidence<a class="anchor" aria-label="anchor" href="#find-log-evidence"></a>
+</h2>
+<p>The function below <code>vegasr:::fn_log_post_1</code> returns the
+log posterior. see ?fn_log_post_1 for specifics. The function
+<code><a href="../reference/vegasBayesEvidence.html">vegasBayesEvidence()</a></code> computes the log evidence, i.e. it
+integrates out all parameters in the posterior
+<code>vegasr:::fn_log_post_1</code> to give the constant needed to
+standardize the posterior to unity. Details of the parameters can be
+found in ?vegasBayesEvidence.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">### Now use VEGAS</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/fraseriainlewis/vegasr" class="external-link">vegasr</a></span><span class="op">)</span></span>
@@ -171,13 +170,19 @@ the full quarto file.</p>
 <span><span class="co">#&gt; log evidence =  -129.4318</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="find-log-evidence">2. Find Log Evidence<a class="anchor" aria-label="anchor" href="#find-log-evidence"></a>
+<h2 id="compute-the-marginal-density">Compute the Marginal Density<a class="anchor" aria-label="anchor" href="#compute-the-marginal-density"></a>
 </h2>
-<p>We use vegas to integrate over the log posterior to get the log
-evidence, i.e. the standardization constant, that ensures the posterior
-integrates to unity. Also known as the log marginal likelihood.</p>
+<p>We use <code><a href="../reference/vegasBayesPosterior.html">vegasBayesPosterior()</a></code> to compute a single density
+value on the marginal posterior density. This functions takes as input
+the log posterior for the model but where one dimension is now fixed,
+i.e. the integrand has one less dimension,
+e.g. <code>vegasr:::fn_log_post_1</code> is 6-D whereas
+<code>vegasr:::fn_marg_1_1</code> below is only 5-D and the 6th
+dimension is passed as a fix value, z. see the respective help pages for
+these functions for their differences.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
+<span><span class="co"># compute posterior marginal for intercept $\mu_0$ in the model where intercept = -1.</span></span>
 <span><span class="va">mymarg</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesPosterior.html">vegasBayesPosterior</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">:::</span><span class="va"><a href="../reference/fn_marg_1_1.html">fn_marg_1_1</a></span>,</span>
 <span>                           lower<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="fl">0.0001</span>,<span class="fl">0.0001</span><span class="op">)</span>,</span>
 <span>                           upper<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span>,</span>
@@ -189,6 +194,15 @@ integrates to unity. Also known as the log marginal likelihood.</p>
 <span>                             y<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">y</span>,treat<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>,shiftby<span class="op">=</span><span class="fl">0</span>,uselog<span class="op">=</span><span class="fl">1.</span>,z<span class="op">=</span><span class="op">-</span><span class="fl">1.</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Marginal density f(z) at z = -1. = "</span>,<span class="va">mymarg</span>,<span class="st">"\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Marginal density f(z) at z = -1. =  1.436437</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="compute-the-marginal-density-over-a-range">Compute the Marginal Density over a range<a class="anchor" aria-label="anchor" href="#compute-the-marginal-density-over-a-range"></a>
+</h2>
+<p>To compute the density over a necessary range one approach is to
+iterate across a grid of z values. The is the approach taken below using
+doParallel. This is embarrassingly parallel as the computation of the
+posterior density at each value fixed value of z are independent. Other
+approaches are possible e.g. see vignette rpp.Rmd.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/RevolutionAnalytics/foreach" class="external-link">foreach</a></span><span class="op">)</span></span>
@@ -219,7 +233,7 @@ integrates to unity. Also known as the log marginal likelihood.</p>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/parallel/makeCluster.html" class="external-link">stopCluster</a></span><span class="op">(</span><span class="va">cl</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># Stops timer and prints</span></span>
-<span><span class="co">#&gt; Parallel Vegas Loop: 13.236 sec elapsed</span></span></code></pre></div>
+<span><span class="co">#&gt; Parallel Vegas Loop: 13.807 sec elapsed</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># 3. Display the plot</span></span>
 <span><span class="co"># plotting code above in hidden chunk</span></span>
