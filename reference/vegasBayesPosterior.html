@@ -63,7 +63,7 @@ integrated out. See <code><a href="../articles/bayes1.html">vignette("bayes1", p
 <span>  maxIter <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">99999</span>,</span>
 <span>  nsearch <span class="op">=</span> <span class="fl">1000</span>,</span>
-<span>  <span class="va">log_evidence</span>,</span>
+<span>  log_evidence <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  extra_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -114,6 +114,11 @@ integrated out. See <code><a href="../articles/bayes1.html">vignette("bayes1", p
 
 <dt id="arg-nsearch">nsearch<a class="anchor" aria-label="anchor" href="#arg-nsearch"></a></dt>
 <dd><p>number of points to evaluate log_posterior to find approx max value for shiftby. See details.</p></dd>
+
+
+<dt id="arg-log-evidence">log_evidence<a class="anchor" aria-label="anchor" href="#arg-log-evidence"></a></dt>
+<dd><p>the standardization constant, typically from <code><a href="vegasBayesEvidence.html">vegasBayesEvidence</a></code>
+but any scalar can be passed including zero to get unstandardised marginal.</p></dd>
 
 
 <dt id="arg-extra-args">extra_args<a class="anchor" aria-label="anchor" href="#arg-extra-args"></a></dt>

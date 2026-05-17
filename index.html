@@ -92,14 +92,15 @@
 <span>                 <span class="fl">0.2</span>, <span class="fl">0.3</span>, <span class="fl">0.8</span><span class="op">)</span>,ncol<span class="op">=</span><span class="fl">3</span>,byrow<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># use built-in pmvnorm()</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">9999</span><span class="op">)</span></span>
 <span><span class="va">lower</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.5</span>,<span class="op">-</span><span class="fl">0.5</span>,<span class="op">-</span><span class="fl">0.5</span><span class="op">)</span>; <span class="va">upper</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2.</span>,<span class="fl">1.</span>,<span class="fl">3.</span><span class="op">)</span></span>
 <span><span class="va">res_builtin</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/pkg/mvtnorm/man/pmvnorm.html" class="external-link">pmvnorm</a></span><span class="op">(</span>lower<span class="op">=</span><span class="va">lower</span>,upper<span class="op">=</span><span class="va">upper</span>,</span>
 <span>                     mean<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">mu</span><span class="op">)</span>, <span class="co"># coercion as needs vector</span></span>
 <span>                     sigma<span class="op">=</span><span class="va">cov</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">res_builtin</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.3102985</span></span>
+<span><span class="co">#&gt; [1] 0.3103157</span></span>
 <span><span class="co">#&gt; attr(,"error")</span></span>
-<span><span class="co">#&gt; [1] 5.392972e-05</span></span>
+<span><span class="co">#&gt; [1] 4.263326e-05</span></span>
 <span><span class="co">#&gt; attr(,"msg")</span></span>
 <span><span class="co">#&gt; [1] "Normal Completion"</span></span>
 <span></span>
