@@ -17,6 +17,7 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
+# options(pkgdown.parallel_vignettes = FALSE)
 # Check if running on GitHub Actions
 # This is important as otherwise Github will attempt to build this and it's missing the python libraries and will fail
 on_github <- Sys.getenv("GITHUB_ACTIONS") == "true"
@@ -29,26 +30,48 @@ knitr::opts_chunk$set(eval = !on_github)
 
 ```{r cran_check_setting,include=FALSE,eval=TRUE}
 # this is to de-tune all examples to get past cran checks
-is_checking <- nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))
-if (is_checking) {
-     n_cores <- 2 # number of cores for computing marginal density on cran
-     no_den_pts<-5 # very ligth grid for on cran
-    } else { # running locally to go higher
-    n_cores <- parallel::detectCores() - 1
-    no_den_pts=50
-}
+#is_checking <- nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))
+#if (is_checking) {
+#     n_cores <- 2 # number of cores for computing marginal density on cran
+#     no_den_pts<-5 # very ligth grid for on cran
+#    } else { # running locally to go higher
+#    n_cores <- parallel::detectCores() - 1
+no_den_pts=50
+#}
 
 ```
 
-### Quickstart
-Using Rcpp to write the log posterior function will almost surely be faster, perhaps many times faster, than an R function even when vectorized. Examples of the timing comparison are below. 
+## Quickstart
+Using Rcpp libraries to write the log posterior function will almost surely be faster, perhaps many times faster, than an R function even when vectorized. Examples of the timing comparison are below.  
 
-Example log posterior functions are given below using two Rcpp linear algebra libraries, [RcppArmadillo](https://github.com/rcppcore/rcpparmadillo) and [RcppEigen](https://github.com/RcppCore/RcppEigen). These libraries have different pros and cons. In short RcppArmadillo has some built-in parallelization while RcppEigen does not, but both are highly efficient in their own way. RcppEigen works well with [RcppParallel](https://github.com/rcppcore/rcppparallel) which can be more problematic with RcppArmadillo. 
+Example log posterior functions are given below using two Rcpp linear algebra libraries, [RcppArmadillo](https://github.com/rcppcore/rcpparmadillo) and [RcppEigen](https://github.com/RcppCore/RcppEigen). These libraries have different pros and cons. RcppArmadillo has some built-in parallelization (via openMP) while RcppEigen does not, but both are highly efficient in their own way. RcppEigen works well with [RcppParallel](https://github.com/rcppcore/rcppparallel) which does not use openMP and can be more problematic with RcppArmadillo. 
 
 ## Model Formulation
 
+The model implemented here is:
 
-### Data set
+$$
+\begin{aligned}
+\mu_0 &\sim \text{Normal}(0, 2.5)\\
+\sigma_0 &\sim \text{Half-Normal}(0, 2.5) \\
+\mu_1 &\sim \text{Normal}(0, 2.5) \\
+\sigma_1 &\sim \text{Half-Normal}(0, 2.5) \\
+\beta_0 &\sim \text{Normal}(\mu_0, \sigma_0) \\
+\beta_1 &\sim \text{Normal}(\mu_1, \sigma_1) \\
+\text{logit(}{p_i}) &= \beta_0 + \beta_1 z_i\quad\quad\quad\quad\enspace\enspace\text{for}\enspace{i=1,\dots,N}  \\
+y_i &\sim \text{Bernoulli}(p_i)
+\end{aligned}
+$$
+
+
+## Data set
+The R chunk below creates a simple dataset of three cols:
+
+-   a binary response variable y (0/1 = non-responder/responder),
+-   a (dummy) basket ID variable (=1)
+-   a binary treatment variable (0/1 = control/test treatment)
+
+The basket ID is currently set fixed at 1, denoting there is only one basket in this trial, i.e. it's a classical two arm randomized trial design.
 
 ```{r datasets, include=TRUE,eval=TRUE}
 library(vegasr)
@@ -56,9 +79,11 @@ vegas_initialize()
 thedata<-vegasr:::fn_create_data_1(99999) # a list of y and treat as matrices
 # this function is in vegasr/R/fn_internal.R
 ```
+## Example of calling log posterior functions
+These functions are available in the source package in fns_arma.cpp or fns_eigen.cpp in /src.
 
 ```{r logpos,include=TRUE,eval=TRUE}
-### Now use VEGAS
+### Call the Rcpp functions to demonstrate correct input and output values
 
 theta<- matrix(data=rep(0.1,length=4*6), ncol = 6)
 
@@ -72,6 +97,7 @@ vegasr::eigen_fn_log_post_1(theta, thedata$y, thedata$treat,0.0, 1.0)
 # this function is in vegasr/src/fns_eigen.cpp
 
 ```
+## Timing comparisons
 
 ```{r logpos2,include=TRUE,eval=TRUE}
 library(vegasr)
@@ -79,51 +105,53 @@ library(vegasr)
 vegas_initialize() # this needed called once per session after library(vegas)
 library(tictoc)
 
-
+## pure R
 tic()
 result_logEv<-vegasBayesEvidence(f=vegasr:::fn_log_post_1,
                                  lower=c(-1,-1,-1,-1,0.0001,0.0001),
                                  upper=c(1,1,1,1,1,1),
                                  nitn_warm = 5, neval_warm = 1e5,
                                  nitn = 5, neval = 1e5,
-                                 errTol=0.1,maxIter=10,seed=99999,nsearch=10000,
+                                 errTol=1,maxIter=10,seed=99999,nsearch=10000,
                                  extra_args=list(
                                    y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
 toc()
 cat("log evidence = ",result_logEv,"\n")
 
-
+## Armadillo
 tic()
 result_logEv<-vegasBayesEvidence(f=vegasr:::arma_fn_log_post_1,
                                  lower=c(-1,-1,-1,-1,0.0001,0.0001),
                                  upper=c(1,1,1,1,1,1),
                                  nitn_warm = 5, neval_warm = 1e5,
                                  nitn = 5, neval = 1e5,
-                                 errTol=0.1,maxIter=10,seed=99999,nsearch=10000,
+                                 errTol=1,maxIter=10,seed=99999,nsearch=10000,
                                  extra_args=list(
                                    y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
 toc()
 cat("log evidence = ",result_logEv,"\n")
 
+## Eigen
 tic()
 result_logEv<-vegasBayesEvidence(f=vegasr::eigen_fn_log_post_1,
                                  lower=c(-1,-1,-1,-1,0.0001,0.0001),
                                  upper=c(1,1,1,1,1,1),
                                  nitn_warm = 5, neval_warm = 1e5,
                                  nitn = 5, neval = 1e5,
-                                 errTol=0.1,maxIter=10,seed=99999,nsearch=10000,
+                                 errTol=1,maxIter=10,seed=99999,nsearch=10000,
                                  extra_args=list(
                                    y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
 toc()
 cat("log evidence = ",result_logEv,"\n")
 
+## Eigen with parallel
 tic()
 result_logEv<-vegasBayesEvidence(f=vegasr::eigen_fn_log_post_1_par,
                                  lower=c(-1,-1,-1,-1,0.0001,0.0001),
                                  upper=c(1,1,1,1,1,1),
                                  nitn_warm = 5, neval_warm = 1e5,
                                  nitn = 5, neval = 1e5,
-                                 errTol=0.1,maxIter=10,seed=99999,nsearch=10000,
+                                 errTol=1,maxIter=10,seed=99999,nsearch=10000,
                                  extra_args=list(
                                    y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
 toc()
@@ -132,8 +160,7 @@ cat("log evidence = ",result_logEv,"\n")
 
 ```
 ## 2. Find Marginal
-
-tbc
+Example using parallel version of log posterior using Eigen library. See fns_eigen.cpp in /src in source package.
 
 ```{r marg_single,include=TRUE,eval=TRUE}
 
@@ -171,11 +198,8 @@ toc() # Stops timer and prints
 
 ```
 ```{r plot_marg, include=FALSE, eval=TRUE, fig.width=10, fig.height=6, out.width="100%", fig.align='center'}
-#plot(myz,f_z,main="Vegas R",col="blue",lwd=2,type="n")
-#points(myz,f_z,col="brown",pch=21,bg="brown")
-#f_interp <- splinefun(myz, f_z, method = "fmm")
-#lines(myz,f_interp(myz),col="magenta")
 
+if(!nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))){
 library(ggplot2)
 
 # 1. Prepare data for plotting
@@ -222,13 +246,14 @@ p <- ggplot(plot_data, aes(x = z, y = f)) +
     panel.grid.minor = element_blank(),
     plot.margin = margin(20, 20, 20, 20)
   )
-
+}
 ```
 
 ```{r plot_marg2, include=TRUE, eval=TRUE, fig.width=10, fig.height=6, out.width="100%", fig.align='center'}
 # 3. Display the plot
 # plotting code above in hidden chunk
+if(!nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))){
 print(p)
-
+}
 ```
 

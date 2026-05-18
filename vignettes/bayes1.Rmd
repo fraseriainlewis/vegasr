@@ -28,19 +28,19 @@ knitr::opts_chunk$set(eval = !on_github)
 
 ```{r cran_check_setting,include=FALSE,eval=TRUE}
 # this is to de-tune all examples to get past cran checks
-is_checking <- nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))
-if (is_checking) {
-     n_cores <- 2 # number of cores for computing marginal density on cran
-     no_den_pts<-5 # very ligth grid for on cran
-    } else { # running locally to go higher
-    n_cores <- parallel::detectCores() - 1
+#is_checking <- nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))
+#if (is_checking) {
+#     n_cores <- 2 # number of cores for computing marginal density on cran
+#     no_den_pts<-5 # very ligth grid for on cran
+#    } else { # running locally to go higher
+#    n_cores <- parallel::detectCores() - 1
     no_den_pts=50
-}
+#}
 
 ```
 
 ### Quickstart
-A first example of how to compute a Bayesian posterior density using vegasr with the integrand written as an R function. Examples of how to use vegasr to computer general integrals can be found in the ?vegas help page.
+A first example of how to compute a Bayesian posterior density using vegasr with the integrand written as an R function. Examples of how to use vegasr to compute general integrals can be found in the ?vegas help page.
 
 ## Model Formulation
 
@@ -142,15 +142,16 @@ To compute the density over a necessary range one approach is to iterate across 
 
 ```{r marg_vector,include=TRUE,eval=TRUE}
 
+if(!nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))){
 library(foreach)
 library(doParallel)
 library(extraDistr)
 library(tictoc)
 
-cl <- makeCluster(n_cores)
+cl <- makeCluster(parallel::detectCores() - 1)
 
 registerDoParallel(cl)
-
+no_den_pts<-50
 myz<-seq(-2.5,-0.,len=no_den_pts)
 tic("Parallel Vegas Loop") # Start timer with a label
 f_z<-foreach(z= myz,.packages = c("extraDistr", "vegasr")) %dopar% {
@@ -168,15 +169,11 @@ f_z<-foreach(z= myz,.packages = c("extraDistr", "vegasr")) %dopar% {
 
 stopCluster(cl)
 toc() # Stops timer and prints
-
+}
 ```
 
 ```{r plot_marg, include=FALSE, eval=TRUE, fig.width=10, fig.height=6, out.width="100%", fig.align='center'}
-#plot(myz,f_z,main="Vegas R",col="blue",lwd=2,type="n")
-#points(myz,f_z,col="brown",pch=21,bg="brown")
-#f_interp <- splinefun(myz, f_z, method = "fmm")
-#lines(myz,f_interp(myz),col="magenta")
-
+if(!nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))){
 library(ggplot2)
 
 # 1. Prepare data for plotting
@@ -224,12 +221,13 @@ p <- ggplot(plot_data, aes(x = z, y = f)) +
     plot.margin = margin(20, 20, 20, 20)
   )
 
+}
 ```
 
 ```{r plot_marg2, include=TRUE, eval=TRUE, fig.width=10, fig.height=6, out.width="100%", fig.align='center'}
 # 3. Display the plot
 # plotting code above in hidden chunk
+if(!nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))){
 print(p)
-
+}
 ```
-
