@@ -318,17 +318,13 @@ vegasBayesEvidence <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000
 ################################################################################
 #' @title Compute Bayesian Marginal Posterior
 #'
-#' @description This function returns the estimated marginal posterior density, f(z)
-#' at a value of random variable z, where the remaining dimensions/variables are
+#' @description This function returns the estimated marginal posterior density, f(z),
+#' at a value of the random variable (model parameter being estimated) z, where the remaining dimensions/variables are
 #' integrated out. See \code{vignette("bayes1", package = "vegasr")} and
 #' \code{vignette("rcpp", package = "vegasr")}for examples and usage.
 #'
 #' @details The function passed must meet some specific criteria and a range of example
-#' functions are included in the package, e.g. see \code{\link{fn_log_post_1}}, in
-#' particular the function deal with integration limits via transformation if
-#' necessary. Example functions using Rcpp are also provided, see \code{\link{arma_fn_log_post_1}}
-#' which uses RcppArmadillo, \code{\link{eigen_fn_log_post_1}} which uses Eigen
-#' and \code{\link{eigen_fn_log_post_1_par}} which used Eigen and RcppParallel.
+#' functions are included in the package, e.g. see \code{\link{fn_marg_1_1}}.
 #'
 #' To help avoid numerical underflow the log posterior values are location shifted
 #' where a maximum value is subtracted on the log scale. This maximum value
@@ -336,16 +332,16 @@ vegasBayesEvidence <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000
 #' maximum value does not need to be precise but a higher nsearch value may potentially
 #' help in case of NaN or underflow.
 #'
-#' @param f An R function that takes a matrix and returns a vector. See details and examples.
+#' @param f An R function that takes a matrix and returns a vector. See \code{\link{vegas}}
 #' @param lower A vector of lower integration limits for each dimension, e.g. c(-1.,-1.-1)
 #' @param upper A vector of upper integration limits for each dimension, e.g. c(1.,1.1)
-#' @param nitn_warm Number of iterations for Vegas warm-up
+#' @param nitn_warm Number of iterations for warm-up
 #' @param neval_warm Number of function evaluations per iteration in warm-up
 #' @param nitn Number of iterations post-warm-up.
 #' @param neval Number of function evaluations per iteration post-warm-up.
 #' @param errTol  the % error target, default is 1, i.e. error is 1% of current estimated integral value
 #' @param maxIter max number of iteration blocks to run to achieve errTol. Each block comprises nitn iterations
-#' @param seed random number seed for vegas sampling generating. set for reproducible results.
+#' @param seed random number seed for vegas sample generating. Set for reproducible results.
 #' @param nsearch number of points to evaluate log_posterior to find approx max value for shiftby. See details.
 #' @param log_evidence the standardization constant, typically from \code{\link{vegasBayesEvidence}}
 #' but any scalar can be passed including zero to get unstandardised marginal.

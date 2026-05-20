@@ -2,7 +2,7 @@
 % Please edit documentation in R/fn_internal.R
 \name{fn_log_post_1}
 \alias{fn_log_post_1}
-\title{Posterior Density Function - Example 1}
+\title{Posterior Density Function using only R - Example 1}
 \usage{
 fn_log_post_1(theta, y, treat, shiftby, uselog)
 }

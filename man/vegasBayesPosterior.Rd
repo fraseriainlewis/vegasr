@@ -21,7 +21,7 @@ vegasBayesPosterior(
 )
 }
 \arguments{
-\item{f}{An R function that takes a matrix and returns a vector. See details and examples.}
+\item{f}{An R function that takes a matrix and returns a vector. See \code{\link{vegas}}}
 
 \item{lower}{A vector of lower integration limits for each dimension, e.g. c(-1.,-1.-1)}
 
@@ -50,8 +50,8 @@ but any scalar can be passed including zero to get unstandardised marginal.}
 least uselog and shiftby arguments which are mandatory for the function f.}
 }
 \description{
-This function returns the estimated marginal posterior density, f(z)
-at a value of random variable z, where the remaining dimensions/variables are
+This function returns the estimated marginal posterior density, f(z),
+at a value of the random variable (model parameter being estimated) z, where the remaining dimensions/variables are
 integrated out. See \code{vignette("bayes1", package = "vegasr")} and
 \code{vignette("rcpp", package = "vegasr")}for examples and usage.
 }

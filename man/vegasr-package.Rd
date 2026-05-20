@@ -8,7 +8,7 @@
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-Numerical Integration for Bayesian Computation via wrapping the vegas Python library. This library provides the most updated vegas algorithm, vegas+ from 2020.
+Numerical Integration for Bayesian Computation via wrapping the vegas Python library. This library provides the most updated vegas algorithm, vegas+ from 2021.
 }
 \seealso{
 Useful links:

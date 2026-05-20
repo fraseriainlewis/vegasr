@@ -1,12 +1,10 @@
-#' Initialize vegas
+#' @title Initialize vegas
 #'
 #' @description Initialize vegas by checking python is available, that the vegas python package is installed,
-#' loads the python class needed by vegasr, and sets an environment variable.
+#' load the python class needed by vegasr, and set an environment variable.
 #' It will prompt for \code{\link{vegas_install}} if needed.
 #'
 #' This function should be run after library(vegas) the first time this is called in an R session. See examples in ?vegas
-
-
 #' @export
 vegas_initialize <- function() {
 

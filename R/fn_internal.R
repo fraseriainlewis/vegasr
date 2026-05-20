@@ -37,7 +37,7 @@ fn_create_data_1<-function(seed){
 }
 ##############################################################################################
 ##############################################################################################
-#' @title Posterior Density Function - Example 1
+#' @title Posterior Density Function using only R - Example 1
 #'
 #' @description An example showing how to write a function for use with \code{\link{vegasBayesEvidence}} for
 #' Bayesian computation.
