@@ -22,5 +22,10 @@ Useful links:
 \author{
 \strong{Maintainer}: Fraser Lewis \email{fraser.iain.lewis@gmail.com}
 
+Authors:
+\itemize{
+  \item Fraser Lewis \email{fraser.iain.lewis@gmail.com}
+}
+
 }
 \keyword{internal}

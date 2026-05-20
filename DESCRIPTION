@@ -7,7 +7,6 @@ Description: Numerical Integration for Bayesian Computation via wrapping the veg
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 BuildManuals: FALSE
 URL: https://github.com/fraseriainlewis/vegasr, https://fraseriainlewis.github.io/vegasr/
 BugReports: https://github.com/fraseriainlewis/vegasr/issues
@@ -34,3 +33,4 @@ LinkingTo:
     RcppEigen,
     RcppParallel
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.0.0
