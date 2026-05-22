@@ -31,7 +31,11 @@ fn_log_post_K <- function(theta, y, treat, basketID, shiftby, uselog, K= NULL) {
     log_jac_term(theta2) + log_jac_term(theta3) + log_jac_term(theta4) + log_jac_term(theta5)
 
   #cat("jac\n")
+  #print(rowSums(log_jac_term(theta0)) +
+  #        rowSums(log_jac_term(theta1)))
+
   #print(jacobianLB)
+
 
   a0 <- theta0/(1 - theta0^2)   # B x K
   a1 <- theta1/(1 - theta1^2)   # B x K
@@ -43,6 +47,8 @@ fn_log_post_K <- function(theta, y, treat, basketID, shiftby, uselog, K= NULL) {
   treat_BN <- matrix(rep(treat, each = B), nrow = B)  # B x N
   eta_BN <- a0[, basketID, drop=FALSE] + a1[, basketID, drop=FALSE] * treat_BN
   eta <- t(eta_BN)  # N x B
+  #cat("eta=\n")
+  #print(dim(eta))
 
   log1pexp <- function(x) ifelse(x > 0, x + log1p(exp(-x)), log1p(exp(x)))
   logL <- colSums(y * eta - log1p(exp(eta)))  # length B
@@ -55,6 +61,8 @@ fn_log_post_K <- function(theta, y, treat, basketID, shiftby, uselog, K= NULL) {
   prior_sigma0 <- extraDistr::dhnorm(sigma0, sigma = 2.5, log = TRUE)
   prior_sigma1 <- extraDistr::dhnorm(sigma1, sigma = 2.5, log = TRUE)
 
+  #cat("logL\n")
+  #print(logL)
   #cat("hhh\n")
   #print(a0)
   #cat("prior tot+jac\n")

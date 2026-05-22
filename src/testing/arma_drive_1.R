@@ -3,26 +3,22 @@ library(RcppEigen)
 library(RcppParallel)
 library(tictoc)
 ## provides dmvnorm_aram(x,my,cov)
-#Rcpp::sourceCpp("src/testing/arma_v1.cpp")
 
-Rcpp::sourceCpp("src/testing/junk.cpp")
-
-Rcpp::sourceCpp("src/testing/eigen_v1.cpp")
-#Rcpp::sourceCpp("src/testing/eigen_v1_par.cpp")
-
-#Rcpp::sourceCpp("src/testing/rcmp_parallel_test.cpp")
-
-#tic()
-#myexp<-parallel_arma_exp(matrix(rnorm(1e7),ncol=1))
-#toc()
+#Rcpp::sourceCpp("src/testing/eigen_v1.cpp")
 
 
-thedata<-fn_create_data_5(99999)
+thedata<-vegasr:::fn_create_data_5(99999)
 theta   <- matrix(data=rep(0.1,length=4*14), ncol = 14) # 5 intercept + 5 slope + 4 hyper
 theta<-jitter(theta)
-eigen_norm2_logpdf(theta, rep(as.double(1.0),4),rep(as.double(1.0),4))
+#eigen_norm2_logpdf(theta, rep(as.double(1.0),4),rep(as.double(1.0),4))
 
-eigen_fn_log_post_5(theta, thedata$y, thedata$treat, thedata$basket,0.0, 1.0)
+library(vegasr)
+# now setup python environment
+vegas_initialize()
+vegasr::eigen_fn_log_post_5(theta, thedata$y, thedata$treat, thedata$basket,0.0, 1.0)
+
+#eigen_fn_log_post_5_par(theta, thedata$y, thedata$treat, thedata$basket,0.0, 1.0)
+
 
 fn_log_post_K(theta, thedata$y, thedata$treat, thedata$basket,0.0, 1.0,K=5)
 
@@ -42,8 +38,17 @@ extra_args=list(
   basket = thedata$basket,
   shiftby=0,uselog=1.)
 
-res<-(do.call(eigen_fn_log_post_5,c(list(searchPts),extra_args)))
+eigen_fn_log_post_5(searchPts[1:2,], thedata$y, thedata$treat, thedata$basket,0.0, 1.0)
 
+#eigen_fn_log_post_5_par(searchPts[1:2,], thedata$y, thedata$treat, thedata$basket,0.0, 1.0)
+
+fn_log_post_K(searchPts[1:2,], thedata$y, thedata$treat, thedata$basket,0.0, 1.0,K=5)
+
+
+res<-(do.call(eigen_fn_log_post_5,c(list(searchPts),extra_args)))
+#res<-(do.call(eigen_fn_log_post_5_par,c(list(searchPts),extra_args)))
+
+res<-(do.call(fn_log_post_K,c(list(searchPts),extra_args)))
 
 
 
@@ -61,7 +66,7 @@ upper <- c(rep( 0.9, 2*K),  0.9,  0.9,   0.9,   0.9)
 
 tic()
 result_logEv <- vegasBayesEvidence(
-  f = eigen_fn_log_post_5,
+  f = vegasr::eigen_fn_log_post_5,
   lower = lower, upper = upper,
   nitn_warm = 10, neval_warm = 10000,
   nitn = 10, neval = 10000,
@@ -95,17 +100,5 @@ toc()
 
 
 
-
-tic()
-result_logEv<-vegasBayesEvidence(f=arma_fn_log_post_1,
-                                 lower=c(-1,-1,-1,-1,0.0001,0.0001),
-                                 upper=c(1,1,1,1,1,1),
-                                 nitn_warm = 5, neval_warm = 1e5,
-                                 nitn = 5, neval = 1e5,
-                                 errTol=0.1,maxIter=10,seed=99999,nsearch=10000,
-                                 extra_args=list(
-                                   y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
-toc()
-cat("log evidence = ",result_logEv,"\n")
 
 

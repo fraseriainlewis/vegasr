@@ -10,6 +10,7 @@ using Eigen::VectorXd;
 using Eigen::MatrixXd;
 using Eigen::ArrayXd;
 using Eigen::ArrayXXd;
+using Eigen::VectorXi;
 
 // not exported
 VectorXd eigen_norm_logpdf(const VectorXd& x, const VectorXd& loc, const VectorXd& scale) {
@@ -22,6 +23,21 @@ VectorXd eigen_norm_logpdf(const VectorXd& x, const VectorXd& loc, const VectorX
 
     return (log_var + log_const).matrix();
 }
+
+// not exported
+MatrixXd eigen_norm_logpdf(const MatrixXd& x, const VectorXd& loc, const VectorXd& scale) {
+  ArrayXXd x_arr    = x.array();
+  ArrayXd  loc_arr  = loc.array();
+  ArrayXd  scale_arr = scale.array();
+
+  ArrayXXd scaled    = (x_arr.colwise() - loc_arr).colwise() / scale_arr;
+  ArrayXXd log_var   = -0.5 * scaled.square();
+  ArrayXXd log_const = (-scale_arr.log() - 0.5 * std::log(2.0 * M_PI)).matrix()
+                                  .replicate(1, x.cols()).array();
+
+  return (log_var + log_const).matrix();
+}
+
 
 // not exported
 VectorXd eigen_norm_logpdf(const VectorXd& x, double loc, double scale) {
@@ -330,6 +346,139 @@ Eigen::VectorXd eigen_fn_marg_1_1_par(const Eigen::MatrixXd& theta,
    // Parallelize the calculation across rows of theta
    LogPostWorkerM worker(theta, y, treat, z, logPost);
    RcppParallel::parallelFor(0, n_rows, worker);
+
+   if (uselog == 1.0) {
+     return (logPost.array() - shiftby).matrix();
+   } else {
+     return (logPost.array() - shiftby).exp().matrix();
+   }
+ }
+
+// ---------------------------------------------------------------------------
+//' @title Posterior Density Function using RcppEigen - Example 2
+//' @name eigen_fn_log_post_5
+//' @aliases eigen_fn_log_post_5
+//' @description An example showing how to write a function for use with \code{\link{vegasBayesEvidence}} for
+//' Bayesian computation using the RcppEigen library
+//' This example function describes a simple Bayesian hierarchical model comprising of a logistic regression with
+//' intercept and single binary covariate for treatment effect each with a hierarchical prior.
+//' This has six parameters in total. See \code{vignette("rcpp", package = "vegasr")} for Rcpp details.
+//'
+//' @details The is an example function written using RcppEigen and has same functionality as the R function
+//' \code{\link{fn_log_post_1}}. It uses a transformation so the density
+//' can be integrated across the full domain of each parameter, i.e. the density includes a Jacobian
+//'  See \code{vignette("rcpp", package = "vegasr")} for more details. Several helper function are required
+//'  specifically normal and half-normal densities are also written in RcppEigen. Use Rcpp::sourceCpp()
+//'  or similar to run the functions separately. They are in the fns_eigen.cpp file in the source package.
+//'
+//' @param theta pass a numerical R matrix of dimension Batch x M, where M is number of parameters, here M=6
+//' Batch can be any positive integer
+//' @param y a numeric R matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
+//' entries only
+//' @param treat a numeric R matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
+//' entries only
+//' @param basket a numeric R matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
+//' entries only
+//' @param shiftby a numerical scalar used to help avoid underflow. Used in \code{\link{vegasBayesEvidence}}
+//' @param uselog a numerical flag value takes either 1.0 or 0.0 and used to return either log or real scale
+//' value. Used in \code{\link{vegasBayesEvidence}}
+//' @export
+// Define log posterior in RcppEigen including change of variables
+// [[Rcpp::export]]
+Eigen::VectorXd eigen_fn_log_post_5(const Eigen::MatrixXd& theta,
+                                     const Eigen::VectorXd& y,
+                                     const Eigen::VectorXd& treat,
+                                     const Eigen::VectorXd& basket,
+                                     double shiftby, double uselog){
+
+int n_rows = theta.rows();
+
+   // Clamp values
+   ArrayXXd theta0 = theta.leftCols(5).array().max(-0.9999).min(0.9999); //0:4
+   ArrayXXd theta1 = theta.middleCols(5, 5).array().max(-0.9999).min(0.9999); //5:9
+   ArrayXd theta2 = theta.col(10).array().max(-0.9999).min(0.9999);
+   ArrayXd theta3 = theta.col(11).array().max(-0.9999).min(0.9999);
+   ArrayXd theta4 = theta.col(12).array().max(1E-05).min(0.9999);
+   ArrayXd theta5 = theta.col(13).array().max(1E-05).min(0.9999);
+
+   // Jacobian calculation using Array operations
+   ArrayXd jacobianLA =  (theta0.square().log1p() - 2.0 * (-theta0.square()).log1p()).rowwise().sum().transpose()
+     + (theta1.square().log1p() - 2.0 * (-theta1.square()).log1p()).rowwise().sum().transpose();
+
+   ArrayXd jacobianL = jacobianLA +
+   ((theta2.square()).log1p() - 2.0 * (-theta2.square()).log1p()) +
+   ((theta3.square()).log1p() - 2.0 * (-theta3.square()).log1p()) +
+   ((theta4.square()).log1p() - 2.0 * (-theta4.square()).log1p()) +
+   ((theta5.square()).log1p() - 2.0 * (-theta5.square()).log1p());
+
+   // Variable transformations
+   MatrixXd a0 = (theta0 / (1.0 - theta0.square())).matrix();
+   MatrixXd a1 = (theta1 / (1.0 - theta1.square())).matrix();
+
+   VectorXd mu0 = (theta2 / (1.0 - theta2.square())).matrix();
+   VectorXd mu1 = (theta3 / (1.0 - theta3.square())).matrix();
+   VectorXd sigma0 = (theta4 / (1.0 - theta4.square())).matrix();
+   VectorXd sigma1 = (theta5 / (1.0 - theta5.square())).matrix();
+
+   MatrixXd eta(treat.rows(), a0.rows());
+   eta.setZero();
+   // a0[0,K[0]]+a1[0,K[0]]*T[0] a0[1,K[0]]+a1[1,K[0]]*T[0] ... a0[BATCH,K[0]]+a1[BATCH,K[0]]*T[0]
+   // a0[0,K[1]]+a1[0,K[1]]*T[1] a0[1,K[1]]+a1[1,K[1]]*T[0] ... a0[BATCH,K[1]]+a1[BATCH,K[1]]*T[1]
+
+   // equivalent to below
+   //for (int j = 0; j < eta.cols(); ++j) {      // Iterate over columns first (better for Eigen) - batch
+   //        for (int i = 0; i < eta.rows(); ++i) {  // Then rows - patients
+   //              //double value = eta(i, j);           // Read
+   //              int k = static_cast<int>(basket(i)) - 1;
+   //              eta(i, j) = a0(j,k) + a1(j,k)*treat(i) ;            // Write
+   //          }
+   //    }
+
+   // 1. Pre-calculate 0-based integer indices (Once per function call, not inside loops)
+   Eigen::VectorXi k_idx = (basket.array().cast<int>() - 1);
+
+   // 2. Iterate over the Batch (j)
+   for (int j = 0; j < eta.cols(); ++j) {
+     // 3. For a specific batch 'j', we need to pick intercepts/effects for all patients
+     // We can use the pre-calculated k_idx to "gather" the correct parameters
+
+     // We create temporary vectors for the current batch
+     // (Size M x 1, where M is number of patients)
+     Eigen::VectorXd a0_current(eta.rows());
+     Eigen::VectorXd a1_current(eta.rows());
+
+     for (int i = 0; i < eta.rows(); ++i) {
+       a0_current(i) = a0(j, k_idx(i));
+       a1_current(i) = a1(j, k_idx(i));
+     }
+
+     // 4. Vectorized calculation for the entire column (Patient dimension)
+     // This allows Eigen to use SIMD (Single Instruction, Multiple Data)
+     eta.col(j) = a0_current.array() + (a1_current.array() * treat.array());
+   }
+
+   // term1 = y * eta (element-wise on y broadcasted across cols)
+   MatrixXd term1 = eta.array().colwise() * y.array();
+
+   // term2 = log(1 + exp(eta))
+   MatrixXd term2 = (1.0 + eta.array().exp()).log();
+
+   // logL = sum(term1 - term2, axis=0) -> returns row vector (1 x BATCH)
+   Eigen::RowVectorXd logL = (term1 - term2).colwise().sum();
+
+   // Prior calculations
+   MatrixXd prior_a0 = eigen_norm_logpdf(a0, mu0, sigma0);
+   MatrixXd prior_a1 = eigen_norm_logpdf(a1, mu1, sigma1);
+   VectorXd prior_mu0 = eigen_norm_logpdf(mu0, 0.0, 2.5);
+   VectorXd prior_mu1 = eigen_norm_logpdf(mu1, 0.0, 2.5);
+   VectorXd prior_sigma0 = eigen_half_norm_logpdf(sigma0, 2.5);
+   VectorXd prior_sigma1 = eigen_half_norm_logpdf(sigma1, 2.5);
+
+    // Final log Density
+   VectorXd logDens = logL.transpose() + prior_a0.rowwise().sum() + prior_a1.rowwise().sum() + prior_mu0 + prior_mu1 + prior_sigma0 + prior_sigma1;
+
+   // Final log Posterior
+   VectorXd logPost = logDens + jacobianL.matrix();
 
    if (uselog == 1.0) {
      return (logPost.array() - shiftby).matrix();

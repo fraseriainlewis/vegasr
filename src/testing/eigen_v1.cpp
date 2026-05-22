@@ -24,7 +24,7 @@ VectorXd eigen_norm_logpdf(const VectorXd& x, const VectorXd& loc, const VectorX
   return (log_var + log_const).matrix();
 }
 
-MatrixXd eigen_norm2_logpdf(const MatrixXd& x, const VectorXd& loc, const VectorXd& scale) {
+MatrixXd eigen_norm_logpdf(const MatrixXd& x, const VectorXd& loc, const VectorXd& scale) {
   ArrayXXd x_arr    = x.array();
   ArrayXd  loc_arr  = loc.array();
   ArrayXd  scale_arr = scale.array();
@@ -197,10 +197,10 @@ Eigen::VectorXd eigen_fn_log_post_5(const Eigen::MatrixXd& theta,
    ArrayXXd theta0 = theta.leftCols(5).array().max(-0.9999).min(0.9999); //0:4
    //ArrayXd theta1 = theta.col(1).array().max(-0.9999).min(0.9999);
    ArrayXXd theta1 = theta.middleCols(5, 5).array().max(-0.9999).min(0.9999); //5:9
-   ArrayXd theta2 = theta.col(2).array().max(-0.9999).min(0.9999);
-   ArrayXd theta3 = theta.col(3).array().max(-0.9999).min(0.9999);
-   ArrayXd theta4 = theta.col(4).array().max(0.0001).min(0.9999);
-   ArrayXd theta5 = theta.col(5).array().max(0.0001).min(0.9999);
+   ArrayXd theta2 = theta.col(10).array().max(-0.9999).min(0.9999);
+   ArrayXd theta3 = theta.col(11).array().max(-0.9999).min(0.9999);
+   ArrayXd theta4 = theta.col(12).array().max(1E-05).min(0.9999);
+   ArrayXd theta5 = theta.col(13).array().max(1E-05).min(0.9999);
 
    // Jacobian calculation using Array operations
 
@@ -235,7 +235,7 @@ Eigen::VectorXd eigen_fn_log_post_5(const Eigen::MatrixXd& theta,
      ((theta4.square()).log1p() - 2.0 * (-theta4.square()).log1p()) +
      ((theta5.square()).log1p() - 2.0 * (-theta5.square()).log1p());
 
-   //Rcpp::Rcout <<"JacoLA="<<jacobianL<<std::endl;
+   //Rcpp::Rcout <<"JacoL="<<jacobianL<<std::endl;
    // Variable transformations
    MatrixXd a0 = (theta0 / (1.0 - theta0.square())).matrix();
    MatrixXd a1 = (theta1 / (1.0 - theta1.square())).matrix();
@@ -249,16 +249,47 @@ Eigen::VectorXd eigen_fn_log_post_5(const Eigen::MatrixXd& theta,
    // treat is (N x 1), a1 is (BATCH x 1). result should be (N x BATCH)
    // We add a0.transpose() (1 x BATCH) to each row of (N x BATCH) matrix
 
-   VectorXi col_idx = (basket.cast<int>().array() - 1).matrix();//subtract 1 to give zero indexing
-   VectorXd a0k(basket.rows());
-   VectorXd a1k(basket.rows());
-   for (int i = 0; i <basket.rows() ; i++){
-     a0k(i) = a0(i, col_idx(i));
-     a1k(i) = a1(i, col_idx(i));}
+   MatrixXd eta(treat.rows(), a0.rows());
+   eta.setZero();
+   // a0[0,K[0]]+a1[0,K[0]]*T[0] a0[1,K[0]]+a1[1,K[0]]*T[0] ... a0[BATCH,K[0]]+a1[BATCH,K[0]]*T[0]
+   // a0[0,K[1]]+a1[0,K[1]]*T[1] a0[1,K[1]]+a1[1,K[1]]*T[0] ... a0[BATCH,K[1]]+a1[BATCH,K[1]]*T[1]
+
+   //for (int j = 0; j < eta.cols(); ++j) {      // Iterate over columns first (better for Eigen) - batch
+  //        for (int i = 0; i < eta.rows(); ++i) {  // Then rows - patients
+  //              //double value = eta(i, j);           // Read
+  //              int k = static_cast<int>(basket(i)) - 1;
+  //              eta(i, j) = a0(j,k) + a1(j,k)*treat(i) ;            // Write
+  //          }
+  //    }
+
+    // 1. Pre-calculate 0-based integer indices (Once per function call, not inside loops)
+    Eigen::VectorXi k_idx = (basket.array().cast<int>() - 1);
+
+    // 2. Iterate over the Batch (j)
+    for (int j = 0; j < eta.cols(); ++j) {
+          // 3. For a specific batch 'j', we need to pick intercepts/effects for all patients
+          // We can use the pre-calculated k_idx to "gather" the correct parameters
+
+          // We create temporary vectors for the current batch
+          // (Size M x 1, where M is number of patients)
+          Eigen::VectorXd a0_current(eta.rows());
+          Eigen::VectorXd a1_current(eta.rows());
+
+          for (int i = 0; i < eta.rows(); ++i) {
+                a0_current(i) = a0(j, k_idx(i));
+                a1_current(i) = a1(j, k_idx(i));
+            }
+
+          // 4. Vectorized calculation for the entire column (Patient dimension)
+          // This allows Eigen to use SIMD (Single Instruction, Multiple Data)
+          eta.col(j) = a0_current.array() + (a1_current.array() * treat.array());
+      }
+
 
    //MatrixXd eta = (treat * a1.transpose()).rowwise() + a0.transpose();
-   MatrixXd eta = (treat * a1k.transpose()).rowwise() + a0k.transpose();
+   //MatrixXd eta = (treat * a1k.transpose()).rowwise() + a0k.transpose();
 
+   //Rcpp::Rcout <<"eta="<<eta.rows()<<" "<<eta.cols()<<std::endl;
    //MatrixXd eta = treat.asDiagonal() * a1.col(0) + a0.col(0); //M x 5
    //Rcpp::Rcout <<"eta.size="<<eta.rows()<<" "<<eta.cols()<<std::endl;
    //Rcpp::Rcout <<"trt.size="<<treat.rows()<<std::endl;
@@ -275,15 +306,15 @@ Eigen::VectorXd eigen_fn_log_post_5(const Eigen::MatrixXd& theta,
    Eigen::RowVectorXd logL = (term1 - term2).colwise().sum();
 
    // Prior calculations
-   MatrixXd prior_a0 = eigen_norm2_logpdf(a0, mu0, sigma0);
-   MatrixXd prior_a1 = eigen_norm2_logpdf(a1, mu1, sigma1);
+   MatrixXd prior_a0 = eigen_norm_logpdf(a0, mu0, sigma0);
+   MatrixXd prior_a1 = eigen_norm_logpdf(a1, mu1, sigma1);
    VectorXd prior_mu0 = eigen_norm_logpdf(mu0, 0.0, 2.5);
    VectorXd prior_mu1 = eigen_norm_logpdf(mu1, 0.0, 2.5);
    VectorXd prior_sigma0 = eigen_half_norm_logpdf(sigma0, 2.5);
    VectorXd prior_sigma1 = eigen_half_norm_logpdf(sigma1, 2.5);
 
-   //Rcpp::Rcout <<"prior=="<<std::endl<<a0<<std::endl;
-   //Rcpp::Rcout <<"prior tot+jac="<<std::endl<< jacobianL.matrix()+prior_a0.rowwise().sum() + prior_a1.rowwise().sum()+prior_mu0 + prior_mu1 + prior_sigma0 + prior_sigma1<<std::endl;
+   //Rcpp::Rcout <<"logL=="<<std::endl<<logL.transpose()<<std::endl;
+   //Rcpp::Rcout <<"non logL"<<std::endl<< prior_a0.rowwise().sum() + prior_a1.rowwise().sum() + prior_mu0 + prior_mu1 + prior_sigma0 + prior_sigma1+ jacobianL.matrix()<<std::endl;
 
    //exit();
    // Final log Density
@@ -298,6 +329,12 @@ Eigen::VectorXd eigen_fn_log_post_5(const Eigen::MatrixXd& theta,
      return (logPost.array() - shiftby).exp().matrix();
    }
  }
+
+
+
+
+
+
 
 
 
