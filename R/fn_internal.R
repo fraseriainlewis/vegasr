@@ -35,6 +35,42 @@ fn_create_data_1<-function(seed){
   return(list(y=y,treat=treat))
 
 }
+
+fn_create_data_5<-function(seed){
+  set.seed(seed)
+  # Set up data
+  rr_k_ctrl <- c(0.20,0.35, 0.25, 0.30, 0.35)        # control response rate for each basket
+  rr_k_trt <- c(0.40,0.45, 0.45, 0.50, 0.55)         # treatment response rate for each basket
+
+  K<-length(rr_k_ctrl)        # number of baskets
+
+  N_k_ctrl <- rep(20, K)     # number of control participants per basket
+  N_k_trt <- rep(20, K)      # number of treatment participants per basket
+  N_k <- N_k_ctrl + N_k_trt   # number of participants per basket (both arms combined)
+  N <- sum(N_k)               # total sample size
+  k_vec <- rep(1:K, N_k)      # N x 1 vector of basket indicators (1 to K)
+
+  z_vec<-NULL;
+  y<-NULL;
+  for(i in 1:K){ # for each basket repeat 0-control 1-trt according to the specifc Ns
+    z_vec<-c(z_vec,rep(0:1,c(N_k_ctrl[i],N_k_trt[i]))) # treatment/control indicator
+    y<-c(y,
+         c(stats::rbinom(N_k_ctrl[i],1,rr_k_ctrl[i]), # bernoulli for control
+           stats::rbinom(N_k_trt[i],1,rr_k_trt[i]))) #           for trt
+  }
+
+  thedata<-data.frame(y,basketID=k_vec,Treatment=z_vec)
+  # response
+  y<-matrix(data=as.numeric(thedata$y),ncol=1)
+  # treatment
+  treat<-matrix(data=as.numeric(thedata$Treatment),ncol=1)
+  # basket
+  basket<-matrix(data=as.numeric(thedata$basketID),ncol=1)
+  return(list(y=y,basket=basket,treat=treat))
+
+}
+
+
 ##############################################################################################
 ##############################################################################################
 #' @title Posterior Density Function using only R - Example 1

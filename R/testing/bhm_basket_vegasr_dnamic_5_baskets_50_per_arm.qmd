@@ -236,6 +236,8 @@ fn_log_post_K <- function(theta, y, treat, basketID, shiftby, uselog, K= NULL) {
 
   log_jac_term <- function(th) log1p(th^2) - 2*log1p(-(th^2))
 
+  print(rowSums(log_jac_term(theta0)))
+  
   jacobianLB <- rowSums(log_jac_term(theta0)) +
     rowSums(log_jac_term(theta1)) +
     log_jac_term(theta2) + log_jac_term(theta3) + log_jac_term(theta4) + log_jac_term(theta5)

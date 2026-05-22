@@ -27,7 +27,7 @@ vegasBayesPosterior(
 
 \item{upper}{A vector of upper integration limits for each dimension, e.g. c(1.,1.1)}
 
-\item{nitn_warm}{Number of iterations for Vegas warm-up}
+\item{nitn_warm}{Number of iterations for warm-up}
 
 \item{neval_warm}{Number of function evaluations per iteration in warm-up}
 
@@ -39,7 +39,7 @@ vegasBayesPosterior(
 
 \item{maxIter}{max number of iteration blocks to run to achieve errTol. Each block comprises nitn iterations}
 
-\item{seed}{random number seed for vegas sampling generating. set for reproducible results.}
+\item{seed}{random number seed for vegas sample generating. Set for reproducible results.}
 
 \item{nsearch}{number of points to evaluate log_posterior to find approx max value for shiftby. See details.}
 
@@ -57,11 +57,7 @@ integrated out. See \code{vignette("bayes1", package = "vegasr")} and
 }
 \details{
 The function passed must meet some specific criteria and a range of example
-functions are included in the package, e.g. see \code{\link{fn_log_post_1}}, in
-particular the function deal with integration limits via transformation if
-necessary. Example functions using Rcpp are also provided, see \code{\link{arma_fn_log_post_1}}
-which uses RcppArmadillo, \code{\link{eigen_fn_log_post_1}} which uses Eigen
-and \code{\link{eigen_fn_log_post_1_par}} which used Eigen and RcppParallel.
+functions are included in the package, e.g. see \code{\link{fn_marg_1_1}}.
 
 To help avoid numerical underflow the log posterior values are location shifted
 where a maximum value is subtracted on the log scale. This maximum value
