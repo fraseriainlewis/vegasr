@@ -44,8 +44,8 @@ fn_create_data_5<-function(seed){
 
   K<-length(rr_k_ctrl)        # number of baskets
 
-  N_k_ctrl <- rep(20, K)     # number of control participants per basket
-  N_k_trt <- rep(20, K)      # number of treatment participants per basket
+  N_k_ctrl <- rep(100, K)     # number of control participants per basket
+  N_k_trt <- rep(100, K)      # number of treatment participants per basket
   N_k <- N_k_ctrl + N_k_trt   # number of participants per basket (both arms combined)
   N <- sum(N_k)               # total sample size
   k_vec <- rep(1:K, N_k)      # N x 1 vector of basket indicators (1 to K)

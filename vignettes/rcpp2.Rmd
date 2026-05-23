@@ -1,0 +1,345 @@
+---
+title: "Using Rcpp in Vegasr"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+vignette: >
+  %\VignetteIndexEntry{Using Rcpp in Vegasr}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+# options(pkgdown.parallel_vignettes = FALSE)
+# Check if running on GitHub Actions
+# This is important as otherwise Github will attempt to build this and it's missing the python libraries and will fail
+on_github <- Sys.getenv("GITHUB_ACTIONS") == "true"
+
+   
+# If on GitHub, set eval = FALSE for all subsequent chunks
+knitr::opts_chunk$set(eval = !on_github)
+
+```
+
+```{r cran_check_setting,include=FALSE,eval=TRUE}
+# this is to de-tune all examples to get past cran checks
+#is_checking <- nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))
+#if (is_checking) {
+#     n_cores <- 2 # number of cores for computing marginal density on cran
+#     no_den_pts<-5 # very ligth grid for on cran
+#    } else { # running locally to go higher
+#    n_cores <- parallel::detectCores() - 1
+no_den_pts=50
+#}
+
+```
+
+## Quickstart
+Using Rcpp libraries to write the log posterior function will almost surely be faster, perhaps many times faster, than an R function even when vectorized. Examples of the timing comparison are below.  
+
+Example log posterior functions are given below using two Rcpp linear algebra libraries, [RcppArmadillo](https://github.com/rcppcore/rcpparmadillo) and [RcppEigen](https://github.com/RcppCore/RcppEigen). These libraries have different pros and cons. RcppArmadillo has some built-in parallelization (via openMP) while RcppEigen does not, but both are highly efficient in their own way. RcppEigen works well with [RcppParallel](https://github.com/rcppcore/rcppparallel) which does not use openMP and can be more problematic with RcppArmadillo. 
+
+## Model Formulation
+
+The model implemented here is:
+
+$$
+\begin{aligned}
+\mu_0 &\sim \text{Normal}(0, 2.5)\\
+\sigma_0 &\sim \text{Half-Normal}(0, 2.5) \\
+\mu_1 &\sim \text{Normal}(0, 2.5) \\
+\sigma_1 &\sim \text{Half-Normal}(0, 2.5) \\
+\beta_0 &\sim \text{Normal}(\mu_0, \sigma_0) \\
+\beta_1 &\sim \text{Normal}(\mu_1, \sigma_1) \\
+\text{logit(}{p_i}) &= \beta_0 + \beta_1 z_i\quad\quad\quad\quad\enspace\enspace\text{for}\enspace{i=1,\dots,N}  \\
+y_i &\sim \text{Bernoulli}(p_i)
+\end{aligned}
+$$
+
+
+## Data set
+The R chunk below creates a simple dataset of three cols:
+
+-   a binary response variable y (0/1 = non-responder/responder),
+-   a (dummy) basket ID variable (=1)
+-   a binary treatment variable (0/1 = control/test treatment)
+
+The basket ID is currently set fixed at 1, denoting there is only one basket in this trial, i.e. it's a classical two arm randomized trial design.
+
+```{r datasets, include=TRUE,eval=TRUE}
+library(vegasr)
+vegas_initialize()
+thedata<-vegasr:::fn_create_data_5(99999) # a list of y and treat as matrices
+#thedata<-fn_create_data_5(99999)
+# this function is in vegasr/R/fn_internal.R
+```
+
+
+
+```{r rsetup, include=FALSE,eval=TRUE}
+library(rstan)
+library(bayesplot)
+library(ggplot2)
+library(vegasr)
+#reticulate::py_install("bash") # just a test
+```
+
+```{r stanmodeldef,include=TRUE,echo=TRUE,eval=TRUE}
+### Stan model
+  BHM_stan_1 <- "data {
+  int<lower = 0> K;                     // number of baskets (K >= 2)
+  int<lower = 0> N;                     // total number of participants
+  //int<lower = 0, upper = N> N_k[K];     // K x 1 vector of basket sample sizes
+  //int<lower = 0, upper = N> N_k;
+  int<lower = 1, upper = K> k_vec[N];   // N x 1 vector of basket indicators
+  int<lower = 0, upper = 1> z_vec[N];   // N x 1 vector of treatment indicators for active treatment arm
+  int<lower = 0, upper = 1> y[N];       // N x 1 vector of binary responses
+}
+parameters {
+  matrix[K,2] beta_tr;                  // K x 2 matrix of transformed regression coefficients
+  real mu1;                              // scalar of hierarchical mean (log odds ratio)
+  real<lower = 0> sigma1;                  // scalar of hierarchical SD (log odds ratio)
+  real mu0;                              // scalar of hierarchical mean (log odds ratio)
+  real<lower = 0> sigma0;                  // scalar of hierarchical SD (log odds ratio)
+
+}
+transformed parameters {
+  matrix[K,2] beta;                     // K x 2 matrix of regression coefficients (without transformation)
+  // Calculate beta coefs using transformed betas (leads to better mixing)
+  for (k in 1:K){
+    beta[k,1] = mu0 + sigma0 * beta_tr[k,1];
+    beta[k,2] = mu1 + sigma1 * beta_tr[k,2];
+  }
+
+}
+model {
+  mu0 ~ normal(0, 2.5);    // vectorized normal priors for hierarchical means (specify SD in normal distn)
+  sigma0 ~ normal(0, 2.5);       // vectorized half-normal priors for hierarchical SDs (specify SD in normal distn)
+  mu1 ~ normal(0, 2.5);    // vectorized normal priors for hierarchical means (specify SD in normal distn)
+  sigma1 ~ normal(0, 2.5);       // vectorized half-normal priors for hierarchical SDs (specify SD in normal distn)
+  beta_tr[,1] ~ normal(0, 1);  // vectorized normal prior for the log odds for the control arm
+  beta_tr[,2] ~ normal(0, 1);  // vectorized normal prior for the log odds ratios
+  for (i in 1:N)
+    y[i] ~ bernoulli_logit(beta[k_vec[i], 1] + beta[k_vec[i], 2] * z_vec[i]);
+}
+"
+
+```
+
+```{r stansample,echo=TRUE,results='hide',eval=TRUE}
+
+# Create list with input values for Stan model
+data_input_1 <- list(
+  K = length(unique(thedata$basket)),                # number of subgroups
+  N = length(thedata$basket),                # total sample size
+  #N_k = N-k,            # sample size per basket
+  k_vec = as.integer(thedata$basket),        # N x 1 vector of subgroup indicators
+  z_vec =as.integer(thedata$treat),        # N x 1 vector of active treatment arm indicators
+  y = as.integer(thedata$y)                 # N x 1 vector of binary responses
+  )
+
+
+
+### Compile and fit model
+options(mc.cores = parallel::detectCores())
+# Compile model (only run the line below once for a simulation study - compilation not dependent on any
+# simulation inputs as defined by scenarios or on simulated data)
+stan_mod_1 <- stan_model(model_code = BHM_stan_1)
+# Fit model
+nsamps <- 30000       # number of posterior samples (after removing burn-in) per chain
+nburnin <- 1000       # number of burn-in samples to remove at beginning of each chain
+nchains <- 4          # number of chains
+#BHM_pars_1 <- c("beta","mu0", "sigma0","mu1", "sigma1", "beta","beta_tr")     # parameters to sample
+start_time <- Sys.time()
+stan_fit_2 <- sampling(stan_mod_1, data = data_input_1,
+                       iter = nsamps + nburnin, warmup = nburnin, chains = nchains)
+end_time <- Sys.time()
+end_time - start_time
+post_draws_2 <- as.matrix(stan_fit_2)           # posterior samples of each parameter
+
+```
+
+```{r stanresults,fig.width=10, fig.height=6, out.width="100%",eval=TRUE}
+library(bayesplot)
+color_scheme_set("viridisA")
+p<-mcmc_trace(stan_fit_2,"mu0")
+#ggsave("precomputed/vg2_traceplot1_stan.png", p)
+print(p)
+```
+```{r stanresults2,fig.width=10, fig.height=6, out.width="100%",eval=TRUE}
+library(bayesplot)
+color_scheme_set("viridisA")
+p<-mcmc_trace(stan_fit_2,"beta[1,1]")
+#ggsave("precomputed/vg2_traceplot1_stan.png", p)
+print(p)
+print(summary(stan_fit_2))
+```
+
+
+
+
+## Example of calling log posterior functions
+These functions are available in the source package in fns_arma.cpp or fns_eigen.cpp in /src.
+
+```{r logpos,include=TRUE,eval=TRUE}
+### Call the Rcpp functions to demonstrate correct input and output values
+
+theta   <- matrix(data=rep(0.1,length=4*14), ncol = 14) # 5 intercept + 5 slope + 4 hyper
+theta<-jitter(theta)
+
+vegasr::eigen_fn_log_post_5_par(theta, thedata$y, thedata$treat, thedata$basket,0.0, 1.0)
+
+```
+## Timing comparisons
+
+```{r logpos2,include=TRUE,eval=TRUE}
+library(vegasr)
+vegas_initialize()
+library(tictoc)
+K <- length(unique(thedata$basket))
+lower <- c(rep(-0.9999, 2*K), -0.9999, -0.9999, 1e-4, 1e-4)
+upper <- c(rep( 0.9999, 2*K),  0.9999,  0.9999,   0.9999,   0.9999)
+
+tic()
+result_logEv <- vegasBayesEvidence(
+  f = vegasr::eigen_fn_log_post_5_par,
+  lower = lower, upper = upper,
+  nitn_warm = 10, neval_warm = 100000,
+  nitn = 10, neval = 100000,
+  errTol = 0.01, maxIter = 10, seed = 99999, nsearch = 10000,
+  extra_args=list(
+    y=thedata$y,
+    treat=thedata$treat,
+    basket = thedata$basket,
+    shiftby=0,uselog=1.)
+)
+cat("log evidence = ",result_logEv,"\n")
+toc()
+
+
+```
+## 2. Find Marginal
+Example using parallel version of log posterior using Eigen library. See fns_eigen.cpp in /src in source package.
+
+```{r marg_single,include=TRUE,eval=TRUE}
+tic()
+mymarg<-vegasBayesPosterior(f=vegasr::eigen_fn_log_post_5m_par,
+                            lower=lower[-1],
+                            upper=upper[-1],
+                            nitn_warm = 10, neval_warm = 50000,
+                            nitn = 10, neval = 50000,
+                            errTol=0.01,maxIter=10,seed=99999,nsearch=10000,
+                            log_evidence = result_logEv,
+                            extra_args=list(
+                              y=thedata$y,
+                              treat=thedata$treat,
+                              basket = thedata$basket,
+                              shiftby=0,uselog=1.,z=-0.98))
+cat("Marginal density f(z) at z = -0.1 = ",mymarg,"\n")
+toc()
+
+```
+
+```{r marg_beta11,include=TRUE,eval=TRUE}
+#myz<-c(seq(-0.75,-0.65,len=25),seq(-0.65,-0.55,len=150),seq(-0.55,-0.45,len=25))
+myz<-c(seq(-1.5,-0.55,len=50))
+tic("") # Start timer with a label
+f_z<-rep(0,length(myz));
+i<-1;
+for(z in myz){
+  f_z[i]<-vegasBayesPosterior(f=vegasr::eigen_fn_log_post_5m_par,
+                            lower=lower[-1],
+                            upper=upper[-1],
+                            nitn_warm = 10, neval_warm = 50000,
+                            nitn = 10, neval = 50000,
+                            errTol=0.01,maxIter=10,seed=99999,nsearch=100000,
+                            log_evidence = result_logEv,
+                            extra_args=list(
+                              y=thedata$y,
+                              treat=thedata$treat,
+                              basket = thedata$basket,
+                              shiftby=0,uselog=1.,z=z))
+  cat("i=",i," z=",z," fz=",f_z[i],"\n")
+  i<-i+1
+}
+
+toc() # Stops timer and prints
+
+```
+
+```{r plot_marg, include=FALSE, eval=TRUE, fig.width=10, fig.height=6, out.width="100%", fig.align='center'}
+
+if(!nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))){
+library(ggplot2)
+
+# 1. Prepare data for plotting
+# Ensure f_z is a numeric vector (in case it is a list from foreach)
+if (is.list(f_z)) {
+  # If it's a list of results, extract the 'mean' component
+  if (is.list(f_z[[1]]) && "mean" %in% names(f_z[[1]])) {
+    f_z_vec <- unlist(lapply(f_z, function(x) x$mean))
+  } else {
+    f_z_vec <- unlist(f_z)
+  }
+} else {
+  f_z_vec <- f_z
+}
+
+# Create a smooth interpolation for the line
+z_grid <- seq(min(myz), max(myz), length.out = 500)
+f_interp <- splinefun(myz, f_z_vec, method = "fmm")
+
+# Prepare data frames
+plot_data <- data.frame(z = as.numeric(myz), f = as.numeric(f_z_vec))
+line_data <- data.frame(z = as.numeric(z_grid), f = as.numeric(f_interp(z_grid)))
+
+# 2. Create the plot
+p <- ggplot(plot_data, aes(x = z, y = f)) +
+  # Draw the interpolated smooth line from the line_data frame
+  geom_line(data = line_data, color = "#8E44AD", linewidth = 1, alpha = 0.8) +
+  # Draw the actual data points from the plot_data frame (inherited)
+  geom_point(fill = "#D35400", color = "white", shape = 21, size = 3, stroke = 0.5) +
+  # Labels and Title
+  labs(
+    title = "Marginal Posterior Density Estimation",
+    subtitle = "Calculated via Vegas Integration with Spline Interpolation",
+    x = "Parameter Space (z)",
+    y = "Density",
+    caption = "Source: Vegas R Integration"
+  ) +
+  # Apply a professional theme
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(color = "grey30", size = 11),
+    axis.title = element_text(face = "bold"),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(20, 20, 20, 20)
+  )
+}
+```
+
+```{r plot_marg2, include=TRUE, eval=TRUE, fig.width=10, fig.height=6, out.width="100%", fig.align='center'}
+# 3. Display the plot
+# plotting code above in hidden chunk
+if(!nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))){
+print(p)
+}
+```
+
+```{r}
+plot(density(extract(stan_fit_2,"beta[2,2]")$"beta[2,2]"),main="beta[2,2]",col="blue",lwd=2)
+points(myz,as.matrix(f_z),col="brown",pch=21,bg="brown")
+f_interp <- splinefun(myz, as.matrix(f_z), method = "fmm")
+lines(myz,f_interp(myz),col="magenta")
+```
+
+
+

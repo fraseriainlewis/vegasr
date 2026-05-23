@@ -17,19 +17,21 @@ inline double half_norm_logpdf_scalar(double x, double sigma) {
     return 0.5 * (std::log(2.0) - std::log(M_PI)) - std::log(sigma) - (x * x / (2.0 * sigma * sigma));
 }
 
-struct LogPostWorkerM5 : public RcppParallel::Worker {
+// MARGINAL
+struct LogPostWorkerM5m : public RcppParallel::Worker {
     const MatrixXd& theta;
     const VectorXd& y;
     const VectorXd& treat;
     const VectorXd& basket;
+    double z;
     VectorXd& output;
 
     // Pre-calculated 0-indexed basket IDs
     VectorXi k_idx;
 
-    LogPostWorkerM5(const MatrixXd& theta, const VectorXd& y, const VectorXd& treat,
-                    const VectorXd& basket, VectorXd& output)
-        : theta(theta), y(y), treat(treat), basket(basket), output(output) {
+    LogPostWorkerM5m(const MatrixXd& theta, const VectorXd& y, const VectorXd& treat,
+                    const VectorXd& basket, double z, VectorXd& output)
+        : theta(theta), y(y), treat(treat), basket(basket), z(z), output(output) {
         // Pre-calculate indices once
         k_idx = (basket.array().cast<int>() - 1);
     }
@@ -40,16 +42,19 @@ struct LogPostWorkerM5 : public RcppParallel::Worker {
             // 1. Extract parameters for the CURRENT batch row (ii)
             // theta row ii has 14 columns
             ArrayXd row = theta.row(ii).array();
+           // ArrayXd row(row_orig.size() + 1);
+            // Prepend z
+            //row << z, row_orig;
 
             // Clamp and Transform Components
             // Intercepts (0-4) and Treatment Effects (5-9)
-            ArrayXd th0 = row.segment(0, 5).max(-0.9999).min(0.9999);
-            ArrayXd th1 = row.segment(5, 5).max(-0.9999).min(0.9999);
+            ArrayXd th0 = row.segment(0, 5-1).max(-0.9999).min(0.9999);
+            ArrayXd th1 = row.segment(5-1, 5).max(-0.9999).min(0.9999);
             // Hyper-parameters (10-13)
-            double th2 = std::max(-0.9999, std::min(0.9999, row(10)));
-            double th3 = std::max(-0.9999, std::min(0.9999, row(11)));
-            double th4 = std::max(1E-05, std::min(0.9999, row(12)));
-            double th5 = std::max(1E-05, std::min(0.9999, row(13)));
+            double th2 = std::max(-0.9999, std::min(0.9999, row(10-1)));
+            double th3 = std::max(-0.9999, std::min(0.9999, row(11-1)));
+            double th4 = std::max(1E-05, std::min(0.9999, row(12-1)));
+            double th5 = std::max(1E-05, std::min(0.9999, row(13-1)));
 
             // 2. Jacobian Calculation (Scalar)
             double jac = (th0.square().log1p() - 2.0 * (-th0.square()).log1p()).sum() +
@@ -60,7 +65,10 @@ struct LogPostWorkerM5 : public RcppParallel::Worker {
                          (std::log1p(th5*th5) - 2.0 * std::log1p(-th5*th5));
 
             // Variable transformations
-            VectorXd a0_vec = (th0 / (1.0 - th0.square())).matrix();
+            VectorXd a0noz_vec = (th0 / (1.0 - th0.square())).matrix();
+            VectorXd a0_vec(a0noz_vec.size() + 1);
+            a0_vec<< z, a0noz_vec;
+
             VectorXd a1_vec = (th1 / (1.0 - th1.square())).matrix();
             double mu0 = th2 / (1.0 - th2*th2);
             double mu1 = th3 / (1.0 - th3*th3);
@@ -97,16 +105,16 @@ struct LogPostWorkerM5 : public RcppParallel::Worker {
 
 //' @export
 // [[Rcpp::export]]
-Eigen::VectorXd eigen_fn_log_post_5_par(const Eigen::MatrixXd& theta,
+Eigen::VectorXd eigen_fn_log_post_5m_par(const Eigen::MatrixXd& theta,
                                          const Eigen::VectorXd& y,
                                          const Eigen::VectorXd& treat,
                                          const Eigen::VectorXd& basket,
-                                         double shiftby, double uselog){
+                                         double shiftby, double uselog, double z){
 
    int n_rows = theta.rows();
    Eigen::VectorXd logPost(n_rows);
 
-   LogPostWorkerM5 worker(theta, y, treat, basket, logPost);
+   LogPostWorkerM5m worker(theta, y, treat, basket, z, logPost);
    RcppParallel::parallelFor(0, n_rows, worker);
 
    if (uselog == 1.0) {
@@ -115,3 +123,9 @@ Eigen::VectorXd eigen_fn_log_post_5_par(const Eigen::MatrixXd& theta,
      return (logPost.array() - shiftby).exp().matrix();
    }
  }
+
+// -------------------------------------------
+
+
+
+

@@ -3,6 +3,9 @@
 \name{eigen_fn_log_post_5}
 \alias{eigen_fn_log_post_5}
 \title{Posterior Density Function using RcppEigen - Example 2}
+\usage{
+eigen_fn_log_post_5(theta, y, treat, basket, shiftby, uselog)
+}
 \arguments{
 \item{theta}{pass a numerical R matrix of dimension Batch x M, where M is number of parameters, here M=6
 Batch can be any positive integer}

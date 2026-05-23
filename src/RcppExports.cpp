@@ -105,6 +105,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// eigen_fn_log_post_5m_par
+Eigen::VectorXd eigen_fn_log_post_5m_par(const Eigen::MatrixXd& theta, const Eigen::VectorXd& y, const Eigen::VectorXd& treat, const Eigen::VectorXd& basket, double shiftby, double uselog, double z);
+RcppExport SEXP _vegasr_eigen_fn_log_post_5m_par(SEXP thetaSEXP, SEXP ySEXP, SEXP treatSEXP, SEXP basketSEXP, SEXP shiftbySEXP, SEXP uselogSEXP, SEXP zSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type treat(treatSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type basket(basketSEXP);
+    Rcpp::traits::input_parameter< double >::type shiftby(shiftbySEXP);
+    Rcpp::traits::input_parameter< double >::type uselog(uselogSEXP);
+    Rcpp::traits::input_parameter< double >::type z(zSEXP);
+    rcpp_result_gen = Rcpp::wrap(eigen_fn_log_post_5m_par(theta, y, treat, basket, shiftby, uselog, z));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_vegasr_arma_fn_log_post_1", (DL_FUNC) &_vegasr_arma_fn_log_post_1, 5},
@@ -113,6 +130,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_vegasr_eigen_fn_marg_1_1_par", (DL_FUNC) &_vegasr_eigen_fn_marg_1_1_par, 6},
     {"_vegasr_eigen_fn_log_post_5", (DL_FUNC) &_vegasr_eigen_fn_log_post_5, 6},
     {"_vegasr_eigen_fn_log_post_5_par", (DL_FUNC) &_vegasr_eigen_fn_log_post_5_par, 6},
+    {"_vegasr_eigen_fn_log_post_5m_par", (DL_FUNC) &_vegasr_eigen_fn_log_post_5m_par, 7},
     {NULL, NULL, 0}
 };
 

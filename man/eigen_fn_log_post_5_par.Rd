@@ -3,6 +3,9 @@
 \name{eigen_fn_log_post_5_par}
 \alias{eigen_fn_log_post_5_par}
 \title{Parallel log Evidence Example 3}
+\usage{
+eigen_fn_log_post_5_par(theta, y, treat, basket, shiftby, uselog)
+}
 \arguments{
 \item{theta}{pass a numerical R matrix of dimension Batch x M, where M is number of parameters, here M=6
 Batch can be any positive integer}
