@@ -154,7 +154,7 @@ options(mc.cores = parallel::detectCores())
 stan_mod_1 <- stan_model(model_code = BHM_stan_1)
 # Fit model
 nsamps <- 30000       # number of posterior samples (after removing burn-in) per chain
-nburnin <- 1000       # number of burn-in samples to remove at beginning of each chain
+nburnin <- 5000       # number of burn-in samples to remove at beginning of each chain
 nchains <- 4          # number of chains
 #BHM_pars_1 <- c("beta","mu0", "sigma0","mu1", "sigma1", "beta","beta_tr")     # parameters to sample
 start_time <- Sys.time()
@@ -211,9 +211,9 @@ tic()
 result_logEv <- vegasBayesEvidence(
   f = vegasr::eigen_fn_log_post_5_par,
   lower = lower, upper = upper,
-  nitn_warm = 10, neval_warm = 100000,
-  nitn = 10, neval = 100000,
-  errTol = 0.01, maxIter = 10, seed = 99999, nsearch = 10000,
+  nitn_warm = 10, neval_warm = 1000000,
+  nitn = 10, neval = 1000000,
+  errTol = 0.0001, maxIter = 10, seed = 99999, nsearch = 100000,
   extra_args=list(
     y=thedata$y,
     treat=thedata$treat,
@@ -228,7 +228,7 @@ toc()
 ## 2. Find Marginal
 Example using parallel version of log posterior using Eigen library. See fns_eigen.cpp in /src in source package.
 
-```{r marg_single,include=TRUE,eval=TRUE}
+```{r marg_single,include=TRUE,eval=FALSE}
 tic()
 mymarg<-vegasBayesPosterior(f=vegasr::eigen_fn_log_post_5m_par,
                             lower=lower[-1],
@@ -248,8 +248,9 @@ toc()
 ```
 
 ```{r marg_beta11,include=TRUE,eval=TRUE}
-#myz<-c(seq(-0.75,-0.65,len=25),seq(-0.65,-0.55,len=150),seq(-0.55,-0.45,len=25))
-myz<-c(seq(-1.5,-0.55,len=50))
+#result_logEv<-0.0
+myz<-c(seq(-1.7,-1.21,len=25),seq(-1.2,-0.7,len=50),seq(-0.69,-0.4,len=25))
+#myz<-c(seq(-1.5,-0.55,len=50))
 tic("") # Start timer with a label
 f_z<-rep(0,length(myz));
 i<-1;
@@ -257,9 +258,9 @@ for(z in myz){
   f_z[i]<-vegasBayesPosterior(f=vegasr::eigen_fn_log_post_5m_par,
                             lower=lower[-1],
                             upper=upper[-1],
-                            nitn_warm = 10, neval_warm = 50000,
-                            nitn = 10, neval = 50000,
-                            errTol=0.01,maxIter=10,seed=99999,nsearch=100000,
+                            nitn_warm = 10, neval_warm = 100000,
+                            nitn = 5, neval = 200000,
+                            errTol=0.01,maxIter=5,seed=99999,nsearch=10000,
                             log_evidence = result_logEv,
                             extra_args=list(
                               y=thedata$y,
@@ -273,6 +274,17 @@ for(z in myz){
 toc() # Stops timer and prints
 
 ```
+```{r marg_beta111,include=TRUE,eval=TRUE}
+logun<-log(f_z)+result_logEv # back to unstand log density
+f_z_un<-exp(logun) # back to unstand density
+ff_interp <- splinefun(myz, as.matrix(f_z_un), method = "fmm") # fit fun to every point
+evA<-integrate(ff_interp,min(myz),max(myz))$value # find area 
+ff_z<-f_z_un/evA # divide by area to standardize marginal density
+ff_interp <- splinefun(myz, as.matrix(ff_z), method = "fmm") # now
+
+#plot(myz,predict(loess(ff_z ~ myz, span = 0.1,family="g",from=min(myz),to=max(myz))))
+
+```
 
 ```{r plot_marg, include=FALSE, eval=TRUE, fig.width=10, fig.height=6, out.width="100%", fig.align='center'}
 
@@ -281,16 +293,17 @@ library(ggplot2)
 
 # 1. Prepare data for plotting
 # Ensure f_z is a numeric vector (in case it is a list from foreach)
-if (is.list(f_z)) {
-  # If it's a list of results, extract the 'mean' component
-  if (is.list(f_z[[1]]) && "mean" %in% names(f_z[[1]])) {
-    f_z_vec <- unlist(lapply(f_z, function(x) x$mean))
-  } else {
-    f_z_vec <- unlist(f_z)
-  }
-} else {
+#if (is.list(f_z)) {
+#  # If it's a list of results, extract the 'mean' component
+#  if (is.list(f_z[[1]]) && "mean" %in% names(f_z[[1]])) {
+#    f_z_vec <- unlist(lapply(f_z, function(x) x$mean))
+#  } else {
+#    f_z_vec <- unlist(f_z)
+#  }
+#} else {
   f_z_vec <- f_z
-}
+  ff_z_vec <- ff_z
+#}
 
 # Create a smooth interpolation for the line
 z_grid <- seq(min(myz), max(myz), length.out = 500)
@@ -300,26 +313,42 @@ f_interp <- splinefun(myz, f_z_vec, method = "fmm")
 plot_data <- data.frame(z = as.numeric(myz), f = as.numeric(f_z_vec))
 line_data <- data.frame(z = as.numeric(z_grid), f = as.numeric(f_interp(z_grid)))
 
-# 2. Create the plot
-p <- ggplot(plot_data, aes(x = z, y = f)) +
-  # Draw the interpolated smooth line from the line_data frame
-  geom_line(data = line_data, color = "#8E44AD", linewidth = 1, alpha = 0.8) +
-  # Draw the actual data points from the plot_data frame (inherited)
-  geom_point(fill = "#D35400", color = "white", shape = 21, size = 3, stroke = 0.5) +
+plot2_data <- data.frame(z = as.numeric(myz), f = as.numeric(ff_z_vec))
+line2_data <- data.frame(z = as.numeric(z_grid), f = as.numeric(ff_interp(z_grid)))
+
+p <- ggplot() +
+  # --- FIRST DATASET (f_z) ---
+  # Draw the interpolated smooth line
+  geom_line(data = line_data, aes(x = z, y = f, color = "Original Log Ev"), linewidth = 1, alpha = 0.8) +
+  # Draw the actual data points
+  geom_point(data = plot_data, aes(x = z, y = f, fill = "Original Log Ev"), color = "white", shape = 21, size = 3, stroke = 0.5) +
+  
+  # --- SECOND DATASET (ff_z) ---
+  # Draw the interpolated smooth line
+  geom_line(data = line2_data, aes(x = z, y = f, color = "Marginal standardized"), linewidth = 1, alpha = 0.8) +
+  # Draw the actual data points
+  geom_point(data = plot2_data, aes(x = z, y = f, fill = "Marginal standardized"), color = "white", shape = 21, size = 3, stroke = 0.5) +
+  
+  # Custom Colors and Fills
+  scale_color_manual(name = "Dataset", values = c("Original Log Ev" = "#8E44AD", "Marginal standardized" = "#2E86C1")) +
+  scale_fill_manual(name = "Dataset", values = c("Original Log Ev" = "#D35400", "Marginal standardized" = "#2ECC71")) +
+  
   # Labels and Title
   labs(
     title = "Marginal Posterior Density Estimation",
-    subtitle = "Calculated via Vegas Integration with Spline Interpolation",
+    subtitle = "Comparison of two integration models using Spline Interpolation",
     x = "Parameter Space (z)",
     y = "Density",
     caption = "Source: Vegas R Integration"
   ) +
+  
   # Apply a professional theme
   theme_minimal(base_size = 12) +
   theme(
     plot.title = element_text(face = "bold", size = 16),
     plot.subtitle = element_text(color = "grey30", size = 11),
     axis.title = element_text(face = "bold"),
+    legend.position = "top",
     panel.grid.minor = element_blank(),
     plot.margin = margin(20, 20, 20, 20)
   )
@@ -335,11 +364,18 @@ print(p)
 ```
 
 ```{r}
-plot(density(extract(stan_fit_2,"beta[2,2]")$"beta[2,2]"),main="beta[2,2]",col="blue",lwd=2)
-points(myz,as.matrix(f_z),col="brown",pch=21,bg="brown")
-f_interp <- splinefun(myz, as.matrix(f_z), method = "fmm")
-lines(myz,f_interp(myz),col="magenta")
+plot(density(extract(stan_fit_2,"beta[1,1]")$"beta[1,1]"),main="beta[1,1]",col="blue",lwd=1)
+#points(myz,as.matrix(f_z),col="brown",pch=21,bg="brown",cex=0.5)
+#f_interp <- splinefun(myz, as.matrix(f_z), method = "fmm")
+#lines(myz,f_interp(myz),col="purple")
+
+#points(myz,as.matrix(ff_z),col="green",pch=21,bg="green")
+#ff_interp <- splinefun(myz, as.matrix(ff_z), method = "fmm")
+#lines(myz,ff_interp(myz),col="brown")
+
+lines(myz,predict(loess(ff_z ~ myz, span = 0.1,family="g")),col="red")
+
+#lines(density(extract(stan_fit_2,"beta[1,1]")$"beta[1,1]"),main="beta[1,1]",col="blue",lwd=2)
+
 ```
-
-
 

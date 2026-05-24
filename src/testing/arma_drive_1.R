@@ -173,7 +173,7 @@ toc()
 
 
 tic()
-mymarg<-vegasBayesPosterior(f=vegasreigen_fn_log_post_5m_par,
+mymarg<-vegasBayesPosterior(f=vegasr::eigen_fn_log_post_5m_par,
                             lower=lower[-1],
                             upper=upper[-1],
                             nitn_warm = 10, neval_warm = 10000,
@@ -194,7 +194,7 @@ tic("") # Start timer with a label
 f_z<-rep(0,length(myz));
 i<-1;
 for(z in myz){
-  f_z[i]<-vegasBayesPosterior(f=eigen_fn_log_post_5m_par,
+  f_z[i]<-vegasBayesPosterior(f=vegasr::eigen_fn_log_post_5m_par,
                               lower=lower[-1],
                               upper=upper[-1],
                               nitn_warm = 10, neval_warm = 10000,
