@@ -388,6 +388,8 @@ vegasBayesPosterior <- function(f, lower,upper, nitn_warm = 10, neval_warm = 100
                 extra_args = extra_args # this has z=value
   )
 
+  if(result$metTolerance==0){cat("tolerance not met at z=",extra_args$z,"\n")}
+
   unstd_log_margZ = mymax + log(result$mean)
 
   prob_dens=exp(unstd_log_margZ-log_evidence)

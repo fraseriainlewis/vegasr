@@ -211,9 +211,9 @@ tic()
 result_logEv <- vegasBayesEvidence(
   f = vegasr::eigen_fn_log_post_5_par,
   lower = lower, upper = upper,
-  nitn_warm = 10, neval_warm = 1000000,
-  nitn = 10, neval = 1000000,
-  errTol = 0.0001, maxIter = 10, seed = 99999, nsearch = 100000,
+  nitn_warm = 10, neval_warm = 100000,
+  nitn = 10, neval = 100000,
+  errTol = 0.001, maxIter = 10, seed = 99999, nsearch = 100000,
   extra_args=list(
     y=thedata$y,
     treat=thedata$treat,
@@ -235,7 +235,7 @@ mymarg<-vegasBayesPosterior(f=vegasr::eigen_fn_log_post_5m_par,
                             upper=upper[-1],
                             nitn_warm = 10, neval_warm = 50000,
                             nitn = 10, neval = 50000,
-                            errTol=0.01,maxIter=10,seed=99999,nsearch=10000,
+                            errTol=0.01,maxIter=5,seed=99999,nsearch=10000,
                             log_evidence = result_logEv,
                             extra_args=list(
                               y=thedata$y,
@@ -249,8 +249,9 @@ toc()
 
 ```{r marg_beta11,include=TRUE,eval=TRUE}
 #result_logEv<-0.0
-myz<-c(seq(-1.7,-1.21,len=25),seq(-1.2,-0.7,len=50),seq(-0.69,-0.4,len=25))
-#myz<-c(seq(-1.5,-0.55,len=50))
+#myz<-c(seq(-1.7,-1.21,len=25),seq(-1.2,-0.7,len=50),seq(-0.69,-0.4,len=25))
+
+myz<-c(seq(-1.7,-0.4,len=20))
 tic("") # Start timer with a label
 f_z<-rep(0,length(myz));
 i<-1;
@@ -258,9 +259,9 @@ for(z in myz){
   f_z[i]<-vegasBayesPosterior(f=vegasr::eigen_fn_log_post_5m_par,
                             lower=lower[-1],
                             upper=upper[-1],
-                            nitn_warm = 10, neval_warm = 100000,
-                            nitn = 5, neval = 200000,
-                            errTol=0.01,maxIter=5,seed=99999,nsearch=10000,
+                            nitn_warm = 20, neval_warm = 100000,
+                            nitn = 15, neval = 50000,
+                            errTol=1,maxIter=10,seed=99999,nsearch=10000,
                             log_evidence = result_logEv,
                             extra_args=list(
                               y=thedata$y,
@@ -364,16 +365,18 @@ print(p)
 ```
 
 ```{r}
-plot(density(extract(stan_fit_2,"beta[1,1]")$"beta[1,1]"),main="beta[1,1]",col="blue",lwd=1)
+plot(density(extract(stan_fit_2,"beta[1,1]")$"beta[1,1]"),main="beta[1,1]",col="blue",lwd=2)
 #points(myz,as.matrix(f_z),col="brown",pch=21,bg="brown",cex=0.5)
 #f_interp <- splinefun(myz, as.matrix(f_z), method = "fmm")
 #lines(myz,f_interp(myz),col="purple")
 
-#points(myz,as.matrix(ff_z),col="green",pch=21,bg="green")
+points(myz,as.matrix(ff_z),col="brown",pch=21,bg="brown")
 #ff_interp <- splinefun(myz, as.matrix(ff_z), method = "fmm")
-#lines(myz,ff_interp(myz),col="brown")
+lines(z_grid,ff_interp(z_grid),col="brown")
 
-lines(myz,predict(loess(ff_z ~ myz, span = 0.1,family="g")),col="red")
+#as.numeric(ff_interp(z_grid))
+
+#lines(myz,predict(loess(ff_z ~ myz, span = 0.1,family="g")),col="red")
 
 #lines(density(extract(stan_fit_2,"beta[1,1]")$"beta[1,1]"),main="beta[1,1]",col="blue",lwd=2)
 
