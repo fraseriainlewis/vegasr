@@ -1,17 +1,17 @@
 ---
-title: "Using Rcpp in Vegasr"
+title: "Using Rcpp2 in Vegasr"
 output:
   rmarkdown::html_vignette:
     toc: true
     toc_depth: 2
     number_sections: true
 vignette: >
-  %\VignetteIndexEntry{Using Rcpp in Vegasr}
+  %\VignetteIndexEntry{Using Rcpp2 in Vegasr}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r, include = FALSE, eval=TRUE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -26,9 +26,11 @@ on_github <- Sys.getenv("GITHUB_ACTIONS") == "true"
 # If on GitHub, set eval = FALSE for all subsequent chunks
 knitr::opts_chunk$set(eval = !on_github)
 
+knitr::opts_chunk$set(eval=FALSE)
+
 ```
 
-```{r cran_check_setting,include=FALSE,eval=TRUE}
+```{r cran_check_setting,include=FALSE}
 # this is to de-tune all examples to get past cran checks
 #is_checking <- nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))
 #if (is_checking) {
@@ -73,7 +75,7 @@ The R chunk below creates a simple dataset of three cols:
 
 The basket ID is currently set fixed at 1, denoting there is only one basket in this trial, i.e. it's a classical two arm randomized trial design.
 
-```{r datasets, include=TRUE,eval=TRUE}
+```{r datasets, include=TRUE}
 library(vegasr)
 vegas_initialize()
 thedata<-vegasr:::fn_create_data_5(99999) # a list of y and treat as matrices
@@ -83,7 +85,7 @@ thedata<-vegasr:::fn_create_data_5(99999) # a list of y and treat as matrices
 
 
 
-```{r rsetup, include=FALSE,eval=TRUE}
+```{r rsetup, include=FALSE}
 library(rstan)
 library(bayesplot)
 library(ggplot2)
@@ -91,7 +93,7 @@ library(vegasr)
 #reticulate::py_install("bash") # just a test
 ```
 
-```{r stanmodeldef,include=TRUE,echo=TRUE,eval=TRUE}
+```{r stanmodeldef,include=TRUE,echo=TRUE}
 ### Stan model
   BHM_stan_1 <- "data {
   int<lower = 0> K;                     // number of baskets (K >= 2)
@@ -133,7 +135,7 @@ model {
 
 ```
 
-```{r stansample,echo=TRUE,results='hide',eval=TRUE}
+```{r stansample,echo=TRUE,results='hide'}
 
 # Create list with input values for Stan model
 data_input_1 <- list(
@@ -153,7 +155,7 @@ options(mc.cores = parallel::detectCores())
 # simulation inputs as defined by scenarios or on simulated data)
 stan_mod_1 <- stan_model(model_code = BHM_stan_1)
 # Fit model
-nsamps <- 30000       # number of posterior samples (after removing burn-in) per chain
+nsamps <- 10000       # number of posterior samples (after removing burn-in) per chain
 nburnin <- 5000       # number of burn-in samples to remove at beginning of each chain
 nchains <- 4          # number of chains
 #BHM_pars_1 <- c("beta","mu0", "sigma0","mu1", "sigma1", "beta","beta_tr")     # parameters to sample
@@ -166,14 +168,14 @@ post_draws_2 <- as.matrix(stan_fit_2)           # posterior samples of each para
 
 ```
 
-```{r stanresults,fig.width=10, fig.height=6, out.width="100%",eval=TRUE}
+```{r stanresults,fig.width=10, fig.height=6, out.width="100%"}
 library(bayesplot)
 color_scheme_set("viridisA")
 p<-mcmc_trace(stan_fit_2,"mu0")
 #ggsave("precomputed/vg2_traceplot1_stan.png", p)
 print(p)
 ```
-```{r stanresults2,fig.width=10, fig.height=6, out.width="100%",eval=TRUE}
+```{r stanresults2,fig.width=10, fig.height=6, out.width="100%"}
 library(bayesplot)
 color_scheme_set("viridisA")
 p<-mcmc_trace(stan_fit_2,"beta[1,1]")
@@ -188,7 +190,7 @@ print(summary(stan_fit_2))
 ## Example of calling log posterior functions
 These functions are available in the source package in fns_arma.cpp or fns_eigen.cpp in /src.
 
-```{r logpos,include=TRUE,eval=TRUE}
+```{r logpos,include=TRUE}
 ### Call the Rcpp functions to demonstrate correct input and output values
 
 theta   <- matrix(data=rep(0.1,length=4*14), ncol = 14) # 5 intercept + 5 slope + 4 hyper
@@ -199,7 +201,7 @@ vegasr::eigen_fn_log_post_5_par(theta, thedata$y, thedata$treat, thedata$basket,
 ```
 ## Timing comparisons
 
-```{r logpos2,include=TRUE,eval=TRUE}
+```{r logpos2,include=TRUE}
 library(vegasr)
 vegas_initialize()
 library(tictoc)
@@ -228,7 +230,7 @@ toc()
 ## 2. Find Marginal
 Example using parallel version of log posterior using Eigen library. See fns_eigen.cpp in /src in source package.
 
-```{r marg_single,include=TRUE,eval=FALSE}
+```{r marg_single,include=TRUE}
 tic()
 mymarg<-vegasBayesPosterior(f=vegasr::eigen_fn_log_post_5m_par,
                             lower=lower[-1],
@@ -247,7 +249,7 @@ toc()
 
 ```
 
-```{r marg_beta11,include=TRUE,eval=TRUE}
+```{r marg_beta11,include=TRUE}
 #result_logEv<-0.0
 #myz<-c(seq(-1.7,-1.21,len=25),seq(-1.2,-0.7,len=50),seq(-0.69,-0.4,len=25))
 
@@ -260,8 +262,8 @@ for(z in myz){
                             lower=lower[-1],
                             upper=upper[-1],
                             nitn_warm = 20, neval_warm = 100000,
-                            nitn = 15, neval = 50000,
-                            errTol=1,maxIter=10,seed=99999,nsearch=10000,
+                            nitn = 10, neval = 50000,
+                            errTol=1,maxIter=20,seed=99999,nsearch=10000,
                             log_evidence = result_logEv,
                             extra_args=list(
                               y=thedata$y,
@@ -275,7 +277,7 @@ for(z in myz){
 toc() # Stops timer and prints
 
 ```
-```{r marg_beta111,include=TRUE,eval=TRUE}
+```{r marg_beta111,include=TRUE}
 logun<-log(f_z)+result_logEv # back to unstand log density
 f_z_un<-exp(logun) # back to unstand density
 ff_interp <- splinefun(myz, as.matrix(f_z_un), method = "fmm") # fit fun to every point
@@ -287,7 +289,7 @@ ff_interp <- splinefun(myz, as.matrix(ff_z), method = "fmm") # now
 
 ```
 
-```{r plot_marg, include=FALSE, eval=TRUE, fig.width=10, fig.height=6, out.width="100%", fig.align='center'}
+```{r plot_marg, include=FALSE, fig.width=10, fig.height=6, out.width="100%", fig.align='center'}
 
 if(!nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))){
 library(ggplot2)
@@ -311,18 +313,24 @@ z_grid <- seq(min(myz), max(myz), length.out = 500)
 f_interp <- splinefun(myz, f_z_vec, method = "fmm")
 
 # Prepare data frames
-plot_data <- data.frame(z = as.numeric(myz), f = as.numeric(f_z_vec))
-line_data <- data.frame(z = as.numeric(z_grid), f = as.numeric(f_interp(z_grid)))
+#plot_data <- data.frame(z = as.numeric(myz), f = as.numeric(f_z_vec))
+#line_data <- data.frame(z = as.numeric(z_grid), f = as.numeric(f_interp(z_grid)))
 
 plot2_data <- data.frame(z = as.numeric(myz), f = as.numeric(ff_z_vec))
 line2_data <- data.frame(z = as.numeric(z_grid), f = as.numeric(ff_interp(z_grid)))
 
+stan_samples <- as.numeric(extract(stan_fit_2, "beta[1,1]")[["beta[1,1]"]])
+stan_df <- data.frame(z = stan_samples)
+
 p <- ggplot() +
+  # --- STAN POSTERIOR DENSITY --- 
+  geom_density(data = stan_df, aes(x = z, color = "Stan Posterior", fill = "Stan Posterior"), 
+                  alpha = 0.2, linewidth = 1) +
   # --- FIRST DATASET (f_z) ---
   # Draw the interpolated smooth line
-  geom_line(data = line_data, aes(x = z, y = f, color = "Original Log Ev"), linewidth = 1, alpha = 0.8) +
+  #geom_line(data = line_data, aes(x = z, y = f, color = "Original Log Ev"), linewidth = 1, alpha = 0.8) +
   # Draw the actual data points
-  geom_point(data = plot_data, aes(x = z, y = f, fill = "Original Log Ev"), color = "white", shape = 21, size = 3, stroke = 0.5) +
+  #geom_point(data = plot_data, aes(x = z, y = f, fill = "Original Log Ev"), color = "white", shape = 21, size = 3, stroke = 0.5) +
   
   # --- SECOND DATASET (ff_z) ---
   # Draw the interpolated smooth line
@@ -331,13 +339,17 @@ p <- ggplot() +
   geom_point(data = plot2_data, aes(x = z, y = f, fill = "Marginal standardized"), color = "white", shape = 21, size = 3, stroke = 0.5) +
   
   # Custom Colors and Fills
-  scale_color_manual(name = "Dataset", values = c("Original Log Ev" = "#8E44AD", "Marginal standardized" = "#2E86C1")) +
-  scale_fill_manual(name = "Dataset", values = c("Original Log Ev" = "#D35400", "Marginal standardized" = "#2ECC71")) +
+  scale_color_manual(name = "Dataset", values = c( 
+                                                  "Marginal standardized" = "red",
+                                                  "Stan Posterior" = "blue")) +
+  scale_fill_manual(name = "Dataset", values = c(
+                                                 "Marginal standardized" = "orange",
+                                                 "Stan Posterior" = "grey")) +
   
   # Labels and Title
   labs(
     title = "Marginal Posterior Density Estimation",
-    subtitle = "Comparison of two integration models using Spline Interpolation",
+    subtitle = "Comparison of posterior densities",
     x = "Parameter Space (z)",
     y = "Density",
     caption = "Source: Vegas R Integration"
@@ -356,7 +368,7 @@ p <- ggplot() +
 }
 ```
 
-```{r plot_marg2, include=TRUE, eval=TRUE, fig.width=10, fig.height=6, out.width="100%", fig.align='center'}
+```{r plot_marg2, include=TRUE,  fig.width=10, fig.height=6, out.width="100%", fig.align='center'}
 # 3. Display the plot
 # plotting code above in hidden chunk
 if(!nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))){

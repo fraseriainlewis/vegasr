@@ -4,3 +4,6 @@ template:
 
 deploy:
   install_metadata: true
+
+vignettes:
+  parallel: false
