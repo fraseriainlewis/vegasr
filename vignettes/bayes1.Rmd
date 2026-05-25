@@ -124,7 +124,7 @@ We use `vegasBayesPosterior()` to compute a single density value on the marginal
 ```{r marg_single,include=TRUE}
 
 # compute posterior marginal for intercept $\mu_0$ in the model where intercept = -1.
-mymarg<-vegasBayesPosterior(f=vegasr:::fn_marg_1_1,
+mymarg<-vegasBayesPosterior(f=vegasr:::fn_marg_1,
                            lower=c(-1,-1,-1,0.0001,0.0001),
                            upper=c(1,1,1,1,1),
                            nitn_warm = 10, neval_warm = 10000,
@@ -153,11 +153,11 @@ library(tictoc)
 cl <- makeCluster(parallel::detectCores() - 1)
 
 registerDoParallel(cl)
-no_den_pts<-50
+no_den_pts<-20
 myz<-seq(-2.5,-0.,len=no_den_pts)
 tic("Parallel Vegas Loop") # Start timer with a label
 f_z<-foreach(z= myz,.packages = c("extraDistr", "vegasr")) %dopar% {
- vegasBayesPosterior(f=vegasr:::fn_marg_1_1,
+ vegasBayesPosterior(f=vegasr:::fn_marg_1,
                       lower=c(-1,-1,-1,0.0001,0.0001),
                       upper=c(1,1,1,1,1),
                       nitn_warm = 10, neval_warm = 10000,

@@ -167,7 +167,7 @@ Example using parallel version of log posterior using Eigen library. See fns_eig
 ```{r marg_single,include=TRUE,eval=TRUE}
 
 tic()
-mymarg<-vegasBayesPosterior(f=vegasr::eigen_fn_marg_1_1_par,
+mymarg<-vegasBayesPosterior(f=vegasr::eigen_fn_marg_1,
                             lower=c(-1,-1,-1,0.0001,0.0001),
                             upper=c(1,1,1,1,1),
                             nitn_warm = 10, neval_warm = 10000,
@@ -184,7 +184,7 @@ tic("") # Start timer with a label
 f_z<-rep(0,length(myz));
 i<-1;
 for(z in myz){
-  f_z[i]<-vegasBayesPosterior(f=vegasr::eigen_fn_marg_1_1_par,
+  f_z[i]<-vegasBayesPosterior(f=vegasr::eigen_fn_marg_1,
                             lower=c(-1,-1,-1,0.0001,0.0001),
                             upper=c(1,1,1,1,1),
                             nitn_warm = 10, neval_warm = 10000,
