@@ -40,7 +40,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/bayes1.html">Bayesian Posterior Densities</a></li>
     <li><a class="dropdown-item" href="../articles/rcpp.html">Using Rcpp in Vegasr</a></li>
-    <li><a class="dropdown-item" href="../articles/rcpp2.html">Using Rcpp in Vegasr</a></li>
+    <li><a class="dropdown-item" href="../articles/rcpp2.html">Using Rcpp2 in Vegasr</a></li>
   </ul>
 </li>
       </ul>
@@ -184,7 +184,7 @@ these functions for their differences.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># compute posterior marginal for intercept $\mu_0$ in the model where intercept = -1.</span></span>
-<span><span class="va">mymarg</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesPosterior.html">vegasBayesPosterior</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">:::</span><span class="va"><a href="../reference/fn_marg_1_1.html">fn_marg_1_1</a></span>,</span>
+<span><span class="va">mymarg</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesPosterior.html">vegasBayesPosterior</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">:::</span><span class="va"><a href="../reference/fn_marg_1.html">fn_marg_1</a></span>,</span>
 <span>                           lower<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="fl">0.0001</span>,<span class="fl">0.0001</span><span class="op">)</span>,</span>
 <span>                           upper<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span>,</span>
 <span>                           nitn_warm <span class="op">=</span> <span class="fl">10</span>, neval_warm <span class="op">=</span> <span class="fl">10000</span>,</span>
@@ -215,11 +215,11 @@ approaches are possible e.g. see vignette rpp.Rmd.</p>
 <span><span class="va">cl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/parallel/makeCluster.html" class="external-link">makeCluster</a></span><span class="op">(</span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/doParallel/man/registerDoParallel.html" class="external-link">registerDoParallel</a></span><span class="op">(</span><span class="va">cl</span><span class="op">)</span></span>
-<span><span class="va">no_den_pts</span><span class="op">&lt;-</span><span class="fl">50</span></span>
+<span><span class="va">no_den_pts</span><span class="op">&lt;-</span><span class="fl">20</span></span>
 <span><span class="va">myz</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2.5</span>,<span class="op">-</span><span class="fl">0.</span>,len<span class="op">=</span><span class="va">no_den_pts</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="st">"Parallel Vegas Loop"</span><span class="op">)</span> <span class="co"># Start timer with a label</span></span>
 <span><span class="va">f_z</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/pkg/foreach/man/foreach.html" class="external-link">foreach</a></span><span class="op">(</span>z<span class="op">=</span> <span class="va">myz</span>,.packages <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"extraDistr"</span>, <span class="st">"vegasr"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/foreach/man/foreach.html" class="external-link">%dopar%</a></span> <span class="op">{</span></span>
-<span> <span class="fu"><a href="../reference/vegasBayesPosterior.html">vegasBayesPosterior</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">:::</span><span class="va"><a href="../reference/fn_marg_1_1.html">fn_marg_1_1</a></span>,</span>
+<span> <span class="fu"><a href="../reference/vegasBayesPosterior.html">vegasBayesPosterior</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">:::</span><span class="va"><a href="../reference/fn_marg_1.html">fn_marg_1</a></span>,</span>
 <span>                      lower<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="fl">0.0001</span>,<span class="fl">0.0001</span><span class="op">)</span>,</span>
 <span>                      upper<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span>,</span>
 <span>                      nitn_warm <span class="op">=</span> <span class="fl">10</span>, neval_warm <span class="op">=</span> <span class="fl">10000</span>,</span>
@@ -236,7 +236,7 @@ approaches are possible e.g. see vignette rpp.Rmd.</p>
 <span><span class="op">}</span></span>
 <span><span class="co">#&gt; Loading required package: iterators</span></span>
 <span><span class="co">#&gt; Loading required package: parallel</span></span>
-<span><span class="co">#&gt; Parallel Vegas Loop: 12.811 sec elapsed</span></span></code></pre></div>
+<span><span class="co">#&gt; Parallel Vegas Loop: 5.883 sec elapsed</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># 3. Display the plot</span></span>
 <span><span class="co"># plotting code above in hidden chunk</span></span>

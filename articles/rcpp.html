@@ -40,7 +40,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/bayes1.html">Bayesian Posterior Densities</a></li>
     <li><a class="dropdown-item" href="../articles/rcpp.html">Using Rcpp in Vegasr</a></li>
-    <li><a class="dropdown-item" href="../articles/rcpp2.html">Using Rcpp in Vegasr</a></li>
+    <li><a class="dropdown-item" href="../articles/rcpp2.html">Using Rcpp2 in Vegasr</a></li>
   </ul>
 </li>
       </ul>
@@ -168,7 +168,7 @@ or fns_eigen.cpp in /src.</p>
 <span>                                 extra_args<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>                                   y<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">y</span>,treat<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>,shiftby<span class="op">=</span><span class="fl">0</span>,uselog<span class="op">=</span><span class="fl">1.</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; 5.435 sec elapsed</span></span>
+<span><span class="co">#&gt; 5.756 sec elapsed</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"log evidence = "</span>,<span class="va">result_logEv</span>,<span class="st">"\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; log evidence =  -129.4204</span></span>
 <span></span>
@@ -183,7 +183,7 @@ or fns_eigen.cpp in /src.</p>
 <span>                                 extra_args<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>                                   y<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">y</span>,treat<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>,shiftby<span class="op">=</span><span class="fl">0</span>,uselog<span class="op">=</span><span class="fl">1.</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; 4.36 sec elapsed</span></span>
+<span><span class="co">#&gt; 1.748 sec elapsed</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"log evidence = "</span>,<span class="va">result_logEv</span>,<span class="st">"\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; log evidence =  -129.4204</span></span>
 <span></span>
@@ -198,7 +198,7 @@ or fns_eigen.cpp in /src.</p>
 <span>                                 extra_args<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>                                   y<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">y</span>,treat<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>,shiftby<span class="op">=</span><span class="fl">0</span>,uselog<span class="op">=</span><span class="fl">1.</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; 68.645 sec elapsed</span></span>
+<span><span class="co">#&gt; 1.546 sec elapsed</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"log evidence = "</span>,<span class="va">result_logEv</span>,<span class="st">"\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; log evidence =  -129.4204</span></span>
 <span></span>
@@ -213,7 +213,7 @@ or fns_eigen.cpp in /src.</p>
 <span>                                 extra_args<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>                                   y<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">y</span>,treat<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>,shiftby<span class="op">=</span><span class="fl">0</span>,uselog<span class="op">=</span><span class="fl">1.</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; 6.765 sec elapsed</span></span>
+<span><span class="co">#&gt; 0.223 sec elapsed</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"log evidence = "</span>,<span class="va">result_logEv</span>,<span class="st">"\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; log evidence =  -129.4204</span></span></code></pre></div>
 </div>
@@ -225,7 +225,7 @@ See fns_eigen.cpp in /src in source package.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">mymarg</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesPosterior.html">vegasBayesPosterior</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">::</span><span class="va"><a href="../reference/eigen_fn_marg_1_1_par.html">eigen_fn_marg_1_1_par</a></span>,</span>
+<span><span class="va">mymarg</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesPosterior.html">vegasBayesPosterior</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">::</span><span class="va"><a href="../reference/eigen_fn_marg_1.html">eigen_fn_marg_1</a></span>,</span>
 <span>                            lower<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="fl">0.0001</span>,<span class="fl">0.0001</span><span class="op">)</span>,</span>
 <span>                            upper<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span>,</span>
 <span>                            nitn_warm <span class="op">=</span> <span class="fl">10</span>, neval_warm <span class="op">=</span> <span class="fl">10000</span>,</span>
@@ -237,14 +237,14 @@ See fns_eigen.cpp in /src in source package.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Marginal density f(z) at z = -1. = "</span>,<span class="va">mymarg</span>,<span class="st">"\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Marginal density f(z) at z = -1. =  1.420125</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; 1.32 sec elapsed</span></span>
+<span><span class="co">#&gt; 0.045 sec elapsed</span></span>
 <span></span>
 <span><span class="va">myz</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2.5</span>,<span class="op">-</span><span class="fl">0.</span>,len<span class="op">=</span><span class="va">no_den_pts</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="st">""</span><span class="op">)</span> <span class="co"># Start timer with a label</span></span>
 <span><span class="va">f_z</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">myz</span><span class="op">)</span><span class="op">)</span>;</span>
 <span><span class="va">i</span><span class="op">&lt;-</span><span class="fl">1</span>;</span>
 <span><span class="kw">for</span><span class="op">(</span><span class="va">z</span> <span class="kw">in</span> <span class="va">myz</span><span class="op">)</span><span class="op">{</span></span>
-<span>  <span class="va">f_z</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesPosterior.html">vegasBayesPosterior</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">::</span><span class="va"><a href="../reference/eigen_fn_marg_1_1_par.html">eigen_fn_marg_1_1_par</a></span>,</span>
+<span>  <span class="va">f_z</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesPosterior.html">vegasBayesPosterior</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">::</span><span class="va"><a href="../reference/eigen_fn_marg_1.html">eigen_fn_marg_1</a></span>,</span>
 <span>                            lower<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="fl">0.0001</span>,<span class="fl">0.0001</span><span class="op">)</span>,</span>
 <span>                            upper<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span>,</span>
 <span>                            nitn_warm <span class="op">=</span> <span class="fl">10</span>, neval_warm <span class="op">=</span> <span class="fl">10000</span>,</span>
@@ -257,7 +257,7 @@ See fns_eigen.cpp in /src in source package.</p>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># Stops timer and prints</span></span>
-<span><span class="co">#&gt; : 66.95 sec elapsed</span></span></code></pre></div>
+<span><span class="co">#&gt; : 2.334 sec elapsed</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># 3. Display the plot</span></span>
 <span><span class="co"># plotting code above in hidden chunk</span></span>

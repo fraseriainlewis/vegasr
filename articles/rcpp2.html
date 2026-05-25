@@ -40,7 +40,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/bayes1.html">Bayesian Posterior Densities</a></li>
     <li><a class="dropdown-item" href="../articles/rcpp.html">Using Rcpp in Vegasr</a></li>
-    <li><a class="dropdown-item" href="../articles/rcpp2.html">Using Rcpp in Vegasr</a></li>
+    <li><a class="dropdown-item" href="../articles/rcpp2.html">Using Rcpp2 in Vegasr</a></li>
   </ul>
 </li>
       </ul>
@@ -116,6 +116,7 @@ design.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/fraseriainlewis/vegasr" class="external-link">vegasr</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/vegas_initialize.html">vegas_initialize</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; successfully initialized vegas version: 6.4.1</span></span>
 <span><span class="va">thedata</span><span class="op">&lt;-</span><span class="fu">vegasr</span><span class="fu">:::</span><span class="fu">fn_create_data_5</span><span class="op">(</span><span class="fl">99999</span><span class="op">)</span> <span class="co"># a list of y and treat as matrices</span></span>
 <span><span class="co">#thedata&lt;-fn_create_data_5(99999)</span></span>
 <span><span class="co"># this function is in vegasr/R/fn_internal.R</span></span></code></pre></div>
@@ -185,6 +186,16 @@ design.</p>
 <span><span class="va">start_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">stan_fit_2</span> <span class="op">&lt;-</span> <span class="fu">sampling</span><span class="op">(</span><span class="va">stan_mod_1</span>, data <span class="op">=</span> <span class="va">data_input_1</span>,</span>
 <span>                       iter <span class="op">=</span> <span class="va">nsamps</span> <span class="op">+</span> <span class="va">nburnin</span>, warmup <span class="op">=</span> <span class="va">nburnin</span>, chains <span class="op">=</span> <span class="va">nchains</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: There were 793 divergent transitions after warmup. See</span></span>
+<span><span class="co">#&gt; https://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup</span></span>
+<span><span class="co">#&gt; to find out why this is a problem and how to eliminate them.</span></span>
+<span><span class="co">#&gt; Warning: Examine the pairs() plot to diagnose sampling problems</span></span>
+<span><span class="co">#&gt; Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.</span></span>
+<span><span class="co">#&gt; Running the chains for more iterations may help. See</span></span>
+<span><span class="co">#&gt; https://mc-stan.org/misc/warnings.html#bulk-ess</span></span>
+<span><span class="co">#&gt; Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.</span></span>
+<span><span class="co">#&gt; Running the chains for more iterations may help. See</span></span>
+<span><span class="co">#&gt; https://mc-stan.org/misc/warnings.html#tail-ess</span></span>
 <span><span class="va">end_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">end_time</span> <span class="op">-</span> <span class="va">start_time</span></span>
 <span><span class="va">post_draws_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">stan_fit_2</span><span class="op">)</span>           <span class="co"># posterior samples of each parameter</span></span></code></pre></div>
@@ -194,33 +205,321 @@ design.</p>
 <span><span class="va">p</span><span class="op">&lt;-</span><span class="fu"><a href="https://mc-stan.org/bayesplot/reference/MCMC-traces.html" class="external-link">mcmc_trace</a></span><span class="op">(</span><span class="va">stan_fit_2</span>,<span class="st">"mu0"</span><span class="op">)</span></span>
 <span><span class="co">#ggsave("precomputed/vg2_traceplot1_stan.png", p)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span></code></pre></div>
+<p><img src="rcpp2_files/figure-html/stanresults-1.png" width="100%"></p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mc-stan.org/bayesplot/" class="external-link">bayesplot</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://mc-stan.org/bayesplot/reference/bayesplot-colors.html" class="external-link">color_scheme_set</a></span><span class="op">(</span><span class="st">"viridisA"</span><span class="op">)</span></span>
 <span><span class="va">p</span><span class="op">&lt;-</span><span class="fu"><a href="https://mc-stan.org/bayesplot/reference/MCMC-traces.html" class="external-link">mcmc_trace</a></span><span class="op">(</span><span class="va">stan_fit_2</span>,<span class="st">"beta[1,1]"</span><span class="op">)</span></span>
 <span><span class="co">#ggsave("precomputed/vg2_traceplot1_stan.png", p)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">stan_fit_2</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span></code></pre></div>
+<p><img src="rcpp2_files/figure-html/stanresults2-1.png" width="100%"></p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">stan_fit_2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $summary</span></span>
+<span><span class="co">#&gt;                       mean     se_mean        sd          2.5%           25%</span></span>
+<span><span class="co">#&gt; beta_tr[1,1]   -0.44495397 0.006510131 0.8204817 -2.042654e+00   -0.97354320</span></span>
+<span><span class="co">#&gt; beta_tr[1,2]   -0.16494125 0.026889614 0.7172559 -1.550465e+00   -0.63849170</span></span>
+<span><span class="co">#&gt; beta_tr[2,1]   -0.27632143 0.007875005 0.8193547 -1.881686e+00   -0.80148541</span></span>
+<span><span class="co">#&gt; beta_tr[2,2]   -0.59761220 0.015353317 0.7172137 -2.005861e+00   -1.06821734</span></span>
+<span><span class="co">#&gt; beta_tr[3,1]   -0.02634294 0.017024479 0.8303949 -1.702044e+00   -0.55908983</span></span>
+<span><span class="co">#&gt; beta_tr[3,2]   -0.54418904 0.014292924 0.7096035 -1.945857e+00   -1.00549439</span></span>
+<span><span class="co">#&gt; beta_tr[4,1]    0.16699461 0.007748054 0.8184822 -1.511175e+00   -0.34820268</span></span>
+<span><span class="co">#&gt; beta_tr[4,2]    0.52096292 0.043200893 0.7454855 -1.010411e+00    0.06049604</span></span>
+<span><span class="co">#&gt; beta_tr[5,1]    0.53852806 0.012011212 0.8541662 -1.264311e+00    0.01101638</span></span>
+<span><span class="co">#&gt; beta_tr[5,2]    0.67741503 0.045850640 0.7765491 -9.278368e-01    0.19855710</span></span>
+<span><span class="co">#&gt; mu1             0.92364829 0.058887950 0.4281353  3.026262e-01    0.72458472</span></span>
+<span><span class="co">#&gt; sigma1          0.49545061 0.046093672 0.4235230  3.953361e-02    0.24075680</span></span>
+<span><span class="co">#&gt; mu0            -0.89522464 0.001466409 0.1516306 -1.199127e+00   -0.98294644</span></span>
+<span><span class="co">#&gt; sigma0          0.20908861 0.002991505 0.1937457  7.719336e-03    0.07650721</span></span>
+<span><span class="co">#&gt; beta[1,1]      -0.99419413 0.001586737 0.1655259 -1.360595e+00   -1.09538431</span></span>
+<span><span class="co">#&gt; beta[1,2]       0.81017281 0.001683521 0.2280936  3.595468e-01    0.65995744</span></span>
+<span><span class="co">#&gt; beta[2,1]      -0.95693695 0.001335600 0.1594195 -1.300506e+00   -1.05445919</span></span>
+<span><span class="co">#&gt; beta[2,2]       0.63242308 0.002288589 0.2432718  1.389411e-01    0.47061755</span></span>
+<span><span class="co">#&gt; beta[3,1]      -0.90281495 0.001141105 0.1517744 -1.215355e+00   -0.99685051</span></span>
+<span><span class="co">#&gt; beta[3,2]       0.65741763 0.001659930 0.2343958  1.742935e-01    0.50266431</span></span>
+<span><span class="co">#&gt; beta[4,1]      -0.85784721 0.001129515 0.1530877 -1.151200e+00   -0.95823982</span></span>
+<span><span class="co">#&gt; beta[4,2]       1.10028297 0.001788358 0.2378993  6.579833e-01    0.93387036</span></span>
+<span><span class="co">#&gt; beta[5,1]      -0.78005313 0.001331648 0.1700190 -1.079165e+00   -0.89800726</span></span>
+<span><span class="co">#&gt; beta[5,2]       1.16915272 0.003711129 0.2571451  6.957964e-01    0.98527877</span></span>
+<span><span class="co">#&gt; lp__         -650.18574407 0.034310059 3.3585791 -6.575908e+02 -652.22676367</span></span>
+<span><span class="co">#&gt;                        50%           75%        97.5%       n_eff      Rhat</span></span>
+<span><span class="co">#&gt; beta_tr[1,1]   -0.45614312    0.06483196    1.2621386 15883.94468 1.0001868</span></span>
+<span><span class="co">#&gt; beta_tr[1,2]   -0.16270948    0.29719799    1.2788295   711.50695 1.0072678</span></span>
+<span><span class="co">#&gt; beta_tr[2,1]   -0.29281269    0.23966644    1.3987179 10825.35637 1.0002288</span></span>
+<span><span class="co">#&gt; beta_tr[2,2]   -0.60056319   -0.13813999    0.8276244  2182.19109 1.0030324</span></span>
+<span><span class="co">#&gt; beta_tr[3,1]   -0.03607135    0.51055849    1.6256683  2379.14909 1.0013211</span></span>
+<span><span class="co">#&gt; beta_tr[3,2]   -0.53886671   -0.08438137    0.8520013  2464.84341 1.0033985</span></span>
+<span><span class="co">#&gt; beta_tr[4,1]    0.17806173    0.69297476    1.7682282 11159.20300 1.0002088</span></span>
+<span><span class="co">#&gt; beta_tr[4,2]    0.52804034    0.99856451    1.9975530   297.77825 1.0149954</span></span>
+<span><span class="co">#&gt; beta_tr[5,1]    0.54533200    1.10259569    2.1742016  5057.21143 1.0005782</span></span>
+<span><span class="co">#&gt; beta_tr[5,2]    0.69324298    1.17646173    2.1907848   286.84488 1.0159504</span></span>
+<span><span class="co">#&gt; mu1             0.87915033    1.03541626    2.4733179    52.85781 1.0853100</span></span>
+<span><span class="co">#&gt; sigma1          0.38773376    0.60087497    1.8316171    84.42506 1.0523082</span></span>
+<span><span class="co">#&gt; mu0            -0.89577956   -0.80808259   -0.5872430 10692.10378 1.0000786</span></span>
+<span><span class="co">#&gt; sigma0          0.16106153    0.28124755    0.7134480  4194.54450 1.0001711</span></span>
+<span><span class="co">#&gt; beta[1,1]      -0.97784442   -0.88061226   -0.7079815 10882.32909 1.0003953</span></span>
+<span><span class="co">#&gt; beta[1,2]       0.81298729    0.96023587    1.2573188 18356.46013 1.0002572</span></span>
+<span><span class="co">#&gt; beta[2,1]      -0.94587134   -0.85096082   -0.6652123 14247.21437 0.9999698</span></span>
+<span><span class="co">#&gt; beta[2,2]       0.64045914    0.80440502    1.0786891 11299.20089 1.0006756</span></span>
+<span><span class="co">#&gt; beta[3,1]      -0.90163872   -0.80571059   -0.6034725 17690.71824 0.9999761</span></span>
+<span><span class="co">#&gt; beta[3,2]       0.66507055    0.82227853    1.0884802 19939.76078 1.0001409</span></span>
+<span><span class="co">#&gt; beta[4,1]      -0.86253451   -0.76095086   -0.5401923 18369.47365 1.0001670</span></span>
+<span><span class="co">#&gt; beta[4,2]       1.09268013    1.25810511    1.5879885 17696.10422 1.0007650</span></span>
+<span><span class="co">#&gt; beta[5,1]      -0.79527746   -0.67380985   -0.4113457 16301.06571 1.0000748</span></span>
+<span><span class="co">#&gt; beta[5,2]       1.16308716    1.34341194    1.6806942  4801.14023 1.0019824</span></span>
+<span><span class="co">#&gt; lp__         -649.89073698 -647.80044464 -644.4883372  9582.26633 1.0002179</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $c_summary</span></span>
+<span><span class="co">#&gt; , , chains = chain:1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;               stats</span></span>
+<span><span class="co">#&gt; parameter               mean        sd          2.5%           25%</span></span>
+<span><span class="co">#&gt;   beta_tr[1,1]   -0.42113604 0.8120069 -2.024364e+00 -9.330144e-01</span></span>
+<span><span class="co">#&gt;   beta_tr[1,2]   -0.25617046 0.7359453 -1.548813e+00 -8.087374e-01</span></span>
+<span><span class="co">#&gt;   beta_tr[2,1]   -0.29935937 0.8034370 -1.858961e+00 -8.248378e-01</span></span>
+<span><span class="co">#&gt;   beta_tr[2,2]   -0.65592681 0.7022584 -1.976879e+00 -1.128898e+00</span></span>
+<span><span class="co">#&gt;   beta_tr[3,1]   -0.07228058 0.8498395 -1.777647e+00 -6.067375e-01</span></span>
+<span><span class="co">#&gt;   beta_tr[3,2]   -0.60854985 0.6974121 -1.919716e+00 -1.068904e+00</span></span>
+<span><span class="co">#&gt;   beta_tr[4,1]    0.14878364 0.8144444 -1.553673e+00 -3.721438e-01</span></span>
+<span><span class="co">#&gt;   beta_tr[4,2]    0.37677039 0.8203298 -1.278022e+00 -1.552972e-01</span></span>
+<span><span class="co">#&gt;   beta_tr[5,1]    0.57519562 0.8469226 -1.193209e+00  4.898955e-02</span></span>
+<span><span class="co">#&gt;   beta_tr[5,2]    0.53277404 0.8519080 -1.095226e+00 -7.376244e-03</span></span>
+<span><span class="co">#&gt;   mu1             1.10440482 0.6847957  3.395521e-01  7.490166e-01</span></span>
+<span><span class="co">#&gt;   sigma1          0.63833304 0.6030159  4.142669e-02  2.572746e-01</span></span>
+<span><span class="co">#&gt;   mu0            -0.89457416 0.1479352 -1.196053e+00 -9.763586e-01</span></span>
+<span><span class="co">#&gt;   sigma0          0.20356218 0.1894026  8.846964e-03  6.808267e-02</span></span>
+<span><span class="co">#&gt;   beta[1,1]      -0.98899214 0.1650821 -1.362733e+00 -1.087603e+00</span></span>
+<span><span class="co">#&gt;   beta[1,2]       0.80543025 0.2323618  3.533181e-01  6.525964e-01</span></span>
+<span><span class="co">#&gt;   beta[2,1]      -0.95650470 0.1568779 -1.295537e+00 -1.051766e+00</span></span>
+<span><span class="co">#&gt;   beta[2,2]       0.62318242 0.2461939  1.220489e-01  4.564186e-01</span></span>
+<span><span class="co">#&gt;   beta[3,1]      -0.90268661 0.1475882 -1.212339e+00 -9.915422e-01</span></span>
+<span><span class="co">#&gt;   beta[3,2]       0.65304347 0.2312209  1.762736e-01  5.013920e-01</span></span>
+<span><span class="co">#&gt;   beta[4,1]      -0.86045159 0.1509013 -1.151313e+00 -9.554471e-01</span></span>
+<span><span class="co">#&gt;   beta[4,2]       1.10970492 0.2410696  6.506667e-01  9.418486e-01</span></span>
+<span><span class="co">#&gt;   beta[5,1]      -0.78312063 0.1647851 -1.070065e+00 -8.936254e-01</span></span>
+<span><span class="co">#&gt;   beta[5,2]       1.18750037 0.2592393  7.053181e-01  1.000697e+00</span></span>
+<span><span class="co">#&gt;   lp__         -650.15864874 3.2712769 -6.574051e+02 -6.521503e+02</span></span>
+<span><span class="co">#&gt;               stats</span></span>
+<span><span class="co">#&gt; parameter                50%           75%        97.5%</span></span>
+<span><span class="co">#&gt;   beta_tr[1,1]   -0.44195883    0.07236005    1.2906266</span></span>
+<span><span class="co">#&gt;   beta_tr[1,2]   -0.25748085    0.22394345    1.2534592</span></span>
+<span><span class="co">#&gt;   beta_tr[2,1]   -0.31570602    0.20705207    1.3238965</span></span>
+<span><span class="co">#&gt;   beta_tr[2,2]   -0.67456123   -0.19322320    0.7326985</span></span>
+<span><span class="co">#&gt;   beta_tr[3,1]   -0.08835386    0.50146555    1.5817896</span></span>
+<span><span class="co">#&gt;   beta_tr[3,2]   -0.62941419   -0.14296117    0.7776200</span></span>
+<span><span class="co">#&gt;   beta_tr[4,1]    0.16447063    0.66009716    1.7492761</span></span>
+<span><span class="co">#&gt;   beta_tr[4,2]    0.41796212    0.91303443    1.9866717</span></span>
+<span><span class="co">#&gt;   beta_tr[5,1]    0.56304469    1.14767205    2.1647222</span></span>
+<span><span class="co">#&gt;   beta_tr[5,2]    0.58719042    1.10521614    2.1406373</span></span>
+<span><span class="co">#&gt;   mu1             0.90899669    1.11780146    2.9865628</span></span>
+<span><span class="co">#&gt;   sigma1          0.42649746    0.73482149    2.3469979</span></span>
+<span><span class="co">#&gt;   mu0            -0.89161741   -0.81168190   -0.5938073</span></span>
+<span><span class="co">#&gt;   sigma0          0.15414293    0.28054554    0.7189340</span></span>
+<span><span class="co">#&gt;   beta[1,1]      -0.96823306   -0.87754303   -0.7139113</span></span>
+<span><span class="co">#&gt;   beta[1,2]       0.81010501    0.95499432    1.2725163</span></span>
+<span><span class="co">#&gt;   beta[2,1]      -0.94298768   -0.85237979   -0.6695651</span></span>
+<span><span class="co">#&gt;   beta[2,2]       0.63513675    0.79888809    1.0713032</span></span>
+<span><span class="co">#&gt;   beta[3,1]      -0.90104299   -0.80955104   -0.6078142</span></span>
+<span><span class="co">#&gt;   beta[3,2]       0.65988307    0.81304681    1.0827104</span></span>
+<span><span class="co">#&gt;   beta[4,1]      -0.86721620   -0.76765087   -0.5494685</span></span>
+<span><span class="co">#&gt;   beta[4,2]       1.10711933    1.27122289    1.5956870</span></span>
+<span><span class="co">#&gt;   beta[5,1]      -0.80209562   -0.68321857   -0.4195640</span></span>
+<span><span class="co">#&gt;   beta[5,2]       1.18455829    1.37045709    1.6884603</span></span>
+<span><span class="co">#&gt;   lp__         -649.88670628 -647.83938987 -644.4445405</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; , , chains = chain:2</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;               stats</span></span>
+<span><span class="co">#&gt; parameter               mean        sd          2.5%           25%</span></span>
+<span><span class="co">#&gt;   beta_tr[1,1] -4.400928e-01 0.8252934 -2.040245e+00 -9.779452e-01</span></span>
+<span><span class="co">#&gt;   beta_tr[1,2] -1.272680e-01 0.7144733 -1.556457e+00 -5.855440e-01</span></span>
+<span><span class="co">#&gt;   beta_tr[2,1] -2.619453e-01 0.8347251 -1.934929e+00 -7.877208e-01</span></span>
+<span><span class="co">#&gt;   beta_tr[2,2] -5.738507e-01 0.7280771 -1.996741e+00 -1.040981e+00</span></span>
+<span><span class="co">#&gt;   beta_tr[3,1] -6.237217e-03 0.8355355 -1.684475e+00 -5.405847e-01</span></span>
+<span><span class="co">#&gt;   beta_tr[3,2] -5.202253e-01 0.7204615 -1.976609e+00 -9.832276e-01</span></span>
+<span><span class="co">#&gt;   beta_tr[4,1]  1.718033e-01 0.8193791 -1.537406e+00 -3.338826e-01</span></span>
+<span><span class="co">#&gt;   beta_tr[4,2]  5.707058e-01 0.7141232 -8.182269e-01  1.030445e-01</span></span>
+<span><span class="co">#&gt;   beta_tr[5,1]  5.227625e-01 0.8612058 -1.316220e+00 -7.486971e-03</span></span>
+<span><span class="co">#&gt;   beta_tr[5,2]  7.397155e-01 0.7473514 -7.516976e-01  2.569966e-01</span></span>
+<span><span class="co">#&gt;   mu1           8.578724e-01 0.2764155  2.606116e-01  7.149207e-01</span></span>
+<span><span class="co">#&gt;   sigma1        4.485578e-01 0.3258417  3.763165e-02  2.397338e-01</span></span>
+<span><span class="co">#&gt;   mu0          -8.976290e-01 0.1549010 -1.203544e+00 -9.868833e-01</span></span>
+<span><span class="co">#&gt;   sigma0        2.117599e-01 0.2002860  7.546477e-03  7.905217e-02</span></span>
+<span><span class="co">#&gt;   beta[1,1]    -9.970559e-01 0.1669836 -1.364891e+00 -1.096427e+00</span></span>
+<span><span class="co">#&gt;   beta[1,2]     8.132751e-01 0.2311889  3.593605e-01  6.594534e-01</span></span>
+<span><span class="co">#&gt;   beta[2,1]    -9.565857e-01 0.1590578 -1.298467e+00 -1.052521e+00</span></span>
+<span><span class="co">#&gt;   beta[2,2]     6.323273e-01 0.2393072  1.429080e-01  4.741304e-01</span></span>
+<span><span class="co">#&gt;   beta[3,1]    -9.018776e-01 0.1528042 -1.209240e+00 -9.990292e-01</span></span>
+<span><span class="co">#&gt;   beta[3,2]     6.573515e-01 0.2345473  1.684095e-01  5.052464e-01</span></span>
+<span><span class="co">#&gt;   beta[4,1]    -8.564332e-01 0.1546355 -1.148750e+00 -9.584592e-01</span></span>
+<span><span class="co">#&gt;   beta[4,2]     1.095525e+00 0.2387978  6.574806e-01  9.280677e-01</span></span>
+<span><span class="co">#&gt;   beta[5,1]    -7.797181e-01 0.1722912 -1.086075e+00 -9.016567e-01</span></span>
+<span><span class="co">#&gt;   beta[5,2]     1.164294e+00 0.2555508  6.969887e-01  9.830991e-01</span></span>
+<span><span class="co">#&gt;   lp__         -6.502328e+02 3.3789462 -6.575859e+02 -6.523304e+02</span></span>
+<span><span class="co">#&gt;               stats</span></span>
+<span><span class="co">#&gt; parameter                50%           75%        97.5%</span></span>
+<span><span class="co">#&gt;   beta_tr[1,1]   -0.44862473    0.08720351    1.2608928</span></span>
+<span><span class="co">#&gt;   beta_tr[1,2]   -0.13591529    0.33573241    1.2578314</span></span>
+<span><span class="co">#&gt;   beta_tr[2,1]   -0.27245135    0.26554360    1.4218346</span></span>
+<span><span class="co">#&gt;   beta_tr[2,2]   -0.57731043   -0.11694284    0.8894812</span></span>
+<span><span class="co">#&gt;   beta_tr[3,1]   -0.01736167    0.53779355    1.6725148</span></span>
+<span><span class="co">#&gt;   beta_tr[3,2]   -0.50001167   -0.05121527    0.8784598</span></span>
+<span><span class="co">#&gt;   beta_tr[4,1]    0.19160359    0.70183880    1.7657527</span></span>
+<span><span class="co">#&gt;   beta_tr[4,2]    0.56323236    1.03617012    2.0197294</span></span>
+<span><span class="co">#&gt;   beta_tr[5,1]    0.53588844    1.08513582    2.1915147</span></span>
+<span><span class="co">#&gt;   beta_tr[5,2]    0.73417479    1.21406201    2.2181733</span></span>
+<span><span class="co">#&gt;   mu1             0.86548615    1.01514245    1.3951058</span></span>
+<span><span class="co">#&gt;   sigma1          0.37868663    0.56870410    1.2741777</span></span>
+<span><span class="co">#&gt;   mu0            -0.89785464   -0.80883526   -0.5903032</span></span>
+<span><span class="co">#&gt;   sigma0          0.16031957    0.28209173    0.7244624</span></span>
+<span><span class="co">#&gt;   beta[1,1]      -0.98230699   -0.88002018   -0.7085359</span></span>
+<span><span class="co">#&gt;   beta[1,2]       0.81465539    0.96683369    1.2699721</span></span>
+<span><span class="co">#&gt;   beta[2,1]      -0.94590757   -0.85051998   -0.6668025</span></span>
+<span><span class="co">#&gt;   beta[2,2]       0.64109179    0.79939462    1.0742054</span></span>
+<span><span class="co">#&gt;   beta[3,1]      -0.90219389   -0.80431901   -0.5971921</span></span>
+<span><span class="co">#&gt;   beta[3,2]       0.66675750    0.82055469    1.0872246</span></span>
+<span><span class="co">#&gt;   beta[4,1]      -0.86103088   -0.75748971   -0.5356429</span></span>
+<span><span class="co">#&gt;   beta[4,2]       1.08503411    1.25365287    1.5842862</span></span>
+<span><span class="co">#&gt;   beta[5,1]      -0.79264594   -0.66969237   -0.4126171</span></span>
+<span><span class="co">#&gt;   beta[5,2]       1.15775253    1.33562817    1.6780809</span></span>
+<span><span class="co">#&gt;   lp__         -649.95171939 -647.82459614 -644.5803714</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; , , chains = chain:3</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;               stats</span></span>
+<span><span class="co">#&gt; parameter               mean        sd          2.5%           25%          50%</span></span>
+<span><span class="co">#&gt;   beta_tr[1,1] -4.556141e-01 0.8354780 -2.064069e+00 -9.980886e-01   -0.4604173</span></span>
+<span><span class="co">#&gt;   beta_tr[1,2] -1.358893e-01 0.7109247 -1.590982e+00 -5.834663e-01   -0.1321587</span></span>
+<span><span class="co">#&gt;   beta_tr[2,1] -2.619595e-01 0.8256962 -1.838271e+00 -7.976686e-01   -0.2835338</span></span>
+<span><span class="co">#&gt;   beta_tr[2,2] -5.775102e-01 0.7205348 -2.050269e+00 -1.048527e+00   -0.5689330</span></span>
+<span><span class="co">#&gt;   beta_tr[3,1] -4.974938e-03 0.8103259 -1.570851e+00 -5.372166e-01   -0.0167282</span></span>
+<span><span class="co">#&gt;   beta_tr[3,2] -5.243635e-01 0.7036408 -1.932869e+00 -9.735654e-01   -0.5183679</span></span>
+<span><span class="co">#&gt;   beta_tr[4,1]  1.738096e-01 0.8181611 -1.488718e+00 -3.399764e-01    0.1749385</span></span>
+<span><span class="co">#&gt;   beta_tr[4,2]  5.666815e-01 0.7107925 -8.784779e-01  1.172134e-01    0.5612965</span></span>
+<span><span class="co">#&gt;   beta_tr[5,1]  5.359167e-01 0.8564261 -1.272944e+00  1.840085e-03    0.5460253</span></span>
+<span><span class="co">#&gt;   beta_tr[5,2]  7.152695e-01 0.7420763 -8.098144e-01  2.482234e-01    0.7162137</span></span>
+<span><span class="co">#&gt;   mu1           8.648210e-01 0.2695621  3.003509e-01  7.179805e-01    0.8701261</span></span>
+<span><span class="co">#&gt;   sigma1        4.470853e-01 0.3189370  3.784532e-02  2.380057e-01    0.3837357</span></span>
+<span><span class="co">#&gt;   mu0          -8.965692e-01 0.1523397 -1.197576e+00 -9.855484e-01   -0.8993396</span></span>
+<span><span class="co">#&gt;   sigma0        2.097000e-01 0.1959303  7.747285e-03  7.844871e-02    0.1612243</span></span>
+<span><span class="co">#&gt;   beta[1,1]    -9.958214e-01 0.1654596 -1.356341e+00 -1.099781e+00   -0.9814245</span></span>
+<span><span class="co">#&gt;   beta[1,2]     8.104548e-01 0.2250471  3.599058e-01  6.611077e-01    0.8137257</span></span>
+<span><span class="co">#&gt;   beta[2,1]    -9.566508e-01 0.1625314 -1.307929e+00 -1.056637e+00   -0.9477371</span></span>
+<span><span class="co">#&gt;   beta[2,2]     6.363541e-01 0.2430851  1.389312e-01  4.731110e-01    0.6408421</span></span>
+<span><span class="co">#&gt;   beta[3,1]    -9.034722e-01 0.1526111 -1.217529e+00 -9.989403e-01   -0.9023164</span></span>
+<span><span class="co">#&gt;   beta[3,2]     6.590155e-01 0.2355098  1.741403e-01  5.009727e-01    0.6654487</span></span>
+<span><span class="co">#&gt;   beta[4,1]    -8.587361e-01 0.1531840 -1.154720e+00 -9.597739e-01   -0.8640507</span></span>
+<span><span class="co">#&gt;   beta[4,2]     1.099324e+00 0.2369133  6.655370e-01  9.329042e-01    1.0907930</span></span>
+<span><span class="co">#&gt;   beta[5,1]    -7.802670e-01 0.1721066 -1.079662e+00 -8.998009e-01   -0.7947929</span></span>
+<span><span class="co">#&gt;   beta[5,2]     1.163179e+00 0.2565980  6.878317e-01  9.801158e-01    1.1578749</span></span>
+<span><span class="co">#&gt;   lp__         -6.502058e+02 3.4245837 -6.578054e+02 -6.522766e+02 -649.8961552</span></span>
+<span><span class="co">#&gt;               stats</span></span>
+<span><span class="co">#&gt; parameter                75%        97.5%</span></span>
+<span><span class="co">#&gt;   beta_tr[1,1]    0.06067530    1.2769164</span></span>
+<span><span class="co">#&gt;   beta_tr[1,2]    0.31192960    1.3112820</span></span>
+<span><span class="co">#&gt;   beta_tr[2,1]    0.26356602    1.4450923</span></span>
+<span><span class="co">#&gt;   beta_tr[2,2]   -0.11216071    0.8318365</span></span>
+<span><span class="co">#&gt;   beta_tr[3,1]    0.50648673    1.6044185</span></span>
+<span><span class="co">#&gt;   beta_tr[3,2]   -0.07927459    0.8608056</span></span>
+<span><span class="co">#&gt;   beta_tr[4,1]    0.70780490    1.7823124</span></span>
+<span><span class="co">#&gt;   beta_tr[4,2]    1.01795058    1.9922663</span></span>
+<span><span class="co">#&gt;   beta_tr[5,1]    1.11213947    2.1771847</span></span>
+<span><span class="co">#&gt;   beta_tr[5,2]    1.18899384    2.1843960</span></span>
+<span><span class="co">#&gt;   mu1             1.01603675    1.3897367</span></span>
+<span><span class="co">#&gt;   sigma1          0.57192186    1.2564938</span></span>
+<span><span class="co">#&gt;   mu0            -0.80671923   -0.5989662</span></span>
+<span><span class="co">#&gt;   sigma0          0.27867489    0.7078504</span></span>
+<span><span class="co">#&gt;   beta[1,1]      -0.88312135   -0.7048615</span></span>
+<span><span class="co">#&gt;   beta[1,2]       0.95999401    1.2434710</span></span>
+<span><span class="co">#&gt;   beta[2,1]      -0.84975328   -0.6553505</span></span>
+<span><span class="co">#&gt;   beta[2,2]       0.80908464    1.0771354</span></span>
+<span><span class="co">#&gt;   beta[3,1]      -0.80466014   -0.6041739</span></span>
+<span><span class="co">#&gt;   beta[3,2]       0.82611384    1.0949054</span></span>
+<span><span class="co">#&gt;   beta[4,1]      -0.76154226   -0.5384562</span></span>
+<span><span class="co">#&gt;   beta[4,2]       1.25295895    1.5840907</span></span>
+<span><span class="co">#&gt;   beta[5,1]      -0.67325057   -0.4058498</span></span>
+<span><span class="co">#&gt;   beta[5,2]       1.33637774    1.6806942</span></span>
+<span><span class="co">#&gt;   lp__         -647.78116870 -644.4648609</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; , , chains = chain:4</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;               stats</span></span>
+<span><span class="co">#&gt; parameter               mean        sd          2.5%           25%</span></span>
+<span><span class="co">#&gt;   beta_tr[1,1]   -0.46297294 0.8083599 -2.044963e+00 -9.858478e-01</span></span>
+<span><span class="co">#&gt;   beta_tr[1,2]   -0.14043721 0.6994922 -1.520691e+00 -5.869826e-01</span></span>
+<span><span class="co">#&gt;   beta_tr[2,1]   -0.28202148 0.8127376 -1.899762e+00 -7.964317e-01</span></span>
+<span><span class="co">#&gt;   beta_tr[2,2]   -0.58316106 0.7146499 -1.997910e+00 -1.041642e+00</span></span>
+<span><span class="co">#&gt;   beta_tr[3,1]   -0.02187903 0.8236888 -1.666667e+00 -5.496487e-01</span></span>
+<span><span class="co">#&gt;   beta_tr[3,2]   -0.52361751 0.7128868 -1.957470e+00 -9.721871e-01</span></span>
+<span><span class="co">#&gt;   beta_tr[4,1]    0.17358190 0.8217782 -1.465585e+00 -3.555340e-01</span></span>
+<span><span class="co">#&gt;   beta_tr[4,2]    0.56969404 0.7122422 -8.463648e-01  1.152584e-01</span></span>
+<span><span class="co">#&gt;   beta_tr[5,1]    0.52023735 0.8510376 -1.283879e+00 -7.545144e-04</span></span>
+<span><span class="co">#&gt;   beta_tr[5,2]    0.72190110 0.7410260 -7.792905e-01  2.442307e-01</span></span>
+<span><span class="co">#&gt;   mu1             0.86749486 0.2676231  3.105904e-01  7.198640e-01</span></span>
+<span><span class="co">#&gt;   sigma1          0.44782627 0.3446660  4.076191e-02  2.298660e-01</span></span>
+<span><span class="co">#&gt;   mu0            -0.89212613 0.1512286 -1.198400e+00 -9.824843e-01</span></span>
+<span><span class="co">#&gt;   sigma0          0.21133230 0.1890537  7.255064e-03  8.114960e-02</span></span>
+<span><span class="co">#&gt;   beta[1,1]      -0.99490712 0.1644767 -1.356137e+00 -1.098149e+00</span></span>
+<span><span class="co">#&gt;   beta[1,2]       0.81153110 0.2236107  3.622264e-01  6.656606e-01</span></span>
+<span><span class="co">#&gt;   beta[2,1]      -0.95800653 0.1591787 -1.298452e+00 -1.056698e+00</span></span>
+<span><span class="co">#&gt;   beta[2,2]       0.63782854 0.2442182  1.457506e-01  4.770938e-01</span></span>
+<span><span class="co">#&gt;   beta[3,1]      -0.90322338 0.1540315 -1.226287e+00 -9.983855e-01</span></span>
+<span><span class="co">#&gt;   beta[3,2]       0.66026010 0.2362451  1.788888e-01  5.036403e-01</span></span>
+<span><span class="co">#&gt;   beta[4,1]      -0.85576797 0.1535833 -1.149002e+00 -9.585979e-01</span></span>
+<span><span class="co">#&gt;   beta[4,2]       1.09657828 0.2345388  6.579613e-01  9.344258e-01</span></span>
+<span><span class="co">#&gt;   beta[5,1]      -0.77710682 0.1707549 -1.078543e+00 -8.971778e-01</span></span>
+<span><span class="co">#&gt;   beta[5,2]       1.16163718 0.2563359  6.898109e-01  9.793118e-01</span></span>
+<span><span class="co">#&gt;   lp__         -650.14576585 3.3574318 -6.575237e+02 -6.521639e+02</span></span>
+<span><span class="co">#&gt;               stats</span></span>
+<span><span class="co">#&gt; parameter                50%           75%        97.5%</span></span>
+<span><span class="co">#&gt;   beta_tr[1,1]   -0.48361593    0.03631267    1.2088888</span></span>
+<span><span class="co">#&gt;   beta_tr[1,2]   -0.14172363    0.30224467    1.2856080</span></span>
+<span><span class="co">#&gt;   beta_tr[2,1]   -0.29615028    0.21807709    1.3982602</span></span>
+<span><span class="co">#&gt;   beta_tr[2,2]   -0.57949338   -0.13274767    0.8380260</span></span>
+<span><span class="co">#&gt;   beta_tr[3,1]   -0.03338576    0.50125213    1.6311112</span></span>
+<span><span class="co">#&gt;   beta_tr[3,2]   -0.50822452   -0.06802169    0.8831543</span></span>
+<span><span class="co">#&gt;   beta_tr[4,1]    0.18196729    0.70278138    1.7699225</span></span>
+<span><span class="co">#&gt;   beta_tr[4,2]    0.55874045    1.02295280    1.9820702</span></span>
+<span><span class="co">#&gt;   beta_tr[5,1]    0.53602121    1.06774894    2.1501117</span></span>
+<span><span class="co">#&gt;   beta_tr[5,2]    0.72261262    1.19325086    2.1974688</span></span>
+<span><span class="co">#&gt;   mu1             0.87250433    1.02194454    1.3875893</span></span>
+<span><span class="co">#&gt;   sigma1          0.37110974    0.56786372    1.3055411</span></span>
+<span><span class="co">#&gt;   mu0            -0.89456975   -0.80527810   -0.5728430</span></span>
+<span><span class="co">#&gt;   sigma0          0.16753772    0.28396561    0.6978958</span></span>
+<span><span class="co">#&gt;   beta[1,1]      -0.97974948   -0.88213908   -0.7048389</span></span>
+<span><span class="co">#&gt;   beta[1,2]       0.81327215    0.95961344    1.2472160</span></span>
+<span><span class="co">#&gt;   beta[2,1]      -0.94669329   -0.85030386   -0.6719047</span></span>
+<span><span class="co">#&gt;   beta[2,2]       0.64716301    0.80963381    1.0864391</span></span>
+<span><span class="co">#&gt;   beta[3,1]      -0.90132999   -0.80411747   -0.6039209</span></span>
+<span><span class="co">#&gt;   beta[3,2]       0.66813870    0.82754786    1.0903283</span></span>
+<span><span class="co">#&gt;   beta[4,1]      -0.85999115   -0.75855798   -0.5377169</span></span>
+<span><span class="co">#&gt;   beta[4,2]       1.08992671    1.25169694    1.5804141</span></span>
+<span><span class="co">#&gt;   beta[5,1]      -0.79236378   -0.66846998   -0.4065387</span></span>
+<span><span class="co">#&gt;   beta[5,2]       1.15488525    1.33243261    1.6795274</span></span>
+<span><span class="co">#&gt;   lp__         -649.82117374 -647.76770851 -644.4968578</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="example-of-calling-log-posterior-functions">Example of calling log posterior functions<a class="anchor" aria-label="anchor" href="#example-of-calling-log-posterior-functions"></a>
 </h2>
 <p>These functions are available in the source package in fns_arma.cpp
 or fns_eigen.cpp in /src.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">### Call the Rcpp functions to demonstrate correct input and output values</span></span>
 <span></span>
 <span><span class="va">theta</span>   <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span>data<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.1</span>,length<span class="op">=</span><span class="fl">4</span><span class="op">*</span><span class="fl">14</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">14</span><span class="op">)</span> <span class="co"># 5 intercept + 5 slope + 4 hyper</span></span>
 <span><span class="va">theta</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/jitter.html" class="external-link">jitter</a></span><span class="op">(</span><span class="va">theta</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">vegasr</span><span class="fu">::</span><span class="fu"><a href="../reference/eigen_fn_log_post_5_par.html">eigen_fn_log_post_5_par</a></span><span class="op">(</span><span class="va">theta</span>, <span class="va">thedata</span><span class="op">$</span><span class="va">y</span>, <span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>, <span class="va">thedata</span><span class="op">$</span><span class="va">basket</span>,<span class="fl">0.0</span>, <span class="fl">1.0</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">vegasr</span><span class="fu">::</span><span class="fu"><a href="../reference/eigen_fn_log_post_2.html">eigen_fn_log_post_2</a></span><span class="op">(</span><span class="va">theta</span>, <span class="va">thedata</span><span class="op">$</span><span class="va">y</span>, <span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>, <span class="va">thedata</span><span class="op">$</span><span class="va">basket</span>,<span class="fl">0.0</span>, <span class="fl">1.0</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] -699.3051 -699.3558 -699.3986 -699.1732</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="timing-comparisons">Timing comparisons<a class="anchor" aria-label="anchor" href="#timing-comparisons"></a>
 </h2>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/fraseriainlewis/vegasr" class="external-link">vegasr</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/vegas_initialize.html">vegas_initialize</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; vegas is already initialized</span></span>
+<span><span class="co">#&gt; NULL</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jabiru/tictoc" class="external-link">tictoc</a></span><span class="op">)</span></span>
 <span><span class="va">K</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">thedata</span><span class="op">$</span><span class="va">basket</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">lower</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.9999</span>, <span class="fl">2</span><span class="op">*</span><span class="va">K</span><span class="op">)</span>, <span class="op">-</span><span class="fl">0.9999</span>, <span class="op">-</span><span class="fl">0.9999</span>, <span class="fl">1e-4</span>, <span class="fl">1e-4</span><span class="op">)</span></span>
@@ -228,7 +527,7 @@ or fns_eigen.cpp in /src.</p>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">result_logEv</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vegasBayesEvidence.html">vegasBayesEvidence</a></span><span class="op">(</span></span>
-<span>  f <span class="op">=</span> <span class="fu">vegasr</span><span class="fu">::</span><span class="va"><a href="../reference/eigen_fn_log_post_5_par.html">eigen_fn_log_post_5_par</a></span>,</span>
+<span>  f <span class="op">=</span> <span class="fu">vegasr</span><span class="fu">::</span><span class="va"><a href="../reference/eigen_fn_log_post_2_par.html">eigen_fn_log_post_2_par</a></span>,</span>
 <span>  lower <span class="op">=</span> <span class="va">lower</span>, upper <span class="op">=</span> <span class="va">upper</span>,</span>
 <span>  nitn_warm <span class="op">=</span> <span class="fl">10</span>, neval_warm <span class="op">=</span> <span class="fl">100000</span>,</span>
 <span>  nitn <span class="op">=</span> <span class="fl">10</span>, neval <span class="op">=</span> <span class="fl">100000</span>,</span>
@@ -240,16 +539,18 @@ or fns_eigen.cpp in /src.</p>
 <span>    shiftby<span class="op">=</span><span class="fl">0</span>,uselog<span class="op">=</span><span class="fl">1.</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"log evidence = "</span>,<span class="va">result_logEv</span>,<span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co">#&gt; log evidence =  -655.4743</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; 9.549 sec elapsed</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="find-marginal">2. Find Marginal<a class="anchor" aria-label="anchor" href="#find-marginal"></a>
 </h2>
 <p>Example using parallel version of log posterior using Eigen library.
 See fns_eigen.cpp in /src in source package.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">mymarg</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesPosterior.html">vegasBayesPosterior</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">::</span><span class="va"><a href="../reference/eigen_fn_log_post_5m_par.html">eigen_fn_log_post_5m_par</a></span>,</span>
+<span><span class="va">mymarg</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesPosterior.html">vegasBayesPosterior</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">::</span><span class="va"><a href="../reference/eigen_fn_marg_2.html">eigen_fn_marg_2</a></span>,</span>
 <span>                            lower<span class="op">=</span><span class="va">lower</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>,</span>
 <span>                            upper<span class="op">=</span><span class="va">upper</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>,</span>
 <span>                            nitn_warm <span class="op">=</span> <span class="fl">10</span>, neval_warm <span class="op">=</span> <span class="fl">50000</span>,</span>
@@ -261,9 +562,12 @@ See fns_eigen.cpp in /src in source package.</p>
 <span>                              treat<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>,</span>
 <span>                              basket <span class="op">=</span> <span class="va">thedata</span><span class="op">$</span><span class="va">basket</span>,</span>
 <span>                              shiftby<span class="op">=</span><span class="fl">0</span>,uselog<span class="op">=</span><span class="fl">1.</span>,z<span class="op">=</span><span class="op">-</span><span class="fl">0.98</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; tolerance not met at z= -0.98</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Marginal density f(z) at z = -0.1 = "</span>,<span class="va">mymarg</span>,<span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<span><span class="co">#&gt; Marginal density f(z) at z = -0.1 =  2.619311</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; 2.646 sec elapsed</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#result_logEv&lt;-0.0</span></span>
 <span><span class="co">#myz&lt;-c(seq(-1.7,-1.21,len=25),seq(-1.2,-0.7,len=50),seq(-0.69,-0.4,len=25))</span></span>
 <span></span>
@@ -272,7 +576,7 @@ See fns_eigen.cpp in /src in source package.</p>
 <span><span class="va">f_z</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">myz</span><span class="op">)</span><span class="op">)</span>;</span>
 <span><span class="va">i</span><span class="op">&lt;-</span><span class="fl">1</span>;</span>
 <span><span class="kw">for</span><span class="op">(</span><span class="va">z</span> <span class="kw">in</span> <span class="va">myz</span><span class="op">)</span><span class="op">{</span></span>
-<span>  <span class="va">f_z</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesPosterior.html">vegasBayesPosterior</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">::</span><span class="va"><a href="../reference/eigen_fn_log_post_5m_par.html">eigen_fn_log_post_5m_par</a></span>,</span>
+<span>  <span class="va">f_z</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesPosterior.html">vegasBayesPosterior</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">::</span><span class="va"><a href="../reference/eigen_fn_marg_2.html">eigen_fn_marg_2</a></span>,</span>
 <span>                            lower<span class="op">=</span><span class="va">lower</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>,</span>
 <span>                            upper<span class="op">=</span><span class="va">upper</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>,</span>
 <span>                            nitn_warm <span class="op">=</span> <span class="fl">20</span>, neval_warm <span class="op">=</span> <span class="fl">100000</span>,</span>
@@ -287,9 +591,30 @@ See fns_eigen.cpp in /src in source package.</p>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"i="</span>,<span class="va">i</span>,<span class="st">" z="</span>,<span class="va">z</span>,<span class="st">" fz="</span>,<span class="va">f_z</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>,<span class="st">"\n"</span><span class="op">)</span></span>
 <span>  <span class="va">i</span><span class="op">&lt;-</span><span class="va">i</span><span class="op">+</span><span class="fl">1</span></span>
 <span><span class="op">}</span></span>
+<span><span class="co">#&gt; i= 1  z= -1.7  fz= 0.006231395 </span></span>
+<span><span class="co">#&gt; i= 2  z= -1.631579  fz= 0.01599801 </span></span>
+<span><span class="co">#&gt; i= 3  z= -1.563158  fz= 0.0373222 </span></span>
+<span><span class="co">#&gt; i= 4  z= -1.494737  fz= 0.08167091 </span></span>
+<span><span class="co">#&gt; i= 5  z= -1.426316  fz= 0.1726999 </span></span>
+<span><span class="co">#&gt; i= 6  z= -1.357895  fz= 0.3295634 </span></span>
+<span><span class="co">#&gt; i= 7  z= -1.289474  fz= 0.6087756 </span></span>
+<span><span class="co">#&gt; i= 8  z= -1.221053  fz= 0.9603211 </span></span>
+<span><span class="co">#&gt; i= 9  z= -1.152632  fz= 1.449026 </span></span>
+<span><span class="co">#&gt; i= 10  z= -1.084211  fz= 2.021634 </span></span>
+<span><span class="co">#&gt; i= 11  z= -1.015789  fz= 2.567328 </span></span>
+<span><span class="co">#&gt; i= 12  z= -0.9473684  fz= 2.717344 </span></span>
+<span><span class="co">#&gt; i= 13  z= -0.8789474  fz= 2.329717 </span></span>
+<span><span class="co">#&gt; i= 14  z= -0.8105263  fz= 1.543413 </span></span>
+<span><span class="co">#&gt; i= 15  z= -0.7421053  fz= 0.7469236 </span></span>
+<span><span class="co">#&gt; i= 16  z= -0.6736842  fz= 0.2769838 </span></span>
+<span><span class="co">#&gt; i= 17  z= -0.6052632  fz= 0.08491858 </span></span>
+<span><span class="co">#&gt; i= 18  z= -0.5368421  fz= 0.02140802 </span></span>
+<span><span class="co">#&gt; i= 19  z= -0.4684211  fz= 0.005130108 </span></span>
+<span><span class="co">#&gt; i= 20  z= -0.4  fz= 0.001096065</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># Stops timer and prints</span></span></code></pre></div>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># Stops timer and prints</span></span>
+<span><span class="co">#&gt; : 62.734 sec elapsed</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">logun</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">f_z</span><span class="op">)</span><span class="op">+</span><span class="va">result_logEv</span> <span class="co"># back to unstand log density</span></span>
 <span><span class="va">f_z_un</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">logun</span><span class="op">)</span> <span class="co"># back to unstand density</span></span>
 <span><span class="va">ff_interp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/splinefun.html" class="external-link">splinefun</a></span><span class="op">(</span><span class="va">myz</span>, <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">f_z_un</span><span class="op">)</span>, method <span class="op">=</span> <span class="st">"fmm"</span><span class="op">)</span> <span class="co"># fit fun to every point</span></span>
@@ -298,13 +623,14 @@ See fns_eigen.cpp in /src in source package.</p>
 <span><span class="va">ff_interp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/splinefun.html" class="external-link">splinefun</a></span><span class="op">(</span><span class="va">myz</span>, <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">ff_z</span><span class="op">)</span>, method <span class="op">=</span> <span class="st">"fmm"</span><span class="op">)</span> <span class="co"># now</span></span>
 <span></span>
 <span><span class="co">#plot(myz,predict(loess(ff_z ~ myz, span = 0.1,family="g",from=min(myz),to=max(myz))))</span></span></code></pre></div>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># 3. Display the plot</span></span>
 <span><span class="co"># plotting code above in hidden chunk</span></span>
 <span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/nchar.html" class="external-link">nzchar</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"_R_CHECK_PACKAGE_NAME_"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<p><img src="rcpp2_files/figure-html/plot_marg2-1.png" width="100%" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/density.html" class="external-link">density</a></span><span class="op">(</span><span class="fu">extract</span><span class="op">(</span><span class="va">stan_fit_2</span>,<span class="st">"beta[1,1]"</span><span class="op">)</span><span class="op">$</span><span class="st">"beta[1,1]"</span><span class="op">)</span>,main<span class="op">=</span><span class="st">"beta[1,1]"</span>,col<span class="op">=</span><span class="st">"blue"</span>,lwd<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span>
 <span><span class="co">#points(myz,as.matrix(f_z),col="brown",pch=21,bg="brown",cex=0.5)</span></span>
 <span><span class="co">#f_interp &lt;- splinefun(myz, as.matrix(f_z), method = "fmm")</span></span>
@@ -312,8 +638,10 @@ See fns_eigen.cpp in /src in source package.</p>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">myz</span>,<span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">ff_z</span><span class="op">)</span>,col<span class="op">=</span><span class="st">"brown"</span>,pch<span class="op">=</span><span class="fl">21</span>,bg<span class="op">=</span><span class="st">"brown"</span><span class="op">)</span></span>
 <span><span class="co">#ff_interp &lt;- splinefun(myz, as.matrix(ff_z), method = "fmm")</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">z_grid</span>,<span class="fu">ff_interp</span><span class="op">(</span><span class="va">z_grid</span><span class="op">)</span>,col<span class="op">=</span><span class="st">"brown"</span><span class="op">)</span></span>
-<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">z_grid</span>,<span class="fu">ff_interp</span><span class="op">(</span><span class="va">z_grid</span><span class="op">)</span>,col<span class="op">=</span><span class="st">"brown"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="rcpp2_files/figure-html/unnamed-chunk-2-1.png" width="700"></p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
 <span><span class="co">#as.numeric(ff_interp(z_grid))</span></span>
 <span></span>
 <span><span class="co">#lines(myz,predict(loess(ff_z ~ myz, span = 0.1,family="g")),col="red")</span></span>
