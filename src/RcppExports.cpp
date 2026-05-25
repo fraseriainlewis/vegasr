@@ -57,9 +57,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// eigen_fn_marg_1_1_par
-Eigen::VectorXd eigen_fn_marg_1_1_par(const Eigen::MatrixXd& theta, const Eigen::VectorXd& y, const Eigen::VectorXd& treat, double shiftby, double uselog, double z);
-RcppExport SEXP _vegasr_eigen_fn_marg_1_1_par(SEXP thetaSEXP, SEXP ySEXP, SEXP treatSEXP, SEXP shiftbySEXP, SEXP uselogSEXP, SEXP zSEXP) {
+// eigen_fn_marg_1
+Eigen::VectorXd eigen_fn_marg_1(const Eigen::MatrixXd& theta, const Eigen::VectorXd& y, const Eigen::VectorXd& treat, double shiftby, double uselog, double z);
+RcppExport SEXP _vegasr_eigen_fn_marg_1(SEXP thetaSEXP, SEXP ySEXP, SEXP treatSEXP, SEXP shiftbySEXP, SEXP uselogSEXP, SEXP zSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -69,13 +69,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type shiftby(shiftbySEXP);
     Rcpp::traits::input_parameter< double >::type uselog(uselogSEXP);
     Rcpp::traits::input_parameter< double >::type z(zSEXP);
-    rcpp_result_gen = Rcpp::wrap(eigen_fn_marg_1_1_par(theta, y, treat, shiftby, uselog, z));
+    rcpp_result_gen = Rcpp::wrap(eigen_fn_marg_1(theta, y, treat, shiftby, uselog, z));
     return rcpp_result_gen;
 END_RCPP
 }
-// eigen_fn_log_post_5
-Eigen::VectorXd eigen_fn_log_post_5(const Eigen::MatrixXd& theta, const Eigen::VectorXd& y, const Eigen::VectorXd& treat, const Eigen::VectorXd& basket, double shiftby, double uselog);
-RcppExport SEXP _vegasr_eigen_fn_log_post_5(SEXP thetaSEXP, SEXP ySEXP, SEXP treatSEXP, SEXP basketSEXP, SEXP shiftbySEXP, SEXP uselogSEXP) {
+// eigen_fn_log_post_2
+Eigen::VectorXd eigen_fn_log_post_2(const Eigen::MatrixXd& theta, const Eigen::VectorXd& y, const Eigen::VectorXd& treat, const Eigen::VectorXd& basket, double shiftby, double uselog);
+RcppExport SEXP _vegasr_eigen_fn_log_post_2(SEXP thetaSEXP, SEXP ySEXP, SEXP treatSEXP, SEXP basketSEXP, SEXP shiftbySEXP, SEXP uselogSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -85,13 +85,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type basket(basketSEXP);
     Rcpp::traits::input_parameter< double >::type shiftby(shiftbySEXP);
     Rcpp::traits::input_parameter< double >::type uselog(uselogSEXP);
-    rcpp_result_gen = Rcpp::wrap(eigen_fn_log_post_5(theta, y, treat, basket, shiftby, uselog));
+    rcpp_result_gen = Rcpp::wrap(eigen_fn_log_post_2(theta, y, treat, basket, shiftby, uselog));
     return rcpp_result_gen;
 END_RCPP
 }
-// eigen_fn_log_post_5_par
-Eigen::VectorXd eigen_fn_log_post_5_par(const Eigen::MatrixXd& theta, const Eigen::VectorXd& y, const Eigen::VectorXd& treat, const Eigen::VectorXd& basket, double shiftby, double uselog);
-RcppExport SEXP _vegasr_eigen_fn_log_post_5_par(SEXP thetaSEXP, SEXP ySEXP, SEXP treatSEXP, SEXP basketSEXP, SEXP shiftbySEXP, SEXP uselogSEXP) {
+// eigen_fn_log_post_2_par
+Eigen::VectorXd eigen_fn_log_post_2_par(const Eigen::MatrixXd& theta, const Eigen::VectorXd& y, const Eigen::VectorXd& treat, const Eigen::VectorXd& basket, double shiftby, double uselog);
+RcppExport SEXP _vegasr_eigen_fn_log_post_2_par(SEXP thetaSEXP, SEXP ySEXP, SEXP treatSEXP, SEXP basketSEXP, SEXP shiftbySEXP, SEXP uselogSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -101,13 +101,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type basket(basketSEXP);
     Rcpp::traits::input_parameter< double >::type shiftby(shiftbySEXP);
     Rcpp::traits::input_parameter< double >::type uselog(uselogSEXP);
-    rcpp_result_gen = Rcpp::wrap(eigen_fn_log_post_5_par(theta, y, treat, basket, shiftby, uselog));
+    rcpp_result_gen = Rcpp::wrap(eigen_fn_log_post_2_par(theta, y, treat, basket, shiftby, uselog));
     return rcpp_result_gen;
 END_RCPP
 }
-// eigen_fn_log_post_5m_par
-Eigen::VectorXd eigen_fn_log_post_5m_par(const Eigen::MatrixXd& theta, const Eigen::VectorXd& y, const Eigen::VectorXd& treat, const Eigen::VectorXd& basket, double shiftby, double uselog, double z);
-RcppExport SEXP _vegasr_eigen_fn_log_post_5m_par(SEXP thetaSEXP, SEXP ySEXP, SEXP treatSEXP, SEXP basketSEXP, SEXP shiftbySEXP, SEXP uselogSEXP, SEXP zSEXP) {
+// eigen_fn_marg_2
+Eigen::VectorXd eigen_fn_marg_2(const Eigen::MatrixXd& theta, const Eigen::VectorXd& y, const Eigen::VectorXd& treat, const Eigen::VectorXd& basket, double shiftby, double uselog, double z);
+RcppExport SEXP _vegasr_eigen_fn_marg_2(SEXP thetaSEXP, SEXP ySEXP, SEXP treatSEXP, SEXP basketSEXP, SEXP shiftbySEXP, SEXP uselogSEXP, SEXP zSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -118,7 +118,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type shiftby(shiftbySEXP);
     Rcpp::traits::input_parameter< double >::type uselog(uselogSEXP);
     Rcpp::traits::input_parameter< double >::type z(zSEXP);
-    rcpp_result_gen = Rcpp::wrap(eigen_fn_log_post_5m_par(theta, y, treat, basket, shiftby, uselog, z));
+    rcpp_result_gen = Rcpp::wrap(eigen_fn_marg_2(theta, y, treat, basket, shiftby, uselog, z));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -127,10 +127,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_vegasr_arma_fn_log_post_1", (DL_FUNC) &_vegasr_arma_fn_log_post_1, 5},
     {"_vegasr_eigen_fn_log_post_1", (DL_FUNC) &_vegasr_eigen_fn_log_post_1, 5},
     {"_vegasr_eigen_fn_log_post_1_par", (DL_FUNC) &_vegasr_eigen_fn_log_post_1_par, 5},
-    {"_vegasr_eigen_fn_marg_1_1_par", (DL_FUNC) &_vegasr_eigen_fn_marg_1_1_par, 6},
-    {"_vegasr_eigen_fn_log_post_5", (DL_FUNC) &_vegasr_eigen_fn_log_post_5, 6},
-    {"_vegasr_eigen_fn_log_post_5_par", (DL_FUNC) &_vegasr_eigen_fn_log_post_5_par, 6},
-    {"_vegasr_eigen_fn_log_post_5m_par", (DL_FUNC) &_vegasr_eigen_fn_log_post_5m_par, 7},
+    {"_vegasr_eigen_fn_marg_1", (DL_FUNC) &_vegasr_eigen_fn_marg_1, 6},
+    {"_vegasr_eigen_fn_log_post_2", (DL_FUNC) &_vegasr_eigen_fn_log_post_2, 6},
+    {"_vegasr_eigen_fn_log_post_2_par", (DL_FUNC) &_vegasr_eigen_fn_log_post_2_par, 6},
+    {"_vegasr_eigen_fn_marg_2", (DL_FUNC) &_vegasr_eigen_fn_marg_2, 7},
     {NULL, NULL, 0}
 };
 

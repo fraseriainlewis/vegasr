@@ -324,7 +324,7 @@ vegasBayesEvidence <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000
 #' \code{vignette("rcpp", package = "vegasr")}for examples and usage.
 #'
 #' @details The function passed must meet some specific criteria and a range of example
-#' functions are included in the package, e.g. see \code{\link{fn_marg_1_1}}.
+#' functions are included in the package, e.g. see \code{\link{fn_marg_1}}.
 #'
 #' To help avoid numerical underflow the log posterior values are location shifted
 #' where a maximum value is subtracted on the log scale. This maximum value

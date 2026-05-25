@@ -74,7 +74,8 @@ fn_create_data_5<-function(seed){
 ##############################################################################################
 ##############################################################################################
 #' @title Posterior Density Function using only R - Example 1
-#'
+#' @name fn_log_post_1
+#' @aliases fn_log_post_1
 #' @description An example showing how to write a function for use with \code{\link{vegasBayesEvidence}} for
 #' Bayesian computation.
 #' This example function describes a simple Bayesian hierarchical model comprising of a logistic regression with
@@ -175,7 +176,8 @@ if(FALSE){ # to test
 ##############################################################################################
 ##############################################################################################
 #' @title Marginal Posterior Density Function - Example 1
-#'
+#' @name fn_marg_1
+#' @aliases fn_marg_1
 #' @description An example showing how to write a function for use with \code{\link{vegasBayesPosterior}} for
 #' Bayesian computation. This is almost identical to \code{\link{fn_log_post_1}} but we now reduce the dimension
 #' by 1 and pass a fixed value the missing dimension for the variable who marginal we want to compute.
@@ -197,7 +199,7 @@ if(FALSE){ # to test
 #' Used in \code{\link{vegasBayesPosterior}}
 #' @export
 ## Define log posterior for a marginal calclation including change of variables
-fn_marg_1_1<-function(theta,      # matrix Batch x M
+fn_marg_1<-function(theta,      # matrix Batch x M
                       y,          # matrix N x 1
                       treat,      # matrix N x 1
                       shiftby,    # scalar - no scaling

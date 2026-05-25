@@ -323,14 +323,14 @@ struct LogPostWorkerM : public RcppParallel::Worker {
 
 // ---------------------------------------------------------------------------
 //' @title Marginal Posterior Density Function using RcppParallel - Example 1
-//'
+//' @name eigen_fn_marg_1
+//' @aliases eigen_fn_marg_1
 //' @description An example showing how to write a function for use with \code{\link{vegasBayesPosterior}} for
 //' Bayesian computation. This is almost identical to \code{\link{eigen_fn_log_post_1_par}} but we now reduce the dimension
 //' by 1 and pass a fixed value the missing dimension for the variable who marginal we want to compute.
 //' See \code{vignette("rcpp", package = "vegasr")} for Rcpp details.
-//' @name eigen_fn_marg_1_1_par
 //' @details The is an example function written using RcppParallel and has same functionality as the R function
-//' \code{\link{fn_marg_1_1}}. This function is in the fns_eigen.cpp file in the source package.
+//' \code{\link{fn_marg_1}}. This function is in the fns_eigen.cpp file in the source package.
 //'
 //' @param theta pass a numerical R matrix of dimension Batch x M, where M is number of parameters, here M=6
 //' Batch can be any positive integer
@@ -344,7 +344,7 @@ struct LogPostWorkerM : public RcppParallel::Worker {
 //' @param z a numerical and the function call computes the density at this value, i.e. f(z).
 //' @export
 // [[Rcpp::export]]
-Eigen::VectorXd eigen_fn_marg_1_1_par(const Eigen::MatrixXd& theta,
+Eigen::VectorXd eigen_fn_marg_1(const Eigen::MatrixXd& theta,
                                        const Eigen::VectorXd& y,
                                        const Eigen::VectorXd& treat,
                                        double shiftby, double uselog, double z){
@@ -365,8 +365,8 @@ Eigen::VectorXd eigen_fn_marg_1_1_par(const Eigen::MatrixXd& theta,
 
 // ---------------------------------------------------------------------------
 //' @title Posterior Density Function using RcppEigen - Example 2
-//' @name eigen_fn_log_post_5
-//' @aliases eigen_fn_log_post_5
+//' @name eigen_fn_log_post_2
+//' @aliases eigen_fn_log_post_2
 //' @description An example showing how to write a function for use with \code{\link{vegasBayesEvidence}} for
 //' Bayesian computation using the RcppEigen library
 //' This example function describes a simple Bayesian hierarchical model comprising of a logistic regression with
@@ -393,7 +393,7 @@ Eigen::VectorXd eigen_fn_marg_1_1_par(const Eigen::MatrixXd& theta,
 //' value. Used in \code{\link{vegasBayesEvidence}}
 //' @export
 // [[Rcpp::export]]
-Eigen::VectorXd eigen_fn_log_post_5(const Eigen::MatrixXd& theta,
+Eigen::VectorXd eigen_fn_log_post_2(const Eigen::MatrixXd& theta,
                                      const Eigen::VectorXd& y,
                                      const Eigen::VectorXd& treat,
                                      const Eigen::VectorXd& basket,
@@ -577,9 +577,9 @@ struct LogPostWorkerM5 : public RcppParallel::Worker {
 
 
 // ---------------------------------------------------------------------------
-//'@title Parallel log Evidence Example 3
-//' @name eigen_fn_log_post_5_par
-//' @aliases eigen_fn_log_post_5_par
+//' @title Posterior Density Function using RcppParallel - Example 2
+//' @name eigen_fn_log_post_2_par
+//' @aliases eigen_fn_log_post_2_par
 //' @description An example showing how to write a function for use with \code{\link{vegasBayesEvidence}} for
 //' Bayesian computation using the RcppEigen library
 //' This example function describes a simple Bayesian hierarchical model comprising of a logistic regression with
@@ -606,7 +606,7 @@ struct LogPostWorkerM5 : public RcppParallel::Worker {
 //' value. Used in \code{\link{vegasBayesEvidence}}
 //' @export
 // [[Rcpp::export]]
-Eigen::VectorXd eigen_fn_log_post_5_par(const Eigen::MatrixXd& theta,
+Eigen::VectorXd eigen_fn_log_post_2_par(const Eigen::MatrixXd& theta,
                                          const Eigen::VectorXd& y,
                                          const Eigen::VectorXd& treat,
                                          const Eigen::VectorXd& basket,
@@ -626,7 +626,6 @@ Eigen::VectorXd eigen_fn_log_post_5_par(const Eigen::MatrixXd& theta,
  }
 
 // 5 baskets marginal parallel
-// MARGINAL
 // MARGINAL
 struct LogPostWorkerM5m : public RcppParallel::Worker {
   const MatrixXd& theta;
@@ -714,9 +713,9 @@ struct LogPostWorkerM5m : public RcppParallel::Worker {
 };
 
 // ---------------------------------------------------------------------------
-//' @title Parallel Marginal Example 3
-//' @name eigen_fn_log_post_5m_par
-//' @aliases eigen_fn_log_post_5m_par
+//' @title Parallel Marginal Example 2
+//' @name eigen_fn_marg_2
+//' @aliases eigen_fn_marg_2
 //' @description An example showing how to write a function for use with \code{\link{vegasBayesEvidence}} for
 //' Bayesian computation using the RcppEigen library
 //' This example function describes a simple Bayesian hierarchical model comprising of a logistic regression with
@@ -744,7 +743,7 @@ struct LogPostWorkerM5m : public RcppParallel::Worker {
 //' @param z a numerical and the function call computes the density at this value, i.e. f(z).
 //' @export
 // [[Rcpp::export]]
-Eigen::VectorXd eigen_fn_log_post_5m_par(const Eigen::MatrixXd& theta,
+Eigen::VectorXd eigen_fn_marg_2(const Eigen::MatrixXd& theta,
                                           const Eigen::VectorXd& y,
                                           const Eigen::VectorXd& treat,
                                           const Eigen::VectorXd& basket,

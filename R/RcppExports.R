@@ -106,14 +106,14 @@ eigen_fn_log_post_1_par <- function(theta, y, treat, shiftby, uselog) {
 }
 
 #' @title Marginal Posterior Density Function using RcppParallel - Example 1
-#'
+#' @name eigen_fn_marg_1
+#' @aliases eigen_fn_marg_1
 #' @description An example showing how to write a function for use with \code{\link{vegasBayesPosterior}} for
 #' Bayesian computation. This is almost identical to \code{\link{eigen_fn_log_post_1_par}} but we now reduce the dimension
 #' by 1 and pass a fixed value the missing dimension for the variable who marginal we want to compute.
 #' See \code{vignette("rcpp", package = "vegasr")} for Rcpp details.
-#' @name eigen_fn_marg_1_1_par
 #' @details The is an example function written using RcppParallel and has same functionality as the R function
-#' \code{\link{fn_marg_1_1}}. This function is in the fns_eigen.cpp file in the source package.
+#' \code{\link{fn_marg_1}}. This function is in the fns_eigen.cpp file in the source package.
 #'
 #' @param theta pass a numerical R matrix of dimension Batch x M, where M is number of parameters, here M=6
 #' Batch can be any positive integer
@@ -126,13 +126,13 @@ eigen_fn_log_post_1_par <- function(theta, y, treat, shiftby, uselog) {
 #' value. Used in \code{\link{vegasBayesPosterior}}
 #' @param z a numerical and the function call computes the density at this value, i.e. f(z).
 #' @export
-eigen_fn_marg_1_1_par <- function(theta, y, treat, shiftby, uselog, z) {
-    .Call(`_vegasr_eigen_fn_marg_1_1_par`, theta, y, treat, shiftby, uselog, z)
+eigen_fn_marg_1 <- function(theta, y, treat, shiftby, uselog, z) {
+    .Call(`_vegasr_eigen_fn_marg_1`, theta, y, treat, shiftby, uselog, z)
 }
 
 #' @title Posterior Density Function using RcppEigen - Example 2
-#' @name eigen_fn_log_post_5
-#' @aliases eigen_fn_log_post_5
+#' @name eigen_fn_log_post_2
+#' @aliases eigen_fn_log_post_2
 #' @description An example showing how to write a function for use with \code{\link{vegasBayesEvidence}} for
 #' Bayesian computation using the RcppEigen library
 #' This example function describes a simple Bayesian hierarchical model comprising of a logistic regression with
@@ -158,13 +158,13 @@ eigen_fn_marg_1_1_par <- function(theta, y, treat, shiftby, uselog, z) {
 #' @param uselog a numerical flag value takes either 1.0 or 0.0 and used to return either log or real scale
 #' value. Used in \code{\link{vegasBayesEvidence}}
 #' @export
-eigen_fn_log_post_5 <- function(theta, y, treat, basket, shiftby, uselog) {
-    .Call(`_vegasr_eigen_fn_log_post_5`, theta, y, treat, basket, shiftby, uselog)
+eigen_fn_log_post_2 <- function(theta, y, treat, basket, shiftby, uselog) {
+    .Call(`_vegasr_eigen_fn_log_post_2`, theta, y, treat, basket, shiftby, uselog)
 }
 
-#'@title Parallel log Evidence Example 3
-#' @name eigen_fn_log_post_5_par
-#' @aliases eigen_fn_log_post_5_par
+#' @title Posterior Density Function using RcppParallel - Example 2
+#' @name eigen_fn_log_post_2_par
+#' @aliases eigen_fn_log_post_2_par
 #' @description An example showing how to write a function for use with \code{\link{vegasBayesEvidence}} for
 #' Bayesian computation using the RcppEigen library
 #' This example function describes a simple Bayesian hierarchical model comprising of a logistic regression with
@@ -190,13 +190,13 @@ eigen_fn_log_post_5 <- function(theta, y, treat, basket, shiftby, uselog) {
 #' @param uselog a numerical flag value takes either 1.0 or 0.0 and used to return either log or real scale
 #' value. Used in \code{\link{vegasBayesEvidence}}
 #' @export
-eigen_fn_log_post_5_par <- function(theta, y, treat, basket, shiftby, uselog) {
-    .Call(`_vegasr_eigen_fn_log_post_5_par`, theta, y, treat, basket, shiftby, uselog)
+eigen_fn_log_post_2_par <- function(theta, y, treat, basket, shiftby, uselog) {
+    .Call(`_vegasr_eigen_fn_log_post_2_par`, theta, y, treat, basket, shiftby, uselog)
 }
 
-#' @title Parallel Marginal Example 3
-#' @name eigen_fn_log_post_5m_par
-#' @aliases eigen_fn_log_post_5m_par
+#' @title Parallel Marginal Example 2
+#' @name eigen_fn_marg_2
+#' @aliases eigen_fn_marg_2
 #' @description An example showing how to write a function for use with \code{\link{vegasBayesEvidence}} for
 #' Bayesian computation using the RcppEigen library
 #' This example function describes a simple Bayesian hierarchical model comprising of a logistic regression with
@@ -223,7 +223,7 @@ eigen_fn_log_post_5_par <- function(theta, y, treat, basket, shiftby, uselog) {
 #' value. Used in \code{\link{vegasBayesEvidence}}
 #' @param z a numerical and the function call computes the density at this value, i.e. f(z).
 #' @export
-eigen_fn_log_post_5m_par <- function(theta, y, treat, basket, shiftby, uselog, z) {
-    .Call(`_vegasr_eigen_fn_log_post_5m_par`, theta, y, treat, basket, shiftby, uselog, z)
+eigen_fn_marg_2 <- function(theta, y, treat, basket, shiftby, uselog, z) {
+    .Call(`_vegasr_eigen_fn_marg_2`, theta, y, treat, basket, shiftby, uselog, z)
 }
 
