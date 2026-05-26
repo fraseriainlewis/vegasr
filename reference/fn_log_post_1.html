@@ -63,7 +63,7 @@ This has six parameters in total.</p>
 
 
 <dl><dt id="arg-theta">theta<a class="anchor" aria-label="anchor" href="#arg-theta"></a></dt>
-<dd><p>a numerical matrix of dimension Batch x M, where M is number of parameters, here M=6
+<dd><p>a numerical matrix of dimension Batch x M, where M is number of parameters, here M=6,
 Batch can be any positive integer</p></dd>
 
 
@@ -78,7 +78,8 @@ entries only</p></dd>
 
 
 <dt id="arg-shiftby">shiftby<a class="anchor" aria-label="anchor" href="#arg-shiftby"></a></dt>
-<dd><p>a numerical scalar used to help avoid underflow. Used in <code><a href="vegasBayesEvidence.html">vegasBayesEvidence</a></code></p></dd>
+<dd><p>a numerical scalar used to help avoid underflow. Use 0.0 as this will be updated
+internally before passing to vegas algorithm. Used in <code><a href="vegasBayesPosterior.html">vegasBayesPosterior</a></code></p></dd>
 
 
 <dt id="arg-uselog">uselog<a class="anchor" aria-label="anchor" href="#arg-uselog"></a></dt>

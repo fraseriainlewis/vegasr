@@ -119,7 +119,7 @@ least uselog and shiftby arguments which are mandatory for the function f.</p></
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The function passed must meet some specific criteria and a range of example
 functions are included in the package, e.g. see <code><a href="fn_log_post_1.html">fn_log_post_1</a></code>, in
-particular the function deal with integration limits via transformation if
+particular the function must deal with integration limits via transformation if
 necessary. Example functions using Rcpp are also provided, see <code><a href="arma_fn_log_post_1.html">arma_fn_log_post_1</a></code>
 which uses RcppArmadillo, <code><a href="eigen_fn_log_post_1.html">eigen_fn_log_post_1</a></code> which uses Eigen
 and <code><a href="eigen_fn_log_post_1_par.html">eigen_fn_log_post_1_par</a></code> which used Eigen and RcppParallel.</p>
@@ -128,9 +128,8 @@ and usage and <code><a href="../articles/rcpp.html">vignette("rcpp", package = "
 functions written in Rcpp</p>
 <p>To help avoid numerical underflow the log posterior values are location shifted
 where a maximum value is subtracted on the log scale. This maximum value
-is estimated using a simple grid search between the upper and lower bounds. This
-maximum value does not need to be precise but a higher nsearch value may potentially
-help in case of NaN or underflow.</p>
+is estimated using a simple grid search (of size nsearch) between the upper and lower bounds. This
+maximum value does not need to be precise.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
