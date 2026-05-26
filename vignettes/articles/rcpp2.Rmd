@@ -1,12 +1,12 @@
 ---
-title: "Using Rcpp2 in Vegasr"
+title: "Comparing Stan v Vegasr - Basket Trial"
 output:
   rmarkdown::html_vignette:
     toc: true
     toc_depth: 2
     number_sections: true
 vignette: >
-  %\VignetteIndexEntry{Using Rcpp2 in Vegasr}
+  %\VignetteIndexEntry{Comparing Stan v Vegasr - Basket Trial}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -38,19 +38,18 @@ knitr::opts_chunk$set(eval=TRUE)
 #     no_den_pts<-5 # very ligth grid for on cran
 #    } else { # running locally to go higher
 #    n_cores <- parallel::detectCores() - 1
-no_den_pts=50
+#no_den_pts=50
 #}
 
 ```
 
 ## Quickstart
-Using Rcpp libraries to write the log posterior function will almost surely be faster, perhaps many times faster, than an R function even when vectorized. Examples of the timing comparison are below.  
+This article is a more complex version of the vegasr vignette [Rcpp](https://fraseriainlewis.github.io/vegasr/articles/rcpp.html) where the hierarchical Bayesian model being estimated is a basket trial comprising of five baskets and binary response with logistic link function. This model has 14 parameters. 
 
-Example log posterior functions are given below using two Rcpp linear algebra libraries, [RcppArmadillo](https://github.com/rcppcore/rcpparmadillo) and [RcppEigen](https://github.com/RcppCore/RcppEigen). These libraries have different pros and cons. RcppArmadillo has some built-in parallelization (via openMP) while RcppEigen does not, but both are highly efficient in their own way. RcppEigen works well with [RcppParallel](https://github.com/rcppcore/rcppparallel) which does not use openMP and can be more problematic with RcppArmadillo. 
 
 ## Model Formulation
 
-The model implemented here is:
+The model implemented is given below where $k$ denotes the basket, with $\beta_{0,k}$ and $\beta_{1,k}$ basket specific intercept and slope terms.
 
 $$
 \begin{aligned}
@@ -58,9 +57,9 @@ $$
 \sigma_0 &\sim \text{Half-Normal}(0, 2.5) \\
 \mu_1 &\sim \text{Normal}(0, 2.5) \\
 \sigma_1 &\sim \text{Half-Normal}(0, 2.5) \\
-\beta_0 &\sim \text{Normal}(\mu_0, \sigma_0) \\
-\beta_1 &\sim \text{Normal}(\mu_1, \sigma_1) \\
-\text{logit(}{p_i}) &= \beta_0 + \beta_1 z_i\quad\quad\quad\quad\enspace\enspace\text{for}\enspace{i=1,\dots,N}  \\
+\beta_{0,k} &\sim \text{Normal}(\mu_0, \sigma_0)\hspace{0.95cm}\text{for}\enspace{k=0,\dots,4} \\
+\beta_{1,k} &\sim \text{Normal}(\mu_1, \sigma_1) \hspace{0.95cm}\text{for}\enspace{k=0,\dots,4}\\
+\text{logit(}{p_{i}}) &= \beta_{0,k} + \beta_{1,k} z_i\hspace{1.49cm}\text{for}\enspace{i=1,\dots,N}  \\
 y_i &\sim \text{Bernoulli}(p_i)
 \end{aligned}
 $$
@@ -70,7 +69,7 @@ $$
 The R chunk below creates a simple dataset of three cols:
 
 -   a binary response variable y (0/1 = non-responder/responder),
--   a (dummy) basket ID variable (=1)
+-   a basket ID variable (1,2,3,4,5)
 -   a binary treatment variable (0/1 = control/test treatment)
 
 The basket ID is currently set fixed at 1, denoting there is only one basket in this trial, i.e. it's a classical two arm randomized trial design.
@@ -79,18 +78,17 @@ The basket ID is currently set fixed at 1, denoting there is only one basket in 
 library(vegasr)
 vegas_initialize()
 thedata<-vegasr:::fn_create_data_5(99999) # a list of y and treat as matrices
-#thedata<-fn_create_data_5(99999)
 # this function is in vegasr/R/fn_internal.R
 ```
 
-
+## Fit Model via MCMC using RStan
+Below are code chunks that implement the above model in Stan using a non-centralised parameterization (as recommended for Hamiltonian samplers).
 
 ```{r rsetup, include=FALSE}
 library(rstan)
 library(bayesplot)
 library(ggplot2)
 library(vegasr)
-#reticulate::py_install("bash") # just a test
 ```
 
 ```{r stanmodeldef,include=TRUE,echo=TRUE}
@@ -148,14 +146,13 @@ data_input_1 <- list(
   )
 
 
-
 ### Compile and fit model
 options(mc.cores = parallel::detectCores())
 # Compile model (only run the line below once for a simulation study - compilation not dependent on any
 # simulation inputs as defined by scenarios or on simulated data)
 stan_mod_1 <- stan_model(model_code = BHM_stan_1)
 # Fit model
-nsamps <- 10000       # number of posterior samples (after removing burn-in) per chain
+nsamps <- 200000       # number of posterior samples (after removing burn-in) per chain
 nburnin <- 5000       # number of burn-in samples to remove at beginning of each chain
 nchains <- 4          # number of chains
 #BHM_pars_1 <- c("beta","mu0", "sigma0","mu1", "sigma1", "beta","beta_tr")     # parameters to sample
@@ -167,14 +164,6 @@ end_time - start_time
 post_draws_2 <- as.matrix(stan_fit_2)           # posterior samples of each parameter
 
 ```
-
-```{r stanresults,fig.width=10, fig.height=6, out.width="100%"}
-library(bayesplot)
-color_scheme_set("viridisA")
-p<-mcmc_trace(stan_fit_2,"mu0")
-#ggsave("precomputed/vg2_traceplot1_stan.png", p)
-print(p)
-```
 ```{r stanresults2,fig.width=10, fig.height=6, out.width="100%"}
 library(bayesplot)
 color_scheme_set("viridisA")
@@ -184,13 +173,10 @@ print(p)
 print(summary(stan_fit_2))
 ```
 
-
-
-
 ## Example of calling log posterior functions
 These functions are available in the source package in fns_arma.cpp or fns_eigen.cpp in /src.
 
-```{r logpos,include=TRUE}
+```{r logpos,include=TRUE,eval=FALSE}
 ### Call the Rcpp functions to demonstrate correct input and output values
 
 theta   <- matrix(data=rep(0.1,length=4*14), ncol = 14) # 5 intercept + 5 slope + 4 hyper
@@ -199,9 +185,11 @@ theta<-jitter(theta)
 vegasr::eigen_fn_log_post_2(theta, thedata$y, thedata$treat, thedata$basket,0.0, 1.0)
 
 ```
-## Timing comparisons
 
-```{r logpos2,include=TRUE}
+## Log Evidence
+As in the Rcpp vignette estimating the log evidence is not essential but we compute for completeness, also to a high precision. 
+
+```{r logpos2,include=TRUE,eval=TRUE}
 library(vegasr)
 vegas_initialize()
 library(tictoc)
@@ -215,7 +203,7 @@ result_logEv <- vegasBayesEvidence(
   lower = lower, upper = upper,
   nitn_warm = 10, neval_warm = 100000,
   nitn = 10, neval = 100000,
-  errTol = 0.001, maxIter = 10, seed = 99999, nsearch = 100000,
+  errTol = 1, maxIter = 10, seed = 99999, nsearch = 100000,
   extra_args=list(
     y=thedata$y,
     treat=thedata$treat,
@@ -230,14 +218,14 @@ toc()
 ## 2. Find Marginal
 Example using parallel version of log posterior using Eigen library. See fns_eigen.cpp in /src in source package.
 
-```{r marg_single,include=TRUE}
+```{r marg_single,include=TRUE,eval=FALSE}
 tic()
 mymarg<-vegasBayesPosterior(f=vegasr::eigen_fn_marg_2,
                             lower=lower[-1],
                             upper=upper[-1],
                             nitn_warm = 10, neval_warm = 50000,
                             nitn = 10, neval = 50000,
-                            errTol=0.01,maxIter=5,seed=99999,nsearch=10000,
+                            errTol=1,maxIter=5,seed=99999,nsearch=10000,
                             log_evidence = result_logEv,
                             extra_args=list(
                               y=thedata$y,
@@ -253,6 +241,14 @@ toc()
 #result_logEv<-0.0
 #myz<-c(seq(-1.7,-1.21,len=25),seq(-1.2,-0.7,len=50),seq(-0.69,-0.4,len=25))
 
+library(vegasr)
+vegas_initialize()
+library(tictoc)
+K <- length(unique(thedata$basket))
+lower <- c(rep(-0.9999, 2*K), -0.9999, -0.9999, 1e-4, 1e-4)
+upper <- c(rep( 0.9999, 2*K),  0.9999,  0.9999,   0.9999,   0.9999)
+
+
 myz<-c(seq(-1.7,-0.4,len=20))
 tic("") # Start timer with a label
 f_z<-rep(0,length(myz));
@@ -261,9 +257,9 @@ for(z in myz){
   f_z[i]<-vegasBayesPosterior(f=vegasr::eigen_fn_marg_2,
                             lower=lower[-1],
                             upper=upper[-1],
-                            nitn_warm = 20, neval_warm = 100000,
+                            nitn_warm = 20, neval_warm = 500000,
                             nitn = 10, neval = 50000,
-                            errTol=1,maxIter=20,seed=99999,nsearch=10000,
+                            errTol=0.1,maxIter=25,seed=99999,nsearch=10000,
                             log_evidence = result_logEv,
                             extra_args=list(
                               y=thedata$y,
@@ -292,7 +288,7 @@ ff_interp <- splinefun(myz, as.matrix(ff_z), method = "fmm") # now
 
 ```{r plot_marg, include=FALSE, fig.width=10, fig.height=6, out.width="100%", fig.align='center'}
 
-if(!nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))){
+#if(!nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))){
 library(ggplot2)
 
 # 1. Prepare data for plotting
@@ -366,32 +362,15 @@ p <- ggplot() +
     panel.grid.minor = element_blank(),
     plot.margin = margin(20, 20, 20, 20)
   )
-}
+#}
 ```
 
 ```{r plot_marg2, include=TRUE,  fig.width=10, fig.height=6, out.width="100%", fig.align='center'}
 # 3. Display the plot
 # plotting code above in hidden chunk
-if(!nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))){
+#if(!nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))){
 print(p)
-}
+#}
 ```
 
-```{r}
-plot(density(extract(stan_fit_2,"beta[1,1]")$"beta[1,1]"),main="beta[1,1]",col="blue",lwd=2)
-#points(myz,as.matrix(f_z),col="brown",pch=21,bg="brown",cex=0.5)
-#f_interp <- splinefun(myz, as.matrix(f_z), method = "fmm")
-#lines(myz,f_interp(myz),col="purple")
-
-points(myz,as.matrix(ff_z),col="brown",pch=21,bg="brown")
-#ff_interp <- splinefun(myz, as.matrix(ff_z), method = "fmm")
-lines(z_grid,ff_interp(z_grid),col="brown")
-
-#as.numeric(ff_interp(z_grid))
-
-#lines(myz,predict(loess(ff_z ~ myz, span = 0.1,family="g")),col="red")
-
-#lines(density(extract(stan_fit_2,"beta[1,1]")$"beta[1,1]"),main="beta[1,1]",col="blue",lwd=2)
-
-```
 
