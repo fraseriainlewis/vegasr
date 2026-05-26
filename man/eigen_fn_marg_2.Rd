@@ -28,14 +28,15 @@ value. Used in \code{\link{vegasBayesEvidence}}}
 }
 \description{
 An example showing how to write a function for use with \code{\link{vegasBayesEvidence}} for
-Bayesian computation using the RcppEigen library
-This example function describes a simple Bayesian hierarchical model comprising of a logistic regression with
+Bayesian computation using the RcppParallel library. This is similar to \code{\link{eigen_fn_log_post_2_par}}
+but we now reduce the dimension by 1 and pass a fixed value for the missing dimension for the variable whose
+marginal we want to compute.
+This example function describes a Bayesian hierarchical model comprising of a logistic regression with
 intercept and single binary covariate for treatment effect each with a hierarchical prior.
-This has six parameters in total. See \code{vignette("rcpp", package = "vegasr")} for Rcpp details.
+This has 14 parameters in total and is a basket trial with five baskets. See article on package website for details.
 }
 \details{
-The is an example function written using RcppEigen and has same functionality as the R function
-\code{\link{fn_log_post_1}}. It uses a transformation so the density
+The is an example function written using RcppParallel. It uses a transformation so the density
 can be integrated across the full domain of each parameter, i.e. the density includes a Jacobian
 See \code{vignette("rcpp", package = "vegasr")} for more details. Several helper function are required
 specifically normal and half-normal densities are also written in RcppEigen. Use Rcpp::sourceCpp()

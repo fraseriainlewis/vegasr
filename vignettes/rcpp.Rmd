@@ -32,21 +32,21 @@ knitr::opts_chunk$set(eval = !on_github)
 
 ```{r cran_check_setting,include=FALSE,eval=TRUE}
 # this is to de-tune all examples to get past cran checks
-#is_checking <- nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))
-#if (is_checking) {
-#     n_cores <- 2 # number of cores for computing marginal density on cran
-#     no_den_pts<-5 # very ligth grid for on cran
-#    } else { # running locally to go higher
-#    n_cores <- parallel::detectCores() - 1
-no_den_pts=50
-#}
+is_checking <- nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))
+if (is_checking) {
+     n_cores <- 2 # number of cores for computing marginal density on cran
+     no_den_pts<-5 # very ligth grid for on cran
+    } else { # running locally to go higher
+    n_cores <- parallel::detectCores() - 1
+no_den_pts=20
+}
 
 ```
 
 ## Quickstart
-Using Rcpp libraries to write the log posterior function will almost surely be faster, perhaps many times faster, than an R function even when vectorized. Examples of the timing comparison are below.  
+Using Rcpp libraries to write the log posterior function will almost surely be faster, perhaps many times faster, than an R function even when vectorized. Examples of the timing comparison are below.   
 
-Example log posterior functions are given below using two Rcpp linear algebra libraries, [RcppArmadillo](https://github.com/rcppcore/rcpparmadillo) and [RcppEigen](https://github.com/RcppCore/RcppEigen). These libraries have different pros and cons. RcppArmadillo has some built-in parallelization (via openMP) while RcppEigen does not, but both are highly efficient in their own way. RcppEigen works well with [RcppParallel](https://github.com/rcppcore/rcppparallel) which does not use openMP and can be more problematic with RcppArmadillo. 
+Example log posterior functions are given below using two Rcpp linear algebra libraries, [RcppArmadillo](https://github.com/rcppcore/rcpparmadillo) and [RcppEigen](https://github.com/RcppCore/RcppEigen). These libraries have different pros and cons. RcppArmadillo has some built-in parallelization (via OpenMP - not supported on MacOS) while RcppEigen does not, but both are highly efficient in their own way. RcppEigen works well with [RcppParallel](https://github.com/rcppcore/rcppparallel) which does not use OpenMP and can be more problematic when used with RcppArmadillo. 
 
 ## Model Formulation
 
@@ -73,7 +73,7 @@ The R chunk below creates a simple dataset of three cols:
 -   a (dummy) basket ID variable (=1)
 -   a binary treatment variable (0/1 = control/test treatment)
 
-The basket ID is currently set fixed at 1, denoting there is only one basket in this trial, i.e. it's a classical two arm randomized trial design.
+The basket ID is currently set fixed at 1, denoting there is only one basket in this trial, i.e. a classical two arm randomized trial design.
 
 ```{r datasets, include=TRUE,eval=TRUE}
 library(vegasr)
@@ -82,33 +82,34 @@ thedata<-vegasr:::fn_create_data_1(99999) # a list of y and treat as matrices
 # this function is in vegasr/R/fn_internal.R
 ```
 ## Example of calling log posterior functions
-These functions are available in the source package in fns_arma.cpp or fns_eigen.cpp in /src.
+These functions are available in the source package in fns_arma.cpp or fns_eigen.cpp in /src. They implement the same log posterior integrand, using different libraries, and the numerical output values should be the same.
 
 ```{r logpos,include=TRUE,eval=TRUE}
 ### Call the Rcpp functions to demonstrate correct input and output values
 
-theta<- matrix(data=rep(0.1,length=4*6), ncol = 6)
+theta<- matrix(data=rep(0.1,length=4*6), ncol = 6) # dummy data - must be 6 cols, any number of rows
 
-vegasr:::fn_log_post_1(theta, thedata$y, thedata$treat,.0, 1.0)
+vegasr:::fn_log_post_1(theta, thedata$y, thedata$treat,.0, 1.0) # R function
 # this function is in vegasr/R/fn_internal.R
 
-vegasr::arma_fn_log_post_1(theta, thedata$y, thedata$treat,0.0, 1.0)
+vegasr::arma_fn_log_post_1(theta, thedata$y, thedata$treat,0.0, 1.0) # Armadillo function
 # this function is in vegasr/src/fns_arma.cpp
 
-vegasr::eigen_fn_log_post_1(theta, thedata$y, thedata$treat,0.0, 1.0)
+vegasr::eigen_fn_log_post_1(theta, thedata$y, thedata$treat,0.0, 1.0) # Eigen function
 # this function is in vegasr/src/fns_eigen.cpp
 
 ```
 ## Timing comparisons
+Results below demonstrate the speed increase of Rcpp over plain R. An approx x4 speed up is seen in this example on a like for like basis. Using parallel computation additionally makes a big difference even in this fairly simple case, with a bigger differential expected the more complex the model.  When computing marginal densities and/or integrands in more than a few dimensions the speed of each individual function call becomes increasing important as this will be called a large number of times. 
 
 ```{r logpos2,include=TRUE,eval=TRUE}
 library(vegasr)
 # now setup python environment
 vegas_initialize() # this needed called once per session after library(vegas)
-library(tictoc)
+library(tictoc) # easy timing
 
 ## pure R
-tic()
+tic("plain R")
 result_logEv<-vegasBayesEvidence(f=vegasr:::fn_log_post_1,
                                  lower=c(-1,-1,-1,-1,0.0001,0.0001),
                                  upper=c(1,1,1,1,1,1),
@@ -118,10 +119,10 @@ result_logEv<-vegasBayesEvidence(f=vegasr:::fn_log_post_1,
                                  extra_args=list(
                                    y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
 toc()
-cat("log evidence = ",result_logEv,"\n")
+cat("log evidence = ",result_logEv,"\n\n")
 
 ## Armadillo
-tic()
+tic("Armadillo")
 result_logEv<-vegasBayesEvidence(f=vegasr:::arma_fn_log_post_1,
                                  lower=c(-1,-1,-1,-1,0.0001,0.0001),
                                  upper=c(1,1,1,1,1,1),
@@ -131,10 +132,10 @@ result_logEv<-vegasBayesEvidence(f=vegasr:::arma_fn_log_post_1,
                                  extra_args=list(
                                    y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
 toc()
-cat("log evidence = ",result_logEv,"\n")
+cat("log evidence = ",result_logEv,"\n\n")
 
 ## Eigen
-tic()
+tic("Eigen")
 result_logEv<-vegasBayesEvidence(f=vegasr::eigen_fn_log_post_1,
                                  lower=c(-1,-1,-1,-1,0.0001,0.0001),
                                  upper=c(1,1,1,1,1,1),
@@ -144,28 +145,28 @@ result_logEv<-vegasBayesEvidence(f=vegasr::eigen_fn_log_post_1,
                                  extra_args=list(
                                    y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
 toc()
-cat("log evidence = ",result_logEv,"\n")
+cat("log evidence = ",result_logEv,"\n\n")
 
 ## Eigen with parallel
-tic()
+tic("Eigen and RcppParallel")
 result_logEv<-vegasBayesEvidence(f=vegasr::eigen_fn_log_post_1_par,
                                  lower=c(-1,-1,-1,-1,0.0001,0.0001),
                                  upper=c(1,1,1,1,1,1),
-                                 nitn_warm = 5, neval_warm = 1e5,
-                                 nitn = 5, neval = 1e5,
+                                 nitn_warm = 5, neval_warm = 1e5, #this is deliberately too small
+                                 nitn = 5, neval = 1e5, #this is deliberately too small
                                  errTol=1,maxIter=10,seed=99999,nsearch=10000,
                                  extra_args=list(
                                    y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
 toc()
-cat("log evidence = ",result_logEv,"\n")
+cat("log evidence = ",result_logEv,"\n\n")
 
 
 ```
-## 2. Find Marginal
-Example using parallel version of log posterior using Eigen library. See fns_eigen.cpp in /src in source package.
+## Compute Marginal Posterior Density
+An example using a parallel version of log posterior via Eigen and RcppParallel libraries. See fns_eigen.cpp in /src in source package. 
 
 ```{r marg_single,include=TRUE,eval=TRUE}
-
+# Marginal density at a single point
 tic()
 mymarg<-vegasBayesPosterior(f=vegasr::eigen_fn_marg_1,
                             lower=c(-1,-1,-1,0.0001,0.0001),
@@ -176,9 +177,25 @@ mymarg<-vegasBayesPosterior(f=vegasr::eigen_fn_marg_1,
                             log_evidence = result_logEv,
                             extra_args=list(
                               y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.,z=-1.))
+
 cat("Marginal density f(z) at z = -1. = ",mymarg,"\n")
 toc()
 
+## Recompute Log Evidence - we did this above, but this is to show issues of accuracy
+tic()
+result_logEv<-vegasBayesEvidence(f=vegasr::eigen_fn_log_post_1_par,
+                                 lower=c(-1,-1,-1,-1,0.0001,0.0001),
+                                 upper=c(1,1,1,1,1,1),
+                                 nitn_warm = 5, neval_warm = 1e3, #this is too small
+                                 nitn = 5, neval = 1e3, #this is too small
+                                 errTol=1,maxIter=10,seed=99999,nsearch=10000,
+                                 extra_args=list(
+                                   y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
+toc()
+cat("log evidence = ",result_logEv,"\n\n")
+
+##################################
+# compute marginal across a range
 myz<-seq(-2.5,-0.,len=no_den_pts)
 tic("") # Start timer with a label
 f_z<-rep(0,length(myz));
@@ -199,38 +216,63 @@ for(z in myz){
 toc() # Stops timer and prints
 
 ```
+
+### Splines
+While it is possible to compute a fine grid of density values for the marginal this is typically wasteful and highly computationally intensive. An alternative option is to compute a small set of accurate density values and then apply spline interpolation - which will go through each point - to give the complete density. This can then be integrated to get necessary quantiles or other statistics of interest. 
+
+### Standardized using Log Evidence
+The textbook way to compute the marginal density is to divide the density values by the evidence, typically kept on log scales as long as possible for numerical accuracy. We calculated the log_evidence above. In practice this can result in poorly standardized densities, i.e. do not integrate to unity, unless the log evidence is very accurate which can take a lot of computational effort. An alternative is to standardize the marginal explicitly via integrating it and dividing by its area, which is easy as its one-dimensional. This approach is shown below. 
+
+```{r marg_beta111,include=TRUE}
+# explicitly standardize the posterior marginal
+logun<-log(f_z)+result_logEv # revert back to unstandardizesd log density
+f_z_un<-exp(logun) # back to unstand density
+ff_interp <- splinefun(myz, as.matrix(f_z_un), method = "fmm") # fit fun to every point
+evA<-integrate(ff_interp,min(myz),max(myz))$value # find area 
+ff_z<-f_z_un/evA # divide by area to standardize marginal density
+ff_interp <- splinefun(myz, as.matrix(ff_z), method = "fmm") # now
+
+```
+
+
 ```{r plot_marg, include=FALSE, eval=TRUE, fig.width=10, fig.height=6, out.width="100%", fig.align='center'}
 
 if(!nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))){
 library(ggplot2)
 
-# 1. Prepare data for plotting
-# Ensure f_z is a numeric vector (in case it is a list from foreach)
-if (is.list(f_z)) {
-  # If it's a list of results, extract the 'mean' component
-  if (is.list(f_z[[1]]) && "mean" %in% names(f_z[[1]])) {
-    f_z_vec <- unlist(lapply(f_z, function(x) x$mean))
-  } else {
-    f_z_vec <- unlist(f_z)
-  }
-} else {
-  f_z_vec <- f_z
-}
-
 # Create a smooth interpolation for the line
 z_grid <- seq(min(myz), max(myz), length.out = 500)
-f_interp <- splinefun(myz, f_z_vec, method = "fmm")
+f_interp <- splinefun(myz, f_z, method = "fmm")
 
 # Prepare data frames
-plot_data <- data.frame(z = as.numeric(myz), f = as.numeric(f_z_vec))
+plot_data <- data.frame(z = as.numeric(myz), f = as.numeric(f_z))
 line_data <- data.frame(z = as.numeric(z_grid), f = as.numeric(f_interp(z_grid)))
 
+plot2_data <- data.frame(z = as.numeric(myz), f = as.numeric(ff_z))
+line2_data <- data.frame(z = as.numeric(z_grid), f = as.numeric(ff_interp(z_grid)))
+
 # 2. Create the plot
-p <- ggplot(plot_data, aes(x = z, y = f)) +
-  # Draw the interpolated smooth line from the line_data frame
-  geom_line(data = line_data, color = "#8E44AD", linewidth = 1, alpha = 0.8) +
-  # Draw the actual data points from the plot_data frame (inherited)
-  geom_point(fill = "#D35400", color = "white", shape = 21, size = 3, stroke = 0.5) +
+p <- ggplot() +
+  # --- SECOND DATASET (Original Log Ev) ---
+  geom_area(data = line_data, aes(x = z, y = f, fill = "Standardized via Log Evidence"), alpha = 0.1) +
+  geom_line(data = line_data, aes(x = z, y = f, color = "Standardized via Log Evidence"), linewidth = 1, alpha = 0.6) +
+  geom_point(data = plot_data, aes(x = z, y = f, fill = "Standardized via Log Evidence"), color = "white", shape = 21, size = 3, stroke = 0.5) +
+
+  # --- FIRST DATASET (Marginal Posterior) ---
+  geom_area(data = line2_data, aes(x = z, y = f, fill = "Standardized explicitly"), alpha = 0.2) +
+  geom_line(data = line2_data, aes(x = z, y = f, color = "Standardized explicitly"), linewidth = 1, alpha = 0.8) +
+  geom_point(data = plot2_data, aes(x = z, y = f, fill = "Standardized explicitly"), color = "white", shape = 21, size = 3, stroke = 0.5) +
+  
+  # Unified Legend
+  scale_color_manual(name = "", values = c(
+    "Standardized via Log Evidence" = "#8E44AD",
+    "Standardized explicitly" = "#2E86C1"
+  )) +
+  scale_fill_manual(name = "", values = c(
+    "Standardized via Log Evidence" = "#8E44AD",
+    "Standardized explicitly" = "#2E86C1"
+  )) +
+
   # Labels and Title
   labs(
     title = "Marginal Posterior Density Estimation",
@@ -245,6 +287,7 @@ p <- ggplot(plot_data, aes(x = z, y = f)) +
     plot.title = element_text(face = "bold", size = 16),
     plot.subtitle = element_text(color = "grey30", size = 11),
     axis.title = element_text(face = "bold"),
+    legend.position = "top",
     panel.grid.minor = element_blank(),
     plot.margin = margin(20, 20, 20, 20)
   )

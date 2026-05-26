@@ -52,7 +52,7 @@ in out to give the log evidence also known as log marginal likelihood.
 \details{
 The function passed must meet some specific criteria and a range of example
 functions are included in the package, e.g. see \code{\link{fn_log_post_1}}, in
-particular the function deal with integration limits via transformation if
+particular the function must deal with integration limits via transformation if
 necessary. Example functions using Rcpp are also provided, see \code{\link{arma_fn_log_post_1}}
 which uses RcppArmadillo, \code{\link{eigen_fn_log_post_1}} which uses Eigen
 and \code{\link{eigen_fn_log_post_1_par}} which used Eigen and RcppParallel.
@@ -63,7 +63,6 @@ functions written in Rcpp
 
 To help avoid numerical underflow the log posterior values are location shifted
 where a maximum value is subtracted on the log scale. This maximum value
-is estimated using a simple grid search between the upper and lower bounds. This
-maximum value does not need to be precise but a higher nsearch value may potentially
-help in case of NaN or underflow.
+is estimated using a simple grid search (of size nsearch) between the upper and lower bounds. This
+maximum value does not need to be precise.
 }

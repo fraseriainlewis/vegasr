@@ -13,7 +13,7 @@
 #'   \item The first argument passed to the R function from Python vegas will be a numerical matrix of shape \code{[BATCH,Dim]}, and vegas will expect back a numerical vector of length \code{Dim}. Each row in the matrix is a single set of values of the integration variables, e.g., for a 5-D integrand then this matrix must have 5 columns. Reticulate takes care of conversion between R and Python matrices and vectors but the dimensions must be as described.
 #'   \item Additional named arguments can be passed and these should always be matrix() objects, with integers converted to float (or have trailing period added to avoid ambiguity)
 #'   \item  If an additional argument is a scalar, say s_value, then use m_value<-matrix(data=c(s_value),nrow=1), coercing to float first if necessary, and in the R function use \code{mvalue[1]}. This is to avoid auto-conversion mismatch between scalars and vectors with a single entry.
-#'   \item The warm-up period is mandatory although it can be reduced to only one iteration. This is not advised. The warm-up is the very start of grid adaptation and warm-up results are discarded as their inclusion can be inefficient due to high variance increasing the estimated error.
+#'   \item The warm-up period is mandatory although it can be reduced to only one iteration. This is not advised. The warm-up is the very start of grid adaptation and warm-up results are discarded as their inclusion can be inefficient due to high variance increasing the estimated error. Increasing nitn_warm and nitn_neval can greatly help the grid adaptation especially in more dimensions.
 #'   \item The Python vegas function takes nitn and neval arguments but does not have a tolerance argument. This function runs the Python vegas function repeatedly if necessary to reduce the error down to the target errTol level. The repeats are in blocks of nitn and neval and the final estimate and error from these blocks is combined into an overall weighted final estimate and final error. The functions necessary for this weighting and combining are provided in the vegas Python library itself and those are used, specifically vegas.ravg().
 
 #' }
@@ -36,7 +36,7 @@
 #' @param errTol  the % error target, default is 1, i.e. error is 1% of current estimated integral value
 #' @param maxIter max number of iteration blocks to run to achieve errTol. Each block comprises nitn iterations
 #' @param seed random number seed for vegas sample generation. Set for reproducible results. This is
-#' vegas' python random number generator not R's.
+#' vegas' Python random number generator not R's.
 #' @param extra_args a named list of additional arguments passed to the function f.
 #' These must be numeric vectors or matrices. See details.
 #' @importFrom glue glue
@@ -244,7 +244,7 @@ return(summary_res)
 #'
 #' @details The function passed must meet some specific criteria and a range of example
 #' functions are included in the package, e.g. see \code{\link{fn_log_post_1}}, in
-#' particular the function deal with integration limits via transformation if
+#' particular the function must deal with integration limits via transformation if
 #' necessary. Example functions using Rcpp are also provided, see \code{\link{arma_fn_log_post_1}}
 #' which uses RcppArmadillo, \code{\link{eigen_fn_log_post_1}} which uses Eigen
 #' and \code{\link{eigen_fn_log_post_1_par}} which used Eigen and RcppParallel.
@@ -255,9 +255,8 @@ return(summary_res)
 #'
 #' To help avoid numerical underflow the log posterior values are location shifted
 #' where a maximum value is subtracted on the log scale. This maximum value
-#' is estimated using a simple grid search between the upper and lower bounds. This
-#' maximum value does not need to be precise but a higher nsearch value may potentially
-#' help in case of NaN or underflow.
+#' is estimated using a simple grid search (of size nsearch) between the upper and lower bounds. This
+#' maximum value does not need to be precise.
 #'
 #' @param f An R function that takes a matrix and returns a vector. See details and examples.
 #' @param lower A vector of lower integration limits for each dimension, e.g. c(-1.,-1.-1)
@@ -316,21 +315,20 @@ vegasBayesEvidence <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000
 
 ################################################################################
 ################################################################################
-#' @title Compute Bayesian Marginal Posterior
+#' @title Compute Bayesian Marginal Posterior Density
 #'
-#' @description This function returns the estimated marginal posterior density, f(z),
-#' at a value of the random variable (model parameter being estimated) z, where the remaining dimensions/variables are
+#' @description This function returns the estimated marginal posterior density value, f(z),
+#' at a value of the random variable (model parameter being estimated) z, where the
+#' remaining dimensions/variables are
 #' integrated out. See \code{vignette("bayes1", package = "vegasr")} and
-#' \code{vignette("rcpp", package = "vegasr")}for examples and usage.
+#' \code{vignette("rcpp", package = "vegasr")} for examples and usage.
 #'
 #' @details The function passed must meet some specific criteria and a range of example
 #' functions are included in the package, e.g. see \code{\link{fn_marg_1}}.
 #'
 #' To help avoid numerical underflow the log posterior values are location shifted
 #' where a maximum value is subtracted on the log scale. This maximum value
-#' is estimated using a simple grid search between the upper and lower bounds. This
-#' maximum value does not need to be precise but a higher nsearch value may potentially
-#' help in case of NaN or underflow.
+#' is estimated using a simple grid search between the upper and lower bounds.
 #'
 #' @param f An R function that takes a matrix and returns a vector. See \code{\link{vegas}}
 #' @param lower A vector of lower integration limits for each dimension, e.g. c(-1.,-1.-1)
@@ -344,9 +342,9 @@ vegasBayesEvidence <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000
 #' @param seed random number seed for vegas sample generating. Set for reproducible results.
 #' @param nsearch number of points to evaluate log_posterior to find approx max value for shiftby. See details.
 #' @param log_evidence the standardization constant, typically from \code{\link{vegasBayesEvidence}}
-#' but any scalar can be passed including zero to get unstandardised marginal.
+#' but any scalar can be passed including zero to get unstandardised marginal. Default is 0.
 #' @param extra_args a named list of additional arguments passed to the function f. This must include at
-#' least uselog and shiftby arguments which are mandatory for the function f.
+#' least uselog, shiftby and z arguments which are mandatory for the function f.
 #' @export
 ##############################################################################################
 vegasBayesPosterior <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000,

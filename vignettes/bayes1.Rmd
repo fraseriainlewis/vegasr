@@ -6,7 +6,7 @@ output:
     toc_depth: 2
     number_sections: true
 vignette: >
-  %\VignetteIndexEntry{Bayesian Posterior Densities}
+  %\VignetteIndexEntry{Bayesian Posterior Densities using Vegas}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -30,14 +30,14 @@ knitr::opts_chunk$set(eval = !on_github)
 
 ```{r cran_check_setting,include=FALSE}
 # this is to de-tune all examples to get past cran checks
-#is_checking <- nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))
-#if (is_checking) {
-#     n_cores <- 2 # number of cores for computing marginal density on cran
-#     no_den_pts<-5 # very ligth grid for on cran
-#    } else { # running locally to go higher
-#    n_cores <- parallel::detectCores() - 1
-    no_den_pts=50
-#}
+is_checking <- nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))
+if (is_checking) {
+     n_cores <- 2 # number of cores for computing marginal density on cran
+     no_den_pts<-5 # very ligth grid for on cran
+    } else { # running locally to go higher
+    n_cores <- parallel::detectCores() - 1
+    no_den_pts=20
+}
 
 ```
 
@@ -154,7 +154,6 @@ library(tictoc)
 cl <- makeCluster(parallel::detectCores() - 1)
 
 registerDoParallel(cl)
-no_den_pts<-20
 myz<-seq(-2.5,-0.,len=no_den_pts)
 tic("Parallel Vegas Loop") # Start timer with a label
 f_z<-foreach(z= myz,.packages = c("extraDistr", "vegasr")) %dopar% {
@@ -179,25 +178,12 @@ toc() # Stops timer and prints
 if(!nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))){
 library(ggplot2)
 
-# 1. Prepare data for plotting
-# Ensure f_z is a numeric vector (in case it is a list from foreach)
-if (is.list(f_z)) {
-  # If it's a list of results, extract the 'mean' component
-  if (is.list(f_z[[1]]) && "mean" %in% names(f_z[[1]])) {
-    f_z_vec <- unlist(lapply(f_z, function(x) x$mean))
-  } else {
-    f_z_vec <- unlist(f_z)
-  }
-} else {
-  f_z_vec <- f_z
-}
-
 # Create a smooth interpolation for the line
 z_grid <- seq(min(myz), max(myz), length.out = 500)
-f_interp <- splinefun(myz, f_z_vec, method = "fmm")
+f_interp <- splinefun(myz, f_z, method = "fmm")
 
 # Prepare data frames
-plot_data <- data.frame(z = as.numeric(myz), f = as.numeric(f_z_vec))
+plot_data <- data.frame(z = as.numeric(myz), f = as.numeric(f_z))
 line_data <- data.frame(z = as.numeric(z_grid), f = as.numeric(f_interp(z_grid)))
 
 # 2. Create the plot

@@ -7,7 +7,7 @@
 eigen_fn_log_post_1_par(theta, y, treat, shiftby, uselog)
 }
 \arguments{
-\item{theta}{pass a numerical R matrix of dimension Batch x M, where M is number of parameters, here M=6
+\item{theta}{pass a numerical R matrix of dimension Batch x M, where M is number of parameters, here M=6,
 Batch can be any positive integer}
 
 \item{y}{a numeric R matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0

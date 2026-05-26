@@ -86,13 +86,14 @@ fn_create_data_5<-function(seed){
 #' can be integrated across the full domain of each parameter, i.e. the density includes a Jacobian
 #'  See \code{vignette("bayes1", package = "vegasr")} for more details.
 #'
-#' @param theta a numerical matrix of dimension Batch x M, where M is number of parameters, here M=6
+#' @param theta a numerical matrix of dimension Batch x M, where M is number of parameters, here M=6,
 #' Batch can be any positive integer
 #' @param y a numeric matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
 #' entries only
 #' @param treat a numeric matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
 #' entries only
-#' @param shiftby a numerical scalar used to help avoid underflow. Used in \code{\link{vegasBayesEvidence}}
+#' @param shiftby a numerical scalar used to help avoid underflow. Use 0.0 as this will be updated
+#' internally before passing to vegas algorithm. Used in \code{\link{vegasBayesPosterior}}
 #' @param uselog a numerical flag value takes either 1.0 or 0.0 and used to return either log or real scale
 #' value. Used in \code{\link{vegasBayesEvidence}}
 #' @export
@@ -175,27 +176,28 @@ if(FALSE){ # to test
 
 ##############################################################################################
 ##############################################################################################
-#' @title Marginal Posterior Density Function - Example 1
+#' @title Marginal Posterior Density Function using only R - Example 1
 #' @name fn_marg_1
 #' @aliases fn_marg_1
 #' @description An example showing how to write a function for use with \code{\link{vegasBayesPosterior}} for
 #' Bayesian computation. This is almost identical to \code{\link{fn_log_post_1}} but we now reduce the dimension
-#' by 1 and pass a fixed value the missing dimension for the variable who marginal we want to compute.
+#' by 1 and pass a fixed value for the missing dimension for the variable whose marginal we want to compute.
 #'
 #' @details The is an example function written purely in R. It uses a transformation so the density
 #' can be integrated across the full domain of each parameter, i.e. the density includes a Jacobian
 #'  See \code{vignette("bayes1", package = "vegasr")} for more details.
 #'
-#' @param theta a numerical matrix of dimension Batch x M, where M is number of parameters, here M=6
+#' @param theta a numerical matrix of dimension Batch x M, where M is number of parameters, here M=5,
 #' Batch can be any positive integer
 #' @param y a numeric matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
 #' entries only
 #' @param treat a numeric matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
 #' entries only
-#' @param shiftby a numerical scalar used to help avoid underflow. Used in \code{\link{vegasBayesPosterior}}
+#' @param shiftby a numerical scalar used to help avoid underflow. Use 0.0 as this will be updated
+#' internally before passing to vegas algorithm. Used in \code{\link{vegasBayesPosterior}}
 #' @param uselog a numerical flag value takes either 1.0 or 0.0 and used to return either log or real scale
 #' value. Used in \code{\link{vegasBayesPosterior}}
-#' @param z a numerical and the function call computes the density at this value, i.e. f(z).
+#' @param z a numerical value and the function call computes the density at this value, i.e. f(z).
 #' Used in \code{\link{vegasBayesPosterior}}
 #' @export
 ## Define log posterior for a marginal calclation including change of variables

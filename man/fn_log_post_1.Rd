@@ -7,7 +7,7 @@
 fn_log_post_1(theta, y, treat, shiftby, uselog)
 }
 \arguments{
-\item{theta}{a numerical matrix of dimension Batch x M, where M is number of parameters, here M=6
+\item{theta}{a numerical matrix of dimension Batch x M, where M is number of parameters, here M=6,
 Batch can be any positive integer}
 
 \item{y}{a numeric matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
@@ -16,7 +16,8 @@ entries only}
 \item{treat}{a numeric matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
 entries only}
 
-\item{shiftby}{a numerical scalar used to help avoid underflow. Used in \code{\link{vegasBayesEvidence}}}
+\item{shiftby}{a numerical scalar used to help avoid underflow. Use 0.0 as this will be updated
+internally before passing to vegas algorithm. Used in \code{\link{vegasBayesPosterior}}}
 
 \item{uselog}{a numerical flag value takes either 1.0 or 0.0 and used to return either log or real scale
 value. Used in \code{\link{vegasBayesEvidence}}}

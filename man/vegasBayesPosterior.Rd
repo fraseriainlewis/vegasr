@@ -2,7 +2,7 @@
 % Please edit documentation in R/vegas_integrate.R
 \name{vegasBayesPosterior}
 \alias{vegasBayesPosterior}
-\title{Compute Bayesian Marginal Posterior}
+\title{Compute Bayesian Marginal Posterior Density}
 \usage{
 vegasBayesPosterior(
   f,
@@ -44,16 +44,17 @@ vegasBayesPosterior(
 \item{nsearch}{number of points to evaluate log_posterior to find approx max value for shiftby. See details.}
 
 \item{log_evidence}{the standardization constant, typically from \code{\link{vegasBayesEvidence}}
-but any scalar can be passed including zero to get unstandardised marginal.}
+but any scalar can be passed including zero to get unstandardised marginal. Default is 0.}
 
 \item{extra_args}{a named list of additional arguments passed to the function f. This must include at
-least uselog and shiftby arguments which are mandatory for the function f.}
+least uselog, shiftby and z arguments which are mandatory for the function f.}
 }
 \description{
-This function returns the estimated marginal posterior density, f(z),
-at a value of the random variable (model parameter being estimated) z, where the remaining dimensions/variables are
+This function returns the estimated marginal posterior density value, f(z),
+at a value of the random variable (model parameter being estimated) z, where the
+remaining dimensions/variables are
 integrated out. See \code{vignette("bayes1", package = "vegasr")} and
-\code{vignette("rcpp", package = "vegasr")}for examples and usage.
+\code{vignette("rcpp", package = "vegasr")} for examples and usage.
 }
 \details{
 The function passed must meet some specific criteria and a range of example
@@ -61,7 +62,5 @@ functions are included in the package, e.g. see \code{\link{fn_marg_1}}.
 
 To help avoid numerical underflow the log posterior values are location shifted
 where a maximum value is subtracted on the log scale. This maximum value
-is estimated using a simple grid search between the upper and lower bounds. This
-maximum value does not need to be precise but a higher nsearch value may potentially
-help in case of NaN or underflow.
+is estimated using a simple grid search between the upper and lower bounds.
 }

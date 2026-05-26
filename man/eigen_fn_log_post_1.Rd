@@ -7,7 +7,7 @@
 eigen_fn_log_post_1(theta, y, treat, shiftby, uselog)
 }
 \arguments{
-\item{theta}{pass a numerical R matrix of dimension Batch x M, where M is number of parameters, here M=6
+\item{theta}{pass a numerical R matrix of dimension Batch x M, where M is number of parameters, here M=6,
 Batch can be any positive integer}
 
 \item{y}{a numeric R matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
@@ -23,7 +23,7 @@ value. Used in \code{\link{vegasBayesEvidence}}}
 }
 \description{
 An example showing how to write a function for use with \code{\link{vegasBayesEvidence}} for
-Bayesian computation using the RcppEigen library
+Bayesian computation using the RcppEigen library.
 This example function describes a simple Bayesian hierarchical model comprising of a logistic regression with
 intercept and single binary covariate for treatment effect each with a hierarchical prior.
 This has six parameters in total. See \code{vignette("rcpp", package = "vegasr")} for Rcpp details.
@@ -32,7 +32,7 @@ This has six parameters in total. See \code{vignette("rcpp", package = "vegasr")
 The is an example function written using RcppEigen and has same functionality as the R function
 \code{\link{fn_log_post_1}}. It uses a transformation so the density
 can be integrated across the full domain of each parameter, i.e. the density includes a Jacobian
-See \code{vignette("rcpp", package = "vegasr")} for more details. Several helper function are required
+See \code{vignette("rcpp", package = "vegasr")} for more details. Several helper functions are required,
 specifically normal and half-normal densities are also written in RcppEigen. Use Rcpp::sourceCpp()
 or similar to run the functions separately. They are in the fns_eigen.cpp file in the source package.
 }

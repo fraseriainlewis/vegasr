@@ -7,7 +7,7 @@
 eigen_fn_marg_1(theta, y, treat, shiftby, uselog, z)
 }
 \arguments{
-\item{theta}{pass a numerical R matrix of dimension Batch x M, where M is number of parameters, here M=6
+\item{theta}{pass a numerical R matrix of dimension Batch x M, where M is number of parameters, here M=5,
 Batch can be any positive integer}
 
 \item{y}{a numeric R matrix of dimension N x 1, this is the response variable and should be 1.0 or 0.0
@@ -26,7 +26,7 @@ value. Used in \code{\link{vegasBayesPosterior}}}
 \description{
 An example showing how to write a function for use with \code{\link{vegasBayesPosterior}} for
 Bayesian computation. This is almost identical to \code{\link{eigen_fn_log_post_1_par}} but we now reduce the dimension
-by 1 and pass a fixed value the missing dimension for the variable who marginal we want to compute.
+by 1 and pass a fixed value for the missing dimension for the variable whose marginal we want to compute.
 See \code{vignette("rcpp", package = "vegasr")} for Rcpp details.
 }
 \details{
