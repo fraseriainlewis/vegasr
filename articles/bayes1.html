@@ -5,17 +5,17 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Bayesian Posterior Densities • vegasr</title>
+<title>Bayesian Posterior Densities using Vegas • vegasr</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
 <link rel="icon" sizes="any" href="../favicon.ico">
 <link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Bayesian Posterior Densities">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Bayesian Posterior Densities using Vegas">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">vegasr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,9 +38,9 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/bayes1.html">Bayesian Posterior Densities</a></li>
+<li><a class="dropdown-item" href="../articles/bayes1.html">Bayesian Posterior Densities using Vegas</a></li>
     <li><a class="dropdown-item" href="../articles/rcpp.html">Using Rcpp in Vegasr</a></li>
-    <li><a class="dropdown-item" href="../articles/rcpp2.html">Using Rcpp2 in Vegasr</a></li>
+    <li><a class="dropdown-item" href="../articles/rcpp2.html">Comparing Stan v Vegasr - Basket Trial</a></li>
   </ul>
 </li>
       </ul>
@@ -61,7 +61,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.png" class="logo" alt=""><h1>Bayesian Posterior Densities</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Bayesian Posterior Densities using Vegas</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/fraseriainlewis/vegasr/blob/HEAD/vignettes/bayes1.Rmd" class="external-link"><code>vignettes/bayes1.Rmd</code></a></small>
@@ -70,18 +70,21 @@
 
     
     
-<div class="section level3">
-<h3 id="quickstart">Quickstart<a class="anchor" aria-label="anchor" href="#quickstart"></a>
-</h3>
-<p>A first example of how to compute a Bayesian posterior density using
-vegasr with the integrand written as an R function. Examples of how to
-use vegasr to compute general integrals can be found in the ?vegas help
-page.</p>
+<div class="section level2">
+<h2 id="quickstart">Quickstart<a class="anchor" aria-label="anchor" href="#quickstart"></a>
+</h2>
+<p>This is a first example of how to compute a Bayesian posterior
+density using vegasr, with the integrand written as an R function.
+Examples of how to use vegasr to compute general integrals can be found
+in the ?vegas help page. See the package vignettes for other integrands
+and how to use Rcpp to write the integrand functions.</p>
 </div>
 <div class="section level2">
 <h2 id="model-formulation">Model Formulation<a class="anchor" aria-label="anchor" href="#model-formulation"></a>
 </h2>
-<p>The model implemented here is:</p>
+<p>The model implemented here is a hierarchical Bayesian model with
+logistic link function and single predictor denoting treatment
+effect:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>μ</mi><mn>0</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>2.5</mn><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>σ</mi><mn>0</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Half-Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>2.5</mn><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>μ</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>2.5</mn><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>σ</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Half-Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>2.5</mn><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>β</mi><mn>0</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>μ</mi><mn>0</mn></msub><mo>,</mo><msub><mi>σ</mi><mn>0</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>β</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>μ</mi><mn>1</mn></msub><mo>,</mo><msub><mi>σ</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><mtext mathvariant="normal">logit(</mtext><msub><mi>p</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msub><mi>β</mi><mn>0</mn></msub><mo>+</mo><msub><mi>β</mi><mn>1</mn></msub><msub><mi>z</mi><mi>i</mi></msub><mspace width="1.0em"></mspace><mspace width="1.0em"></mspace><mspace width="1.0em"></mspace><mspace width="1.0em"></mspace><mspace width="0.5em"></mspace><mspace width="0.5em"></mspace><mtext mathvariant="normal">for</mtext><mspace width="0.5em"></mspace><mrow><mi>i</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>N</mi></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>y</mi><mi>i</mi></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Bernoulli</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>p</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr></mtable><annotation encoding="application/x-tex">
 \begin{aligned}
 \mu_0 &amp;\sim \text{Normal}(0, 2.5)\\
@@ -93,7 +96,11 @@ page.</p>
 \text{logit(}{p_i}) &amp;= \beta_0 + \beta_1 z_i\quad\quad\quad\quad\enspace\enspace\text{for}\enspace{i=1,\dots,N}  \\
 y_i &amp;\sim \text{Bernoulli}(p_i)
 \end{aligned}
-</annotation></semantics></math> ### Data set</p>
+</annotation></semantics></math></p>
+</div>
+<div class="section level2">
+<h2 id="data-set">Data set<a class="anchor" aria-label="anchor" href="#data-set"></a>
+</h2>
 <p>The R chunk below creates a simple dataset of three cols:</p>
 <ul>
 <li>a binary response variable y (0/1 = non-responder/responder),</li>
@@ -102,21 +109,21 @@ y_i &amp;\sim \text{Bernoulli}(p_i)
 </ul>
 <p>The basket ID is currently set fixed at 1, denoting there is only one
 basket in this trial, i.e. it’s a classical two arm randomized trial
-design.</p>
+design. Other examples in the package include five baskets.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">thedata</span><span class="op">&lt;-</span><span class="fu">vegasr</span><span class="fu">:::</span><span class="fu">fn_create_data_1</span><span class="op">(</span><span class="fl">99999</span><span class="op">)</span> <span class="co"># a list of y and treat with both as matrices</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="construct-log-posterior-function">Construct Log Posterior Function<a class="anchor" aria-label="anchor" href="#construct-log-posterior-function"></a>
 </h2>
-<p>To use direct integration in Vegas for Bayesian computation the key
-task is to:</p>
+<p>To use direct integration for Bayesian computation the key task is
+to:</p>
 <ul>
 <li>write a function that computes the log likelihood + log priors + log
-jacobian</li>
+Jacobian</li>
 </ul>
 <p>We recommend using a <strong>change of variables</strong> to deal
-with the range of integration going to
+with the ranges of integration going to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>∞</mi><annotation encoding="application/x-tex">\infty</annotation></semantics></math>
 or
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mi>∞</mi></mrow><annotation encoding="application/x-tex">-\infty</annotation></semantics></math>.
@@ -146,7 +153,7 @@ x&amp;=&amp;\frac{t}{1-t^2} \\
 <h2 id="find-log-evidence">Find Log Evidence<a class="anchor" aria-label="anchor" href="#find-log-evidence"></a>
 </h2>
 <p>The function below <code>vegasr:::fn_log_post_1</code> returns the
-log posterior. see ?fn_log_post_1 for specifics. The function
+log posterior. See ?fn_log_post_1 for specifics. The function
 <code><a href="../reference/vegasBayesEvidence.html">vegasBayesEvidence()</a></code> computes the log evidence, i.e. it
 integrates out all parameters in the posterior
 <code>vegasr:::fn_log_post_1</code> to give the constant needed to
@@ -156,7 +163,7 @@ found in ?vegasBayesEvidence.</p>
 <code class="sourceCode R"><span><span class="co">### Now use VEGAS</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/fraseriainlewis/vegasr" class="external-link">vegasr</a></span><span class="op">)</span></span>
 <span><span class="co"># now setup python environment</span></span>
-<span><span class="fu"><a href="../reference/vegas_initialize.html">vegas_initialize</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># this needed called once per session after library(vegas) </span></span>
+<span><span class="fu"><a href="../reference/vegas_initialize.html">vegas_initialize</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># this needs called once per session after library(vegasr) </span></span>
 <span><span class="co">#&gt; successfully initialized vegas version: 6.4.1</span></span>
 <span></span>
 <span><span class="va">result_logEv</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesEvidence.html">vegasBayesEvidence</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">:::</span><span class="va"><a href="../reference/fn_log_post_1.html">fn_log_post_1</a></span>,</span>
@@ -174,16 +181,16 @@ found in ?vegasBayesEvidence.</p>
 <h2 id="compute-the-marginal-density">Compute the Marginal Density<a class="anchor" aria-label="anchor" href="#compute-the-marginal-density"></a>
 </h2>
 <p>We use <code><a href="../reference/vegasBayesPosterior.html">vegasBayesPosterior()</a></code> to compute a single density
-value on the marginal posterior density. This functions takes as input
-the log posterior for the model but where one dimension is now fixed,
-i.e. the integrand has one less dimension,
+value on the marginal posterior density for a single model parameter.
+This function takes as input a function for log posterior for the model
+but where one dimension is now fixed (here
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\beta_0</annotation></semantics></math>
+in the model above), i.e. the integrand has one less dimension,
 e.g. <code>vegasr:::fn_log_post_1</code> is 6-D whereas
-<code>vegasr:::fn_marg_1_1</code> below is only 5-D and the 6th
-dimension is passed as a fix value, z. see the respective help pages for
-these functions for their differences.</p>
+<code>vegasr:::fn_marg_1_1</code> below is 5-D and the 6th dimension is
+passed as a fixed value, z.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># compute posterior marginal for intercept $\mu_0$ in the model where intercept = -1.</span></span>
+<code class="sourceCode R"><span><span class="co"># compute posterior marginal for intercept $\beta_0$ in the model where intercept = -1.</span></span>
 <span><span class="va">mymarg</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesPosterior.html">vegasBayesPosterior</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">:::</span><span class="va"><a href="../reference/fn_marg_1.html">fn_marg_1</a></span>,</span>
 <span>                           lower<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="fl">0.0001</span>,<span class="fl">0.0001</span><span class="op">)</span>,</span>
 <span>                           upper<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span>,</span>
@@ -197,13 +204,12 @@ these functions for their differences.</p>
 <span><span class="co">#&gt; Marginal density f(z) at z = -1. =  1.436437</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="compute-the-marginal-density-over-a-range">Compute the Marginal Density over a range<a class="anchor" aria-label="anchor" href="#compute-the-marginal-density-over-a-range"></a>
+<h2 id="marginal-density-over-a-range">Marginal Density over a Range<a class="anchor" aria-label="anchor" href="#marginal-density-over-a-range"></a>
 </h2>
-<p>To compute the density over a necessary range one approach is to
-iterate across a grid of z values. The is the approach taken below using
-doParallel. This is embarrassingly parallel as the computation of the
-posterior density at each value fixed value of z are independent. Other
-approaches are possible e.g. see vignette rpp.Rmd.</p>
+<p>To compute the marginal posterior density over a range of z we
+iterate across a grid of z values. This can easily be done using
+doParallel as this is embarrassingly parallel - the computation of the
+posterior density at each fixed value of z are independent.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/nchar.html" class="external-link">nzchar</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"_R_CHECK_PACKAGE_NAME_"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
@@ -215,7 +221,6 @@ approaches are possible e.g. see vignette rpp.Rmd.</p>
 <span><span class="va">cl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/parallel/makeCluster.html" class="external-link">makeCluster</a></span><span class="op">(</span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/doParallel/man/registerDoParallel.html" class="external-link">registerDoParallel</a></span><span class="op">(</span><span class="va">cl</span><span class="op">)</span></span>
-<span><span class="va">no_den_pts</span><span class="op">&lt;-</span><span class="fl">20</span></span>
 <span><span class="va">myz</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2.5</span>,<span class="op">-</span><span class="fl">0.</span>,len<span class="op">=</span><span class="va">no_den_pts</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="st">"Parallel Vegas Loop"</span><span class="op">)</span> <span class="co"># Start timer with a label</span></span>
 <span><span class="va">f_z</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/pkg/foreach/man/foreach.html" class="external-link">foreach</a></span><span class="op">(</span>z<span class="op">=</span> <span class="va">myz</span>,.packages <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"extraDistr"</span>, <span class="st">"vegasr"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/foreach/man/foreach.html" class="external-link">%dopar%</a></span> <span class="op">{</span></span>
@@ -236,14 +241,14 @@ approaches are possible e.g. see vignette rpp.Rmd.</p>
 <span><span class="op">}</span></span>
 <span><span class="co">#&gt; Loading required package: iterators</span></span>
 <span><span class="co">#&gt; Loading required package: parallel</span></span>
-<span><span class="co">#&gt; Parallel Vegas Loop: 5.883 sec elapsed</span></span></code></pre></div>
+<span><span class="co">#&gt; Parallel Vegas Loop: 4.941 sec elapsed</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># 3. Display the plot</span></span>
 <span><span class="co"># plotting code above in hidden chunk</span></span>
 <span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/nchar.html" class="external-link">nzchar</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"_R_CHECK_PACKAGE_NAME_"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<p><img src="bayes1_files/figure-html/plot_marg2-1.png" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="bayes1_files/figure-html/plot_marg2-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
@@ -252,11 +257,11 @@ approaches are possible e.g. see vignette rpp.Rmd.</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Fraser Lewis.</p>
+  <p>Developed by Fraser <a href="mailto:fraser.iain.lewis@gmail.com" class="email">fraser.iain.lewis@gmail.com</a> Lewis.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

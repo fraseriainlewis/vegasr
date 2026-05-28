@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Bayesian Computation via Vegas Python library • vegasr</title>
+<title>Multidimensional Numerical Integration using Vegas+ • vegasr</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
@@ -15,9 +15,9 @@
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Bayesian Computation via Vegas Python library">
-<meta name="description" content="Numerical Integration for Bayesian Computation via wrapping the vegas Python library. This library provides the most updated vegas algorithm, vegas+ from 2021.">
-<meta property="og:description" content="Numerical Integration for Bayesian Computation via wrapping the vegas Python library. This library provides the most updated vegas algorithm, vegas+ from 2021.">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Multidimensional Numerical Integration using Vegas+">
+<meta name="description" content="Provides access from R to the most recent and efficient vegas algorithm, vegas+, implemented via wrapping the Python package &lt;https://pypi.org/project/vegas/&gt; by the algorithm author G. P. Lepage. Application area is aimed at Bayesian computation with relevant functions included.">
+<meta property="og:description" content="Provides access from R to the most recent and efficient vegas algorithm, vegas+, implemented via wrapping the Python package &lt;https://pypi.org/project/vegas/&gt; by the algorithm author G. P. Lepage. Application area is aimed at Bayesian computation with relevant functions included.">
 <meta property="og:image" content="https://fraseriainlewis.github.io/vegasr/logo.png">
 </head>
 <body>
@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="index.html">vegasr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -66,9 +66,23 @@
 </div>
 <!-- badges: start -->
 <!-- badges: end -->
-<p>Vegasr is an R library for general <strong>multi-dimensional numerical integration</strong>, with an application focus on Bayesian computation as an alternative to Markov chain Monte Carlo methods. The core functionality - numerical integration routines - are handled by the Python <a href="https://vegas.readthedocs.io/en/latest/index.html" class="external-link">vegas</a> library which was developed is maintained by the author of the vegas algorithm, G. P. Lepage. The purpose of this library is to allow ready access to the latest <a href="https://arxiv.org/abs/2009.05112" class="external-link">vegas+</a> algorithm from R. The original vegas algorithm is available in a number of existing R libraries, vegas+ is considerably more efficient and is not available elsewhere in the R ecosystem.</p>
-<p>The vegas algorithm performs efficient Monte Carlo integration for integrals of modest to high dimension where cubature or hcubature methods are computationally impractical. The <a href="https://arxiv.org/abs/2009.05112" class="external-link">vegas+</a> algorithm (2021) is a more efficient mversion of the original (1978) and widely used vegas algorithm. The original algorithm is available in <a href="https://www.gnu.org/software/gsl/doc/html/montecarlo.html" class="external-link">GNU GSL</a> and in the CRAN package <a href="https://cran.r-project.org/web/packages/cubature/refman/cubature.html#vegas" class="external-link">cubature</a>. For the original vegas article see J. Comput. Phys. 27 (1978) 192 and for later vegas+ see J. Comput. Phys. 439 (2021) 110386).</p>
-<p>The design of this library in how it deals with Python installation, dependencies and initialization closely follows the approch used by the CRAN package <a href="https://cran.r-project.org/web/packages/spacyr/index.html" class="external-link">spacyr</a>. We are grateful to the authors of this package and some of the code in vegasr is a close adaptation from spacyr. <!-- [Getting Started vignette](https://fraseriainlewis.github.io/vegasr/articles/introduction.html) --></p>
+<div class="section level2">
+<h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
+</h2>
+<p>Vegasr is an R library for <strong>general multi-dimensional numerical integration</strong> with an application focus on Bayesian computation. The core functionality - numerical integration algorithms - are handled by the Python <a href="https://vegas.readthedocs.io/en/latest/index.html" class="external-link">vegas</a> library which was developed is maintained by the author of the vegas algorithm, G. P. Lepage. The purpose of this library is to allow ready access to the latest <a href="https://arxiv.org/abs/2009.05112" class="external-link">vegas+</a> algorithm from R. The original vegas algorithm is available in a number of existing R libraries, but vegas+ is considerably more efficient and is currently not available elsewhere in the R ecosystem.</p>
+<p>The vegas algorithm performs efficient Monte Carlo integration for integrals of modest to high dimension where cubature or hcubature methods are computationally impractical. The <a href="https://arxiv.org/abs/2009.05112" class="external-link">vegas+</a> algorithm (2021) is a more efficient mversion of the original (1978) and widely used vegas algorithm. The original algorithm is available in <a href="https://www.gnu.org/software/gsl/doc/html/montecarlo.html" class="external-link">GNU GSL</a> and in the CRAN package <a href="https://cran.r-project.org/web/packages/cubature/refman/cubature.html#vegas" class="external-link">cubature</a>. For the original vegas article see J. Comput. Phys. 27 (1978) 192 and for vegas+ see J. Comput. Phys. 439 (2021) 110386).</p>
+<div class="section level3">
+<h3 id="python-wrapping">Python Wrapping<a class="anchor" aria-label="anchor" href="#python-wrapping"></a>
+</h3>
+<p>The design of the Python wrapper code and associated dependency management closely follows the approch used by the CRAN package <a href="https://cran.r-project.org/web/packages/spacyr/index.html" class="external-link">spacyr</a>. We are grateful to the authors of this package and some of the code in vegasr is a close adaptation from spacyr.</p>
+</div>
+<div class="section level3">
+<h3 id="bayesian-computation">Bayesian Computation<a class="anchor" aria-label="anchor" href="#bayesian-computation"></a>
+</h3>
+<p>Why use vegas for Bayesian Computation? There are several areas of interest: 1. MCMC estimation requires careful attention to convergence and diagnostics, vegas is an independent way to validate results estmated from MCMC sampling; 2. unlike MCMC, vegas computation is embarrassingly parallel which means log posterior evaluations can be put onto a GPU for highly efficient parallelization, albeit accessible frameworks for GPU computation are currently more challenging to access from within R compared to Python (e.g. see this Bayesian example of using <a href="https://gsk-biostatistics.github.io/vignettes-asia/vegas/stanvegas1_mlx.html" class="external-link">Vegas with MLX via Python</a>)</p>
+<!-- [Getting Started vignette](https://fraseriainlewis.github.io/vegasr/articles/introduction.html) -->
+</div>
+</div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -82,7 +96,7 @@
 <div class="section level2">
 <h2 id="example---integrate-over-a-multivariate-normal-density">Example - Integrate over a Multivariate Normal Density<a class="anchor" aria-label="anchor" href="#example---integrate-over-a-multivariate-normal-density"></a>
 </h2>
-<p>This is a basic example to show the integrand function structure and core functionality. The integrand is a 3-D multivariate normal density. R has an existing function in the <a href="https://cran.r-project.org/web/packages/mvtnorm/index.html" class="external-link">mvtnorm</a> library for efficiently computing this multivariate integral .</p>
+<p>This is a basic example to show the integrand function structure and core functionality. The integrand is a 3-D multivariate normal density. R has an existing function in the <a href="https://cran.r-project.org/web/packages/mvtnorm/index.html" class="external-link">mvtnorm</a> library for efficiently computing this multivariate integral.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Use library(mvtnorm) for 3-D Multivariate Normal Density</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://mvtnorm.R-forge.R-project.org" class="external-link">mvtnorm</a></span><span class="op">)</span> </span>

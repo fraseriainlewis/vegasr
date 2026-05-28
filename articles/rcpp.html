@@ -12,8 +12,8 @@
 <link rel="icon" sizes="any" href="../favicon.ico">
 <link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Using Rcpp in Vegasr">
 </head>
@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">vegasr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,9 +38,9 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/bayes1.html">Bayesian Posterior Densities</a></li>
+<li><a class="dropdown-item" href="../articles/bayes1.html">Bayesian Posterior Densities using Vegas</a></li>
     <li><a class="dropdown-item" href="../articles/rcpp.html">Using Rcpp in Vegasr</a></li>
-    <li><a class="dropdown-item" href="../articles/rcpp2.html">Using Rcpp2 in Vegasr</a></li>
+    <li><a class="dropdown-item" href="../articles/rcpp2.html">Comparing Stan v Vegasr - Basket Trial</a></li>
   </ul>
 </li>
       </ul>
@@ -80,9 +80,11 @@ when vectorized. Examples of the timing comparison are below.</p>
 algebra libraries, <a href="https://github.com/rcppcore/rcpparmadillo" class="external-link">RcppArmadillo</a> and
 <a href="https://github.com/RcppCore/RcppEigen" class="external-link">RcppEigen</a>. These
 libraries have different pros and cons. RcppArmadillo has some built-in
-parallelization (via openMP) while RcppEigen does not, but both are
-highly efficient in their own way. RcppEigen works well with <a href="https://github.com/rcppcore/rcppparallel" class="external-link">RcppParallel</a> which
-does not use openMP and can be more problematic with RcppArmadillo.</p>
+parallelization (via OpenMP - not supported on MacOS) while RcppEigen
+does not, but both are highly efficient in their own way. RcppEigen
+works well with <a href="https://github.com/rcppcore/rcppparallel" class="external-link">RcppParallel</a> which
+does not use OpenMP and can be more problematic when used with
+RcppArmadillo.</p>
 </div>
 <div class="section level2">
 <h2 id="model-formulation">Model Formulation<a class="anchor" aria-label="anchor" href="#model-formulation"></a>
@@ -111,7 +113,7 @@ y_i &amp;\sim \text{Bernoulli}(p_i)
 <li>a binary treatment variable (0/1 = control/test treatment)</li>
 </ul>
 <p>The basket ID is currently set fixed at 1, denoting there is only one
-basket in this trial, i.e. it’s a classical two arm randomized trial
+basket in this trial, i.e. a classical two arm randomized trial
 design.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/fraseriainlewis/vegasr" class="external-link">vegasr</a></span><span class="op">)</span></span>
@@ -124,17 +126,19 @@ design.</p>
 <h2 id="example-of-calling-log-posterior-functions">Example of calling log posterior functions<a class="anchor" aria-label="anchor" href="#example-of-calling-log-posterior-functions"></a>
 </h2>
 <p>These functions are available in the source package in fns_arma.cpp
-or fns_eigen.cpp in /src.</p>
+or fns_eigen.cpp in /src. They implement the same log posterior
+integrand, using different libraries, and the numerical output values
+should be the same.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">### Call the Rcpp functions to demonstrate correct input and output values</span></span>
 <span></span>
-<span><span class="va">theta</span><span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span>data<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.1</span>,length<span class="op">=</span><span class="fl">4</span><span class="op">*</span><span class="fl">6</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
+<span><span class="va">theta</span><span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span>data<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.1</span>,length<span class="op">=</span><span class="fl">4</span><span class="op">*</span><span class="fl">6</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">6</span><span class="op">)</span> <span class="co"># dummy data - must be 6 cols, any number of rows</span></span>
 <span></span>
-<span><span class="fu">vegasr</span><span class="fu">:::</span><span class="fu"><a href="../reference/fn_log_post_1.html">fn_log_post_1</a></span><span class="op">(</span><span class="va">theta</span>, <span class="va">thedata</span><span class="op">$</span><span class="va">y</span>, <span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>,<span class="fl">.0</span>, <span class="fl">1.0</span><span class="op">)</span></span>
+<span><span class="fu">vegasr</span><span class="fu">:::</span><span class="fu"><a href="../reference/fn_log_post_1.html">fn_log_post_1</a></span><span class="op">(</span><span class="va">theta</span>, <span class="va">thedata</span><span class="op">$</span><span class="va">y</span>, <span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>,<span class="fl">.0</span>, <span class="fl">1.0</span><span class="op">)</span> <span class="co"># R function</span></span>
 <span><span class="co">#&gt; [1] -145.933 -145.933 -145.933 -145.933</span></span>
 <span><span class="co"># this function is in vegasr/R/fn_internal.R</span></span>
 <span></span>
-<span><span class="fu">vegasr</span><span class="fu">::</span><span class="fu"><a href="../reference/arma_fn_log_post_1.html">arma_fn_log_post_1</a></span><span class="op">(</span><span class="va">theta</span>, <span class="va">thedata</span><span class="op">$</span><span class="va">y</span>, <span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>,<span class="fl">0.0</span>, <span class="fl">1.0</span><span class="op">)</span></span>
+<span><span class="fu">vegasr</span><span class="fu">::</span><span class="fu"><a href="../reference/arma_fn_log_post_1.html">arma_fn_log_post_1</a></span><span class="op">(</span><span class="va">theta</span>, <span class="va">thedata</span><span class="op">$</span><span class="va">y</span>, <span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>,<span class="fl">0.0</span>, <span class="fl">1.0</span><span class="op">)</span> <span class="co"># Armadillo function</span></span>
 <span><span class="co">#&gt;          [,1]</span></span>
 <span><span class="co">#&gt; [1,] -145.933</span></span>
 <span><span class="co">#&gt; [2,] -145.933</span></span>
@@ -142,23 +146,31 @@ or fns_eigen.cpp in /src.</p>
 <span><span class="co">#&gt; [4,] -145.933</span></span>
 <span><span class="co"># this function is in vegasr/src/fns_arma.cpp</span></span>
 <span></span>
-<span><span class="fu">vegasr</span><span class="fu">::</span><span class="fu"><a href="../reference/eigen_fn_log_post_1.html">eigen_fn_log_post_1</a></span><span class="op">(</span><span class="va">theta</span>, <span class="va">thedata</span><span class="op">$</span><span class="va">y</span>, <span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>,<span class="fl">0.0</span>, <span class="fl">1.0</span><span class="op">)</span></span>
+<span><span class="fu">vegasr</span><span class="fu">::</span><span class="fu"><a href="../reference/eigen_fn_log_post_1.html">eigen_fn_log_post_1</a></span><span class="op">(</span><span class="va">theta</span>, <span class="va">thedata</span><span class="op">$</span><span class="va">y</span>, <span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>,<span class="fl">0.0</span>, <span class="fl">1.0</span><span class="op">)</span> <span class="co"># Eigen function</span></span>
 <span><span class="co">#&gt; [1] -145.933 -145.933 -145.933 -145.933</span></span>
 <span><span class="co"># this function is in vegasr/src/fns_eigen.cpp</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="timing-comparisons">Timing comparisons<a class="anchor" aria-label="anchor" href="#timing-comparisons"></a>
 </h2>
+<p>Results below demonstrate the speed increase of Rcpp over plain R. An
+approx x4 speed up is seen in this example on a like for like basis.
+Using parallel computation additionally makes a big difference even in
+this fairly simple case, with a bigger differential expected the more
+complex the model. When computing marginal densities and/or integrands
+in more than a few dimensions the speed of each individual function call
+becomes increasing important as this will be called a large number of
+times.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/fraseriainlewis/vegasr" class="external-link">vegasr</a></span><span class="op">)</span></span>
 <span><span class="co"># now setup python environment</span></span>
 <span><span class="fu"><a href="../reference/vegas_initialize.html">vegas_initialize</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># this needed called once per session after library(vegas)</span></span>
 <span><span class="co">#&gt; vegas is already initialized</span></span>
 <span><span class="co">#&gt; NULL</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jabiru/tictoc" class="external-link">tictoc</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jabiru/tictoc" class="external-link">tictoc</a></span><span class="op">)</span> <span class="co"># easy timing</span></span>
 <span></span>
 <span><span class="co">## pure R</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="st">"plain R"</span><span class="op">)</span></span>
 <span><span class="va">result_logEv</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesEvidence.html">vegasBayesEvidence</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">:::</span><span class="va"><a href="../reference/fn_log_post_1.html">fn_log_post_1</a></span>,</span>
 <span>                                 lower<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="fl">0.0001</span>,<span class="fl">0.0001</span><span class="op">)</span>,</span>
 <span>                                 upper<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span>,</span>
@@ -168,12 +180,12 @@ or fns_eigen.cpp in /src.</p>
 <span>                                 extra_args<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>                                   y<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">y</span>,treat<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>,shiftby<span class="op">=</span><span class="fl">0</span>,uselog<span class="op">=</span><span class="fl">1.</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; 5.756 sec elapsed</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"log evidence = "</span>,<span class="va">result_logEv</span>,<span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; plain R: 4.808 sec elapsed</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"log evidence = "</span>,<span class="va">result_logEv</span>,<span class="st">"\n\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; log evidence =  -129.4204</span></span>
 <span></span>
 <span><span class="co">## Armadillo</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="st">"Armadillo"</span><span class="op">)</span></span>
 <span><span class="va">result_logEv</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesEvidence.html">vegasBayesEvidence</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">:::</span><span class="va"><a href="../reference/arma_fn_log_post_1.html">arma_fn_log_post_1</a></span>,</span>
 <span>                                 lower<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="fl">0.0001</span>,<span class="fl">0.0001</span><span class="op">)</span>,</span>
 <span>                                 upper<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span>,</span>
@@ -183,12 +195,12 @@ or fns_eigen.cpp in /src.</p>
 <span>                                 extra_args<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>                                   y<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">y</span>,treat<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>,shiftby<span class="op">=</span><span class="fl">0</span>,uselog<span class="op">=</span><span class="fl">1.</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; 1.748 sec elapsed</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"log evidence = "</span>,<span class="va">result_logEv</span>,<span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Armadillo: 1.426 sec elapsed</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"log evidence = "</span>,<span class="va">result_logEv</span>,<span class="st">"\n\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; log evidence =  -129.4204</span></span>
 <span></span>
 <span><span class="co">## Eigen</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="st">"Eigen"</span><span class="op">)</span></span>
 <span><span class="va">result_logEv</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesEvidence.html">vegasBayesEvidence</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">::</span><span class="va"><a href="../reference/eigen_fn_log_post_1.html">eigen_fn_log_post_1</a></span>,</span>
 <span>                                 lower<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="fl">0.0001</span>,<span class="fl">0.0001</span><span class="op">)</span>,</span>
 <span>                                 upper<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span>,</span>
@@ -198,32 +210,33 @@ or fns_eigen.cpp in /src.</p>
 <span>                                 extra_args<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>                                   y<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">y</span>,treat<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>,shiftby<span class="op">=</span><span class="fl">0</span>,uselog<span class="op">=</span><span class="fl">1.</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; 1.546 sec elapsed</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"log evidence = "</span>,<span class="va">result_logEv</span>,<span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Eigen: 1.023 sec elapsed</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"log evidence = "</span>,<span class="va">result_logEv</span>,<span class="st">"\n\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; log evidence =  -129.4204</span></span>
+<span><span class="va">result_logEv_keep</span><span class="op">&lt;-</span><span class="va">result_logEv</span>;</span>
 <span></span>
 <span><span class="co">## Eigen with parallel</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="st">"Eigen and RcppParallel"</span><span class="op">)</span></span>
 <span><span class="va">result_logEv</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesEvidence.html">vegasBayesEvidence</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">::</span><span class="va"><a href="../reference/eigen_fn_log_post_1_par.html">eigen_fn_log_post_1_par</a></span>,</span>
 <span>                                 lower<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="fl">0.0001</span>,<span class="fl">0.0001</span><span class="op">)</span>,</span>
 <span>                                 upper<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span>,</span>
-<span>                                 nitn_warm <span class="op">=</span> <span class="fl">5</span>, neval_warm <span class="op">=</span> <span class="fl">1e5</span>,</span>
-<span>                                 nitn <span class="op">=</span> <span class="fl">5</span>, neval <span class="op">=</span> <span class="fl">1e5</span>,</span>
+<span>                                 nitn_warm <span class="op">=</span> <span class="fl">5</span>, neval_warm <span class="op">=</span> <span class="fl">1e5</span>, <span class="co">#this is deliberately too small</span></span>
+<span>                                 nitn <span class="op">=</span> <span class="fl">5</span>, neval <span class="op">=</span> <span class="fl">1e5</span>, <span class="co">#this is deliberately too small</span></span>
 <span>                                 errTol<span class="op">=</span><span class="fl">1</span>,maxIter<span class="op">=</span><span class="fl">10</span>,seed<span class="op">=</span><span class="fl">99999</span>,nsearch<span class="op">=</span><span class="fl">10000</span>,</span>
 <span>                                 extra_args<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>                                   y<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">y</span>,treat<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>,shiftby<span class="op">=</span><span class="fl">0</span>,uselog<span class="op">=</span><span class="fl">1.</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; 0.223 sec elapsed</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"log evidence = "</span>,<span class="va">result_logEv</span>,<span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Eigen and RcppParallel: 0.205 sec elapsed</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"log evidence = "</span>,<span class="va">result_logEv</span>,<span class="st">"\n\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; log evidence =  -129.4204</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="find-marginal">2. Find Marginal<a class="anchor" aria-label="anchor" href="#find-marginal"></a>
+<h2 id="compute-marginal-posterior-density">Compute Marginal Posterior Density<a class="anchor" aria-label="anchor" href="#compute-marginal-posterior-density"></a>
 </h2>
-<p>Example using parallel version of log posterior using Eigen library.
-See fns_eigen.cpp in /src in source package.</p>
+<p>An example using a parallel version of log posterior via Eigen and
+RcppParallel libraries. See fns_eigen.cpp in /src in source package.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
+<code class="sourceCode R"><span><span class="co"># Marginal density at a single point</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">mymarg</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesPosterior.html">vegasBayesPosterior</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">::</span><span class="va"><a href="../reference/eigen_fn_marg_1.html">eigen_fn_marg_1</a></span>,</span>
 <span>                            lower<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="fl">0.0001</span>,<span class="fl">0.0001</span><span class="op">)</span>,</span>
@@ -234,11 +247,30 @@ See fns_eigen.cpp in /src in source package.</p>
 <span>                            log_evidence <span class="op">=</span> <span class="va">result_logEv</span>,</span>
 <span>                            extra_args<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>                              y<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">y</span>,treat<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>,shiftby<span class="op">=</span><span class="fl">0</span>,uselog<span class="op">=</span><span class="fl">1.</span>,z<span class="op">=</span><span class="op">-</span><span class="fl">1.</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Marginal density f(z) at z = -1. = "</span>,<span class="va">mymarg</span>,<span class="st">"\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Marginal density f(z) at z = -1. =  1.420125</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; 0.045 sec elapsed</span></span>
 <span></span>
+<span><span class="co">## Recompute Log Evidence - we did this above, but this is to show issues of accuracy</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">result_logEv</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesEvidence.html">vegasBayesEvidence</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">::</span><span class="va"><a href="../reference/eigen_fn_log_post_1_par.html">eigen_fn_log_post_1_par</a></span>,</span>
+<span>                                 lower<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="fl">0.0001</span>,<span class="fl">0.0001</span><span class="op">)</span>,</span>
+<span>                                 upper<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span>,</span>
+<span>                                 nitn_warm <span class="op">=</span> <span class="fl">5</span>, neval_warm <span class="op">=</span> <span class="fl">1e3</span>, <span class="co">#this is too small</span></span>
+<span>                                 nitn <span class="op">=</span> <span class="fl">5</span>, neval <span class="op">=</span> <span class="fl">1e3</span>, <span class="co">#this is too small</span></span>
+<span>                                 errTol<span class="op">=</span><span class="fl">1</span>,maxIter<span class="op">=</span><span class="fl">10</span>,seed<span class="op">=</span><span class="fl">99999</span>,nsearch<span class="op">=</span><span class="fl">10000</span>,</span>
+<span>                                 extra_args<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>                                   y<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">y</span>,treat<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>,shiftby<span class="op">=</span><span class="fl">0</span>,uselog<span class="op">=</span><span class="fl">1.</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warnings: tolerance not met</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; 0.023 sec elapsed</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"log evidence = "</span>,<span class="va">result_logEv</span>,<span class="st">"\n\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; log evidence =  -129.4685</span></span>
+<span></span>
+<span><span class="co">##################################</span></span>
+<span><span class="co"># compute marginal across a range</span></span>
 <span><span class="va">myz</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2.5</span>,<span class="op">-</span><span class="fl">0.</span>,len<span class="op">=</span><span class="va">no_den_pts</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="st">""</span><span class="op">)</span> <span class="co"># Start timer with a label</span></span>
 <span><span class="va">f_z</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">myz</span><span class="op">)</span><span class="op">)</span>;</span>
@@ -257,14 +289,100 @@ See fns_eigen.cpp in /src in source package.</p>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># Stops timer and prints</span></span>
-<span><span class="co">#&gt; : 2.334 sec elapsed</span></span></code></pre></div>
+<span><span class="co">#&gt; : 0.935 sec elapsed</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="splines">Splines<a class="anchor" aria-label="anchor" href="#splines"></a>
+</h3>
+<p>While it is possible to compute a fine grid of density values for the
+marginal this is typically wasteful and highly computationally
+intensive. An alternative option is to compute a small set of accurate
+density values and then apply spline interpolation - which will go
+through each point - to give the complete density. This can then be
+integrated to get necessary quantiles or other statistics of
+interest.</p>
+</div>
+<div class="section level3">
+<h3 id="standardized-using-log-evidence">Standardized using Log Evidence<a class="anchor" aria-label="anchor" href="#standardized-using-log-evidence"></a>
+</h3>
+<p>The textbook way to compute the marginal density is to divide the
+density values by the evidence, typically kept on log scales as long as
+possible for numerical accuracy. We calculated the log_evidence above.
+In practice this can sometimes result in poorly standardized densities,
+i.e. do not integrate to unity, unless the log evidence is particularly
+accurate (as small differences on log scale get magnified when scaling
+the density) which can take a lot of computational effort. An
+alternative is to standardize the marginal explicitly via integrating it
+and dividing by its area, which is easy as its one-dimensional. This
+approach is shown below.</p>
+<p>Note that if the objective is not to estimate the full density but
+rather estimation of a quantile, e.g., 2.5% point, then it may be more
+efficient to compute the log evidence and then only a small set of
+density points in the relevant tail of the marginal. See next
+section.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># explicitly standardize the posterior marginal</span></span>
+<span><span class="va">logun</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">f_z</span><span class="op">)</span><span class="op">+</span><span class="va">result_logEv</span> <span class="co"># revert back to unstandardizesd log density</span></span>
+<span><span class="va">f_z_un</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">logun</span><span class="op">)</span> <span class="co"># back to unstand density</span></span>
+<span><span class="va">ff_interp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/splinefun.html" class="external-link">splinefun</a></span><span class="op">(</span><span class="va">myz</span>, <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">f_z_un</span><span class="op">)</span>, method <span class="op">=</span> <span class="st">"fmm"</span><span class="op">)</span> <span class="co"># fit fun to every point</span></span>
+<span><span class="va">evA</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/stats/integrate.html" class="external-link">integrate</a></span><span class="op">(</span><span class="va">ff_interp</span>,<span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">myz</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">myz</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">value</span> <span class="co"># find area </span></span>
+<span><span class="va">ff_z</span><span class="op">&lt;-</span><span class="va">f_z_un</span><span class="op">/</span><span class="va">evA</span> <span class="co"># divide by area to standardize marginal density</span></span>
+<span><span class="va">ff_interp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/splinefun.html" class="external-link">splinefun</a></span><span class="op">(</span><span class="va">myz</span>, <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">ff_z</span><span class="op">)</span>, method <span class="op">=</span> <span class="st">"fmm"</span><span class="op">)</span> <span class="co"># now</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># 3. Display the plot</span></span>
 <span><span class="co"># plotting code above in hidden chunk</span></span>
 <span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/nchar.html" class="external-link">nzchar</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"_R_CHECK_PACKAGE_NAME_"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<p><img src="rcpp_files/figure-html/plot_marg2-1.png" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="rcpp_files/figure-html/plot_marg2-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+</div>
+<div class="section level3">
+<h3 id="computed-tail-probabilities">Computed Tail Probabilities<a class="anchor" aria-label="anchor" href="#computed-tail-probabilities"></a>
+</h3>
+<p>Often we are not interested in the full marginal posterior but we do
+want its tails, e.g. for 95% CI limits. Below shows simple example of
+how to do this. We compute the marginal density for a small number of
+points in the tail and as we known the log evidence we can use uniroot
+to solve the necessary quantile.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">##################################</span></span>
+<span><span class="co"># compute marginal across a range for just the tail</span></span>
+<span><span class="va">myz</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2.5</span>,<span class="op">-</span><span class="fl">1.6</span>,len<span class="op">=</span><span class="fl">10</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="st">""</span><span class="op">)</span> <span class="co"># Start timer with a label</span></span>
+<span><span class="va">f_z</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">myz</span><span class="op">)</span><span class="op">)</span>;</span>
+<span><span class="va">i</span><span class="op">&lt;-</span><span class="fl">1</span>;</span>
+<span><span class="kw">for</span><span class="op">(</span><span class="va">z</span> <span class="kw">in</span> <span class="va">myz</span><span class="op">)</span><span class="op">{</span></span>
+<span>  <span class="va">f_z</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/vegasBayesPosterior.html">vegasBayesPosterior</a></span><span class="op">(</span>f<span class="op">=</span><span class="fu">vegasr</span><span class="fu">::</span><span class="va"><a href="../reference/eigen_fn_marg_1.html">eigen_fn_marg_1</a></span>,</span>
+<span>                            lower<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>,<span class="fl">0.0001</span>,<span class="fl">0.0001</span><span class="op">)</span>,</span>
+<span>                            upper<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span>,</span>
+<span>                            nitn_warm <span class="op">=</span> <span class="fl">10</span>, neval_warm <span class="op">=</span> <span class="fl">10000</span>,</span>
+<span>                            nitn <span class="op">=</span> <span class="fl">10</span>, neval <span class="op">=</span> <span class="fl">10000</span>,</span>
+<span>                            errTol<span class="op">=</span><span class="fl">1</span>,maxIter<span class="op">=</span><span class="fl">10</span>,seed<span class="op">=</span><span class="fl">99999</span>,nsearch<span class="op">=</span><span class="fl">10000</span>,</span>
+<span>                            log_evidence <span class="op">=</span> <span class="va">result_logEv_keep</span>,</span>
+<span>                            extra_args<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>                              y<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">y</span>,treat<span class="op">=</span><span class="va">thedata</span><span class="op">$</span><span class="va">treat</span>,shiftby<span class="op">=</span><span class="fl">0</span>,uselog<span class="op">=</span><span class="fl">1.</span>,z<span class="op">=</span><span class="va">z</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"i="</span>,<span class="va">i</span>,<span class="st">" z="</span>,<span class="va">z</span>,<span class="st">" fz="</span>,<span class="va">f_z</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>,<span class="st">"\n"</span><span class="op">)</span></span>
+<span>  <span class="va">i</span><span class="op">&lt;-</span><span class="va">i</span><span class="op">+</span><span class="fl">1</span></span>
+<span><span class="op">}</span></span>
+<span><span class="co">#&gt; i= 1  z= -2.5  fz= 2.83255e-06 </span></span>
+<span><span class="co">#&gt; i= 2  z= -2.4  fz= 1.498566e-05 </span></span>
+<span><span class="co">#&gt; i= 3  z= -2.3  fz= 7.242119e-05 </span></span>
+<span><span class="co">#&gt; i= 4  z= -2.2  fz= 0.0003245118 </span></span>
+<span><span class="co">#&gt; i= 5  z= -2.1  fz= 0.001320631 </span></span>
+<span><span class="co">#&gt; i= 6  z= -2  fz= 0.004822544 </span></span>
+<span><span class="co">#&gt; i= 7  z= -1.9  fz= 0.01604977 </span></span>
+<span><span class="co">#&gt; i= 8  z= -1.8  fz= 0.04733017 </span></span>
+<span><span class="co">#&gt; i= 9  z= -1.7  fz= 0.1232311 </span></span>
+<span><span class="co">#&gt; i= 10  z= -1.6  fz= 0.2804151</span></span>
+<span></span>
+<span><span class="va">f_interp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/splinefun.html" class="external-link">splinefun</a></span><span class="op">(</span><span class="va">myz</span>, <span class="va">f_z</span>, method <span class="op">=</span> <span class="st">"fmm"</span><span class="op">)</span></span>
+<span><span class="va">myF</span><span class="op">&lt;-</span><span class="kw">function</span><span class="op">(</span><span class="va">x</span>,<span class="va">target</span><span class="op">)</span><span class="op">{</span><span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/integrate.html" class="external-link">integrate</a></span><span class="op">(</span><span class="va">f_interp</span>,<span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">myz</span><span class="op">)</span>,<span class="va">x</span><span class="op">)</span><span class="op">$</span><span class="va">value</span><span class="op">-</span><span class="va">target</span><span class="op">)</span><span class="op">}</span></span>
+<span></span>
+<span><span class="va">lower25</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/stats/uniroot.html" class="external-link">uniroot</a></span><span class="op">(</span>f<span class="op">=</span><span class="va">myF</span>,interval<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2.5</span>,<span class="op">-</span><span class="fl">1.6</span><span class="op">)</span>,target<span class="op">=</span><span class="fl">0.025</span><span class="op">)</span><span class="op">$</span><span class="va">root</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"\n\nLower 2.5% of Marginal Posterior = "</span>, <span class="va">lower25</span>,<span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Lower 2.5% of Marginal Posterior =  -1.62585</span></span></code></pre></div>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
@@ -273,11 +391,11 @@ See fns_eigen.cpp in /src in source package.</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Fraser Lewis.</p>
+  <p>Developed by Fraser <a href="mailto:fraser.iain.lewis@gmail.com" class="email">fraser.iain.lewis@gmail.com</a> Lewis.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>
