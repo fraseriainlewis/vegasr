@@ -7,17 +7,18 @@
 
 <!-- badges: end -->
 
-Vegasr is an R library for general **multi-dimensional numerical
-integration**, with an application focus on Bayesian computation as an
-alternative to Markov chain Monte Carlo methods. The core
-functionality - numerical integration routines - are handled by the
-Python [vegas](https://vegas.readthedocs.io/en/latest/index.html)
+## Introduction
+
+Vegasr is an R library for **general multi-dimensional numerical
+integration** with an application focus on Bayesian computation. The
+core functionality - numerical integration algorithms - are handled by
+the Python [vegas](https://vegas.readthedocs.io/en/latest/index.html)
 library which was developed is maintained by the author of the vegas
 algorithm, G. P. Lepage. The purpose of this library is to allow ready
 access to the latest [vegas+](https://arxiv.org/abs/2009.05112)
 algorithm from R. The original vegas algorithm is available in a number
-of existing R libraries, vegas+ is considerably more efficient and is
-not available elsewhere in the R ecosystem.
+of existing R libraries, but vegas+ is considerably more efficient and
+is currently not available elsewhere in the R ecosystem.
 
 The vegas algorithm performs efficient Monte Carlo integration for
 integrals of modest to high dimension where cubature or hcubature
@@ -29,14 +30,29 @@ GSL](https://www.gnu.org/software/gsl/doc/html/montecarlo.html) and in
 the CRAN package
 [cubature](https://cran.r-project.org/web/packages/cubature/refman/cubature.html#vegas).
 For the original vegas article see J. Comput. Phys. 27 (1978) 192 and
-for later vegas+ see J. Comput. Phys. 439 (2021) 110386).
+for vegas+ see J. Comput. Phys. 439 (2021) 110386).
 
-The design of this library in how it deals with Python installation,
-dependencies and initialization closely follows the approch used by the
-CRAN package
+### Python Wrapping
+
+The design of the Python wrapper code and associated dependency
+management closely follows the approch used by the CRAN package
 [spacyr](https://cran.r-project.org/web/packages/spacyr/index.html). We
 are grateful to the authors of this package and some of the code in
 vegasr is a close adaptation from spacyr.
+
+### Bayesian Computation
+
+Why use vegas for Bayesian Computation? There are several areas of
+interest: 1. MCMC estimation requires careful attention to convergence
+and diagnostics, vegas is an independent way to validate results
+estmated from MCMC sampling; 2. unlike MCMC, vegas computation is
+embarrassingly parallel which means log posterior evaluations can be put
+onto a GPU for highly efficient parallelization, albeit accessible
+frameworks for GPU computation are currently more challenging to access
+from within R compared to Python (e.g. see this Bayesian example of
+using [Vegas with MLX via
+Python](https://gsk-biostatistics.github.io/vignettes-asia/vegas/stanvegas1_mlx.html))
+
 <!-- [Getting Started vignette](https://fraseriainlewis.github.io/vegasr/articles/introduction.html) -->
 
 ## Installation
@@ -62,7 +78,7 @@ This is a basic example to show the integrand function structure and
 core functionality. The integrand is a 3-D multivariate normal density.
 R has an existing function in the
 [mvtnorm](https://cran.r-project.org/web/packages/mvtnorm/index.html)
-library for efficiently computing this multivariate integral .
+library for efficiently computing this multivariate integral.
 
 ``` r
 # Use library(mvtnorm) for 3-D Multivariate Normal Density

@@ -308,6 +308,7 @@ vegasBayesEvidence <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000
 
   log_evidence = mymax + log(result$mean)
   #cat("log evidence = ",log_evidence,"\n")
+  if(result$metTolerance==0){cat("Warnings: tolerance not met\n")}
   # should be around -129.4
   return(log_evidence)
 

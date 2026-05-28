@@ -44,7 +44,7 @@ knitr::opts_chunk$set(eval=TRUE)
 ```
 
 ## Quickstart
-This article is a more complex version of the vegasr vignette [Rcpp](https://fraseriainlewis.github.io/vegasr/articles/rcpp.html) where the hierarchical Bayesian model being estimated is a basket trial comprising of five baskets and binary response with logistic link function. This model has 14 parameters. 
+This article is a more complex version of the vegasr vignette [Rcpp](https://fraseriainlewis.github.io/vegasr/articles/rcpp.html) where the hierarchical Bayesian model now being estimated is a basket trial comprising of five baskets and binary response with logistic link function. This model has 14 parameters. This article includes a comparison with results from rstan. 
 
 
 ## Model Formulation
@@ -152,7 +152,7 @@ options(mc.cores = parallel::detectCores())
 # simulation inputs as defined by scenarios or on simulated data)
 stan_mod_1 <- stan_model(model_code = BHM_stan_1)
 # Fit model
-nsamps <- 200000       # number of posterior samples (after removing burn-in) per chain
+nsamps <- 50000       # number of posterior samples (after removing burn-in) per chain
 nburnin <- 5000       # number of burn-in samples to remove at beginning of each chain
 nchains <- 4          # number of chains
 #BHM_pars_1 <- c("beta","mu0", "sigma0","mu1", "sigma1", "beta","beta_tr")     # parameters to sample
@@ -203,7 +203,7 @@ result_logEv <- vegasBayesEvidence(
   lower = lower, upper = upper,
   nitn_warm = 10, neval_warm = 100000,
   nitn = 10, neval = 100000,
-  errTol = 1, maxIter = 10, seed = 99999, nsearch = 100000,
+  errTol = 0.1, maxIter = 20, seed = 99999, nsearch = 100000,
   extra_args=list(
     y=thedata$y,
     treat=thedata$treat,
@@ -250,6 +250,7 @@ upper <- c(rep( 0.9999, 2*K),  0.9999,  0.9999,   0.9999,   0.9999)
 
 
 myz<-c(seq(-1.7,-0.4,len=20))
+
 tic("") # Start timer with a label
 f_z<-rep(0,length(myz));
 i<-1;
@@ -257,9 +258,9 @@ for(z in myz){
   f_z[i]<-vegasBayesPosterior(f=vegasr::eigen_fn_marg_2,
                             lower=lower[-1],
                             upper=upper[-1],
-                            nitn_warm = 20, neval_warm = 500000,
+                            nitn_warm = 20, neval_warm = 50000,
                             nitn = 10, neval = 50000,
-                            errTol=0.1,maxIter=25,seed=99999,nsearch=10000,
+                            errTol=1,maxIter=20,seed=99999,nsearch=10000,
                             log_evidence = result_logEv,
                             extra_args=list(
                               y=thedata$y,
@@ -285,6 +286,9 @@ ff_interp <- splinefun(myz, as.matrix(ff_z), method = "fmm") # now
 #plot(myz,predict(loess(ff_z ~ myz, span = 0.1,family="g",from=min(myz),to=max(myz))))
 
 ```
+
+## Comparison with RStan
+We compare one of the marginal densities, for $\beta_{0,0}$. These are very similar, as expected. One of the open questions is how to compare these two approaches in terms of numerical speed and accuracy, as both are approximations, and each gets better with more samples (e.g. n_eff in rstan output and neval parameter in vegas). 
 
 ```{r plot_marg, include=FALSE, fig.width=10, fig.height=6, out.width="100%", fig.align='center'}
 

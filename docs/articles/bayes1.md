@@ -1,15 +1,17 @@
-# Bayesian Posterior Densities
+# Bayesian Posterior Densities using Vegas
 
-### Quickstart
+## Quickstart
 
-A first example of how to compute a Bayesian posterior density using
-vegasr with the integrand written as an R function. Examples of how to
-use vegasr to compute general integrals can be found in the ?vegas help
-page.
+This is a first example of how to compute a Bayesian posterior density
+using vegasr, with the integrand written as an R function. Examples of
+how to use vegasr to compute general integrals can be found in the
+?vegas help page. See the package vignettes for other integrands and how
+to use Rcpp to write the integrand functions.
 
 ## Model Formulation
 
-The model implemented here is:
+The model implemented here is a hierarchical Bayesian model with
+logistic link function and single predictor denoting treatment effect:
 
 ``` math
 
@@ -24,7 +26,8 @@ The model implemented here is:
 y_i &\sim \text{Bernoulli}(p_i)
 \end{aligned}
 ```
-\### Data set
+
+## Data set
 
 The R chunk below creates a simple dataset of three cols:
 
@@ -34,7 +37,7 @@ The R chunk below creates a simple dataset of three cols:
 
 The basket ID is currently set fixed at 1, denoting there is only one
 basket in this trial, i.e. it’s a classical two arm randomized trial
-design.
+design. Other examples in the package include five baskets.
 
 ``` r
 thedata<-vegasr:::fn_create_data_1(99999) # a list of y and treat with both as matrices
@@ -42,13 +45,12 @@ thedata<-vegasr:::fn_create_data_1(99999) # a list of y and treat with both as m
 
 ## Construct Log Posterior Function
 
-To use direct integration in Vegas for Bayesian computation the key task
-is to:
+To use direct integration for Bayesian computation the key task is to:
 
 - write a function that computes the log likelihood + log priors + log
-  jacobian
+  Jacobian
 
-We recommend using a **change of variables** to deal with the range of
+We recommend using a **change of variables** to deal with the ranges of
 integration going to $`\infty`$ or $`-\infty`$. This means we integrate
 over transformed variables (see below) which have finite bounds,
 typically $`-1`$, $`0`$ or $`+1`$. As we are changing variables then
@@ -70,7 +72,7 @@ x&=&\frac{t}{1-t^2} \\
 ## Find Log Evidence
 
 The function below `vegasr:::fn_log_post_1` returns the log posterior.
-see ?fn_log_post_1 for specifics. The function
+See ?fn_log_post_1 for specifics. The function
 [`vegasBayesEvidence()`](https://fraseriainlewis.github.io/vegasr/reference/vegasBayesEvidence.md)
 computes the log evidence, i.e. it integrates out all parameters in the
 posterior `vegasr:::fn_log_post_1` to give the constant needed to
@@ -81,7 +83,7 @@ found in ?vegasBayesEvidence.
 ### Now use VEGAS
 library(vegasr)
 # now setup python environment
-vegas_initialize() # this needed called once per session after library(vegas) 
+vegas_initialize() # this needs called once per session after library(vegasr) 
 #> successfully initialized vegas version: 6.4.1
 
 result_logEv<-vegasBayesEvidence(f=vegasr:::fn_log_post_1,
@@ -100,17 +102,17 @@ cat("log evidence = ",result_logEv,"\n")
 
 We use
 [`vegasBayesPosterior()`](https://fraseriainlewis.github.io/vegasr/reference/vegasBayesPosterior.md)
-to compute a single density value on the marginal posterior density.
-This functions takes as input the log posterior for the model but where
-one dimension is now fixed, i.e. the integrand has one less dimension,
-e.g. `vegasr:::fn_log_post_1` is 6-D whereas `vegasr:::fn_marg_1_1`
-below is only 5-D and the 6th dimension is passed as a fix value, z. see
-the respective help pages for these functions for their differences.
+to compute a single density value on the marginal posterior density for
+a single model parameter. This function takes as input a function for
+log posterior for the model but where one dimension is now fixed (here
+$`\beta_0`$ in the model above), i.e. the integrand has one less
+dimension, e.g. `vegasr:::fn_log_post_1` is 6-D whereas
+`vegasr:::fn_marg_1_1` below is 5-D and the 6th dimension is passed as a
+fixed value, z.
 
 ``` r
-
-# compute posterior marginal for intercept $\mu_0$ in the model where intercept = -1.
-mymarg<-vegasBayesPosterior(f=vegasr:::fn_marg_1_1,
+# compute posterior marginal for intercept $\beta_0$ in the model where intercept = -1.
+mymarg<-vegasBayesPosterior(f=vegasr:::fn_marg_1,
                            lower=c(-1,-1,-1,0.0001,0.0001),
                            upper=c(1,1,1,1,1),
                            nitn_warm = 10, neval_warm = 10000,
@@ -123,13 +125,12 @@ cat("Marginal density f(z) at z = -1. = ",mymarg,"\n")
 #> Marginal density f(z) at z = -1. =  1.436437
 ```
 
-## Compute the Marginal Density over a range
+## Marginal Density over a Range
 
-To compute the density over a necessary range one approach is to iterate
-across a grid of z values. The is the approach taken below using
-doParallel. This is embarrassingly parallel as the computation of the
-posterior density at each value fixed value of z are independent. Other
-approaches are possible e.g. see vignette rpp.Rmd.
+To compute the marginal posterior density over a range of z we iterate
+across a grid of z values. This can easily be done using doParallel as
+this is embarrassingly parallel - the computation of the posterior
+density at each fixed value of z are independent.
 
 ``` r
 
@@ -142,11 +143,10 @@ library(tictoc)
 cl <- makeCluster(parallel::detectCores() - 1)
 
 registerDoParallel(cl)
-no_den_pts<-50
 myz<-seq(-2.5,-0.,len=no_den_pts)
 tic("Parallel Vegas Loop") # Start timer with a label
 f_z<-foreach(z= myz,.packages = c("extraDistr", "vegasr")) %dopar% {
- vegasBayesPosterior(f=vegasr:::fn_marg_1_1,
+ vegasBayesPosterior(f=vegasr:::fn_marg_1,
                       lower=c(-1,-1,-1,0.0001,0.0001),
                       upper=c(1,1,1,1,1),
                       nitn_warm = 10, neval_warm = 10000,
@@ -161,13 +161,9 @@ f_z<-foreach(z= myz,.packages = c("extraDistr", "vegasr")) %dopar% {
 stopCluster(cl)
 toc() # Stops timer and prints
 }
-#> Warning: package 'foreach' was built under R version 4.5.3
-#> Warning: package 'doParallel' was built under R version 4.5.3
 #> Loading required package: iterators
-#> Warning: package 'iterators' was built under R version 4.5.3
 #> Loading required package: parallel
-#> Warning: package 'tictoc' was built under R version 4.5.3
-#> Parallel Vegas Loop: 52.01 sec elapsed
+#> Parallel Vegas Loop: 4.941 sec elapsed
 ```
 
 ``` r

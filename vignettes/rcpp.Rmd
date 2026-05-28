@@ -146,6 +146,7 @@ result_logEv<-vegasBayesEvidence(f=vegasr::eigen_fn_log_post_1,
                                    y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
 toc()
 cat("log evidence = ",result_logEv,"\n\n")
+result_logEv_keep<-result_logEv;
 
 ## Eigen with parallel
 tic("Eigen and RcppParallel")
@@ -221,7 +222,9 @@ toc() # Stops timer and prints
 While it is possible to compute a fine grid of density values for the marginal this is typically wasteful and highly computationally intensive. An alternative option is to compute a small set of accurate density values and then apply spline interpolation - which will go through each point - to give the complete density. This can then be integrated to get necessary quantiles or other statistics of interest. 
 
 ### Standardized using Log Evidence
-The textbook way to compute the marginal density is to divide the density values by the evidence, typically kept on log scales as long as possible for numerical accuracy. We calculated the log_evidence above. In practice this can result in poorly standardized densities, i.e. do not integrate to unity, unless the log evidence is very accurate which can take a lot of computational effort. An alternative is to standardize the marginal explicitly via integrating it and dividing by its area, which is easy as its one-dimensional. This approach is shown below. 
+The textbook way to compute the marginal density is to divide the density values by the evidence, typically kept on log scales as long as possible for numerical accuracy. We calculated the log_evidence above. In practice this can sometimes result in poorly standardized densities, i.e. do not integrate to unity, unless the log evidence is particularly accurate (as small differences on log scale get magnified when scaling the density) which can take a lot of computational effort. An alternative is to standardize the marginal explicitly via integrating it and dividing by its area, which is easy as its one-dimensional. This approach is shown below. 
+
+Note that if the objective is not to estimate the full density but rather estimation of a quantile, e.g., 2.5% point, then it may be more efficient to compute the log evidence and then only a small set of density points in the relevant tail of the marginal. See next section.  
 
 ```{r marg_beta111,include=TRUE}
 # explicitly standardize the posterior marginal
@@ -302,6 +305,37 @@ print(p)
 }
 ```
 
+### Computed Tail Probabilities
+Often we are not interested in the full marginal posterior but we do want its tails, e.g. for 95% CI limits. Below shows simple example of how to do this. We compute the marginal density for a small number of points in the tail and as we known the log evidence we can use uniroot to solve the necessary quantile. 
+
+```{r quantile,include=TRUE}
+##################################
+# compute marginal across a range for just the tail
+myz<-seq(-2.5,-1.6,len=10)
+tic("") # Start timer with a label
+f_z<-rep(0,length(myz));
+i<-1;
+for(z in myz){
+  f_z[i]<-vegasBayesPosterior(f=vegasr::eigen_fn_marg_1,
+                            lower=c(-1,-1,-1,0.0001,0.0001),
+                            upper=c(1,1,1,1,1),
+                            nitn_warm = 10, neval_warm = 10000,
+                            nitn = 10, neval = 10000,
+                            errTol=1,maxIter=10,seed=99999,nsearch=10000,
+                            log_evidence = result_logEv_keep,
+                            extra_args=list(
+                              y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.,z=z))
+  cat("i=",i," z=",z," fz=",f_z[i],"\n")
+  i<-i+1
+}
+
+f_interp <- splinefun(myz, f_z, method = "fmm")
+myF<-function(x,target){return(integrate(f_interp,min(myz),x)$value-target)}
+
+lower25<-uniroot(f=myF,interval=c(-2.5,-1.6),target=0.025)$root
+cat("\n\nLower 2.5% of Marginal Posterior = ", lower25,"\n")
+  
+```
 
 
 
