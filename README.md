@@ -28,17 +28,17 @@ efficient mversion of the original (1978) and widely used vegas
 algorithm. The original algorithm is available in [GNU
 GSL](https://www.gnu.org/software/gsl/doc/html/montecarlo.html) and in
 the CRAN package
-[cubature](https://cran.r-project.org/web/packages/cubature/refman/cubature.html#vegas).
-For the original vegas article see J. Comput. Phys. 27 (1978) 192 and
-for vegas+ see J. Comput. Phys. 439 (2021) 110386).
+[cubature](https://CRAN.R-project.org/package=cubature). For the
+original vegas article see J. Comput. Phys. 27 (1978) 192 and for vegas+
+see J. Comput. Phys. 439 (2021) 110386).
 
 ### Python Wrapping
 
 The design of the Python wrapper code and associated dependency
 management closely follows the approch used by the CRAN package
-[spacyr](https://cran.r-project.org/web/packages/spacyr/index.html). We
-are grateful to the authors of this package and some of the code in
-vegasr is a close adaptation from spacyr.
+[spacyr](https://CRAN.R-project.org/package=spacyr). We are grateful to
+the authors of this package and some of the code in vegasr is a close
+adaptation from spacyr.
 
 ### Bayesian Computation
 
@@ -69,6 +69,7 @@ You can install the development version of vegasr from
 ``` r
 # install.packages("pak")
 pak::pak("fraseriainlewis/vegasr")
+library(vegasr)
 vegas_install() # this installs necessary python libraries
 ```
 
@@ -77,8 +78,8 @@ vegas_install() # this installs necessary python libraries
 This is a basic example to show the integrand function structure and
 core functionality. The integrand is a 3-D multivariate normal density.
 R has an existing function in the
-[mvtnorm](https://cran.r-project.org/web/packages/mvtnorm/index.html)
-library for efficiently computing this multivariate integral.
+[mvtnorm](https://CRAN.R-project.org/package=mvtnorm) library for
+efficiently computing this multivariate integral.
 
 ``` r
 # Use library(mvtnorm) for 3-D Multivariate Normal Density
@@ -91,7 +92,7 @@ cov<-matrix(data=c(
                  0.5, 1.2, 0.3,
                  0.2, 0.3, 0.8),ncol=3,byrow=FALSE)
 
-# Integration over the density between lower and upper limits
+# Integrate over the density between lower and upper limits
 # use built-in pmvnorm()
 set.seed(9999)
 lower=c(-0.5,-0.5,-0.5); upper=c(2.,1.,3.)
@@ -117,11 +118,11 @@ vegas_initialize()
 # Any number of other additional *named* arguments are allowed and should all 
 # be matrices and passed via an extra_args list in vegas(). See ?vegas for more details.
 
-# custom function which will be passed to python vegas via the package R function vegas()
+# custom function which will be passed to python vegas
 myf<-function(x,mu,cov){
   res<-dmvnorm(x, # this is a matrix of size [BATCH,3]
                mean = mu, # this is a 1-row matrix of length 3
-               sigma=cov)
+               sigma=cov) # matrix [3,3]
   return(res) # a vector of length BATCH
 }
 
@@ -131,7 +132,7 @@ vegas_result<-vegas(f=myf,
                         nitn_warm = 10, neval_warm = 10000,
                         nitn = 10, neval = 10000,
                         errTol=0.1,maxIter=20,seed=99999,
-                        extra_args=list(mu=mu,cov=cov)) # these are additional arguments needed for myf
+                        extra_args=list(mu=mu,cov=cov)) # additional args to myf
 print(vegas_result)
 #> $mean
 #> [1] 0.3103397

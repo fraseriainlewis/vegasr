@@ -23,7 +23,7 @@
 #'
 #' G. P. Lepage, “Adaptive multidimensional integration: vegas enhanced” J. Comp. Phys. 439 (2021) 110386.
 #'
-#' \url{https://doi.org/10.1016/j.jcp.2021.110386}
+#' \doi{10.1016/j.jcp.2021.110386}
 #'
 #' @param f An R/Rcpp function that defines the integrand to be evaluated. This takes a matrix and returns a vector. See details and examples.
 #' @param lower A vector of lower integration limits for each dimension, e.g. c(-1.,-1.-1.)

@@ -470,7 +470,7 @@ result_logEv <- vegasBayesEvidence(
 cat("log evidence = ",result_logEv,"\n")
 #> log evidence =  -655.4606
 toc()
-#> 202.451 sec elapsed
+#> 18.356 sec elapsed
 ```
 
 ## 2. Find Marginal
@@ -553,7 +553,7 @@ for(z in myz){
 #> i= 20  z= -0.4  fz= 0.001081593
 
 toc() # Stops timer and prints
-#> : 39.059 sec elapsed
+#> : 45.01 sec elapsed
 ```
 
 ``` r

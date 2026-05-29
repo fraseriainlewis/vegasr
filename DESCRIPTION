@@ -7,7 +7,7 @@ Description: Provides access from R to the most recent and efficient vegas algor
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-BuildManuals: FALSE
+BuildManual: no
 URL: https://github.com/fraseriainlewis/vegasr, https://fraseriainlewis.github.io/vegasr/
 BugReports: https://github.com/fraseriainlewis/vegasr/issues
 Imports: 

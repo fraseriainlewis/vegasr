@@ -115,5 +115,5 @@ G. P. Lepage, “A New Algorithm for Adaptive Multidimensional Integration” J.
 
 G. P. Lepage, “Adaptive multidimensional integration: vegas enhanced” J. Comp. Phys. 439 (2021) 110386.
 
-\url{https://doi.org/10.1016/j.jcp.2021.110386}
+\doi{10.1016/j.jcp.2021.110386}
 }

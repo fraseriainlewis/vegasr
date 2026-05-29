@@ -163,7 +163,7 @@ toc() # Stops timer and prints
 }
 #> Loading required package: iterators
 #> Loading required package: parallel
-#> Parallel Vegas Loop: 4.941 sec elapsed
+#> Parallel Vegas Loop: 8.124 sec elapsed
 ```
 
 ``` r

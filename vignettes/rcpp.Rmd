@@ -14,7 +14,8 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  eval=TRUE
 )
 
 # options(pkgdown.parallel_vignettes = FALSE)
@@ -24,13 +25,13 @@ on_github <- Sys.getenv("GITHUB_ACTIONS") == "true"
 
    
 # If on GitHub, set eval = FALSE for all subsequent chunks
-knitr::opts_chunk$set(eval = !on_github)
+#knitr::opts_chunk$set(eval = !on_github)
 
-#knitr::opts_chunk$set(eval=FALSE)
+knitr::opts_chunk$set(eval=TRUE)
 
 ```
 
-```{r cran_check_setting,include=FALSE,eval=TRUE}
+```{r cran_check_setting,include=FALSE}
 # this is to de-tune all examples to get past cran checks
 is_checking <- nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))
 if (is_checking) {
@@ -75,7 +76,7 @@ The R chunk below creates a simple dataset of three cols:
 
 The basket ID is currently set fixed at 1, denoting there is only one basket in this trial, i.e. a classical two arm randomized trial design.
 
-```{r datasets, include=TRUE,eval=TRUE}
+```{r datasets, include=TRUE}
 library(vegasr)
 vegas_initialize()
 thedata<-vegasr:::fn_create_data_1(99999) # a list of y and treat as matrices
@@ -84,7 +85,7 @@ thedata<-vegasr:::fn_create_data_1(99999) # a list of y and treat as matrices
 ## Example of calling log posterior functions
 These functions are available in the source package in fns_arma.cpp or fns_eigen.cpp in /src. They implement the same log posterior integrand, using different libraries, and the numerical output values should be the same.
 
-```{r logpos,include=TRUE,eval=TRUE}
+```{r logpos,include=TRUE}
 ### Call the Rcpp functions to demonstrate correct input and output values
 
 theta<- matrix(data=rep(0.1,length=4*6), ncol = 6) # dummy data - must be 6 cols, any number of rows
@@ -102,7 +103,7 @@ vegasr::eigen_fn_log_post_1(theta, thedata$y, thedata$treat,0.0, 1.0) # Eigen fu
 ## Timing comparisons
 Results below demonstrate the speed increase of Rcpp over plain R. An approx x4 speed up is seen in this example on a like for like basis. Using parallel computation additionally makes a big difference even in this fairly simple case, with a bigger differential expected the more complex the model.  When computing marginal densities and/or integrands in more than a few dimensions the speed of each individual function call becomes increasing important as this will be called a large number of times. 
 
-```{r logpos2,include=TRUE,eval=TRUE}
+```{r logpos2,include=TRUE}
 library(vegasr)
 # now setup python environment
 vegas_initialize() # this needed called once per session after library(vegas)
@@ -166,7 +167,7 @@ cat("log evidence = ",result_logEv,"\n\n")
 ## Compute Marginal Posterior Density
 An example using a parallel version of log posterior via Eigen and RcppParallel libraries. See fns_eigen.cpp in /src in source package. 
 
-```{r marg_single,include=TRUE,eval=TRUE}
+```{r marg_single,include=TRUE}
 # Marginal density at a single point
 tic()
 mymarg<-vegasBayesPosterior(f=vegasr::eigen_fn_marg_1,
@@ -238,7 +239,7 @@ ff_interp <- splinefun(myz, as.matrix(ff_z), method = "fmm") # now
 ```
 
 
-```{r plot_marg, include=FALSE, eval=TRUE, fig.width=10, fig.height=6, out.width="100%", fig.align='center'}
+```{r plot_marg, include=FALSE, fig.width=10, fig.height=6, out.width="100%", fig.align='center'}
 
 if(!nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))){
 library(ggplot2)
@@ -297,7 +298,7 @@ p <- ggplot() +
 }
 ```
 
-```{r plot_marg2, include=TRUE, eval=TRUE, fig.width=10, fig.height=6, out.width="100%", fig.align='center'}
+```{r plot_marg2, include=TRUE, fig.width=10, fig.height=6, out.width="100%", fig.align='center'}
 # 3. Display the plot
 # plotting code above in hidden chunk
 if(!nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))){
