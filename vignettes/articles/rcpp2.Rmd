@@ -258,8 +258,8 @@ for(z in myz){
   f_z[i]<-vegasBayesPosterior(f=vegasr::eigen_fn_marg_2,
                             lower=lower[-1],
                             upper=upper[-1],
-                            nitn_warm = 20, neval_warm = 50000,
-                            nitn = 10, neval = 50000,
+                            nitn_warm = 20, neval_warm = 100000,
+                            nitn = 10, neval = 200000,
                             errTol=1,maxIter=20,seed=99999,nsearch=10000,
                             log_evidence = result_logEv,
                             extra_args=list(
