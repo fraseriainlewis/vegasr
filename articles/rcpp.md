@@ -112,7 +112,7 @@ result_logEv<-vegasBayesEvidence(f=vegasr:::fn_log_post_1,
                                  extra_args=list(
                                    y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
 toc()
-#> plain R: 4.808 sec elapsed
+#> plain R: 5.113 sec elapsed
 cat("log evidence = ",result_logEv,"\n\n")
 #> log evidence =  -129.4204
 
@@ -127,7 +127,7 @@ result_logEv<-vegasBayesEvidence(f=vegasr:::arma_fn_log_post_1,
                                  extra_args=list(
                                    y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
 toc()
-#> Armadillo: 1.426 sec elapsed
+#> Armadillo: 1.506 sec elapsed
 cat("log evidence = ",result_logEv,"\n\n")
 #> log evidence =  -129.4204
 
@@ -142,7 +142,7 @@ result_logEv<-vegasBayesEvidence(f=vegasr::eigen_fn_log_post_1,
                                  extra_args=list(
                                    y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
 toc()
-#> Eigen: 1.023 sec elapsed
+#> Eigen: 1.113 sec elapsed
 cat("log evidence = ",result_logEv,"\n\n")
 #> log evidence =  -129.4204
 result_logEv_keep<-result_logEv;
@@ -158,7 +158,7 @@ result_logEv<-vegasBayesEvidence(f=vegasr::eigen_fn_log_post_1_par,
                                  extra_args=list(
                                    y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
 toc()
-#> Eigen and RcppParallel: 0.205 sec elapsed
+#> Eigen and RcppParallel: 0.224 sec elapsed
 cat("log evidence = ",result_logEv,"\n\n")
 #> log evidence =  -129.4204
 ```
@@ -184,7 +184,7 @@ mymarg<-vegasBayesPosterior(f=vegasr::eigen_fn_marg_1,
 cat("Marginal density f(z) at z = -1. = ",mymarg,"\n")
 #> Marginal density f(z) at z = -1. =  1.420125
 toc()
-#> 0.045 sec elapsed
+#> 0.047 sec elapsed
 
 ## Recompute Log Evidence - we did this above, but this is to show issues of accuracy
 tic()
@@ -198,7 +198,7 @@ result_logEv<-vegasBayesEvidence(f=vegasr::eigen_fn_log_post_1_par,
                                    y=thedata$y,treat=thedata$treat,shiftby=0,uselog=1.))
 #> Warnings: tolerance not met
 toc()
-#> 0.023 sec elapsed
+#> 0.025 sec elapsed
 cat("log evidence = ",result_logEv,"\n\n")
 #> log evidence =  -129.4685
 
@@ -222,7 +222,7 @@ for(z in myz){
 }
 
 toc() # Stops timer and prints
-#> : 0.935 sec elapsed
+#> : 0.93 sec elapsed
 ```
 
 ### Splines

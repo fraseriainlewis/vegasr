@@ -539,7 +539,7 @@ but we compute for completeness, also to a high precision.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"log evidence = "</span>,<span class="va">result_logEv</span>,<span class="st">"\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; log evidence =  -655.4606</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; 202.451 sec elapsed</span></span></code></pre></div>
+<span><span class="co">#&gt; 18.356 sec elapsed</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="find-marginal">2. Find Marginal<a class="anchor" aria-label="anchor" href="#find-marginal"></a>
@@ -619,7 +619,7 @@ See fns_eigen.cpp in /src in source package.</p>
 <span><span class="co">#&gt; i= 20  z= -0.4  fz= 0.001081593</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># Stops timer and prints</span></span>
-<span><span class="co">#&gt; : 39.059 sec elapsed</span></span></code></pre></div>
+<span><span class="co">#&gt; : 45.01 sec elapsed</span></span></code></pre></div>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">logun</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">f_z</span><span class="op">)</span><span class="op">+</span><span class="va">result_logEv</span> <span class="co"># back to unstand log density</span></span>
 <span><span class="va">f_z_un</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">logun</span><span class="op">)</span> <span class="co"># back to unstand density</span></span>
@@ -655,7 +655,7 @@ as both are approximations, and each gets better with more samples
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Fraser <a href="mailto:fraser.iain.lewis@gmail.com" class="email">fraser.iain.lewis@gmail.com</a> Lewis.</p>
+  <p>Developed by Fraser Lewis.</p>
 </div>
 
 <div class="pkgdown-footer-right">
