@@ -58,14 +58,14 @@ VectorXd eigen_half_norm_logpdf(const VectorXd& x, double sigma) {
 }
 
 // Helper: Scalar Normal Log-PDF
-inline double norm_logpdf_scalar(double x, double mu, double sigma) {
-  return -std::log(sigma) - 0.5 * std::log(2.0 * M_PI) - 0.5 * std::pow((x - mu) / sigma, 2);
-}
+//inline double norm_logpdf_scalar(double x, double mu, double sigma) {
+//  return -std::log(sigma) - 0.5 * std::log(2.0 * M_PI) - 0.5 * std::pow((x - mu) / sigma, 2);
+//}
 
 // Helper: Scalar Half-Normal Log-PDF
-inline double half_norm_logpdf_scalar(double x, double sigma) {
-  return 0.5 * (std::log(2.0) - std::log(M_PI)) - std::log(sigma) - (x * x / (2.0 * sigma * sigma));
-}
+//inline double half_norm_logpdf_scalar(double x, double sigma) {
+//  return 0.5 * (std::log(2.0) - std::log(M_PI)) - std::log(sigma) - (x * x / (2.0 * sigma * sigma));
+//}
 
 
 
