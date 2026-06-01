@@ -4,10 +4,10 @@ gvar.ranseed(99990)
 integ = vegas.Integrator(mx.array([[-1, 1],[-1,1],[-1, 1],[-1,1],[-1,1],[-1,1],[0.0001,1],[0.0001,1]],dtype=mx.float32))
 #integ.map.grid.base[0,0:5] # get the actual grid typically 1000 bins
 
-res_warmup = integ(model, nitn=50, neval=100000)
+res_warmup = integ(model, nitn=10, neval=100000)
 print(res_warmup.summary())
 
-result = integ(model, nitn=1, neval=100000,adapt=False)
+result = integ(model, nitn=1, neval=60000,adapt=False)
 print(result.summary())
 
 # Production (Stable Integration)
@@ -47,4 +47,28 @@ print(f"ESS: {ess:.0f}")
 # Step 5: Resample to get unweighted draws
 idx = np.random.choice(len(x_all), size=2000, replace=True, p=w_norm)
 posterior_samples = x_all[idx]
+
+amap = integ.map
+n_samples = 100000
+ndim = 8
+# Sample uniformly in y-space (unit hypercube)
+y = np.random.uniform(0, 1, (n_samples, ndim))
+x = np.empty_like(y)
+jac = np.empty(n_samples)
+# Map y → x, filling jac = dx/dy (product over dimensions)
+amap.map(y, x, jac)
+# or jac2 = integ.map.jac(y)
+
+# Importance weight: p_vegas(x) = 1/jac, so w ∝ f(x) * jac
+f_vals=mx.exp(compute_log_lik(mx.transpose(mx.array(x)), model.y,model.T,model.K)-model.l_max)
+weights = f_vals * jac
+weights = np.clip(weights, 0, None)
+weights /= weights.sum()
+# Step 4: Effective sample size
+ess = 1.0 / np.sum(weights**2)
+print(f"ESS: {ess:.0f} {100*ess/n_samples}")
+
+grid_list = integ2.map.extract_grid()
+# Bin widths (= dx/dy proportional, the Jacobian per bin per dim)
+inc = integ2.map.inc # shape: (ndim, ninc) # jacob is  ninc * inc where ninc is size of grid
 

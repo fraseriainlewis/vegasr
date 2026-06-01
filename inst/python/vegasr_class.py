@@ -23,6 +23,24 @@ class vegasr_wrapper:
         # this is mathematically correct but Lepage notes can introduce tiny bias and if neval is very small using
         # a frozen grid might be appropriate. See python vegas website. 
     
+    def get_x_wgts(self,integ):
+      x_samples = []
+      raw_weights = []
+      for x, wgt in integ.random_batch():
+        raw_weights.append(wgt) # needs * f(x), (wgt = jac / nincs from the grid)
+        x_samples.append(x.copy())
+      x_all = np.concatenate(x_samples, axis=0) # each x point in integrand f(x)
+      w_all = np.concatenate(raw_weights) # weight in p(x) not f(x), needs multiplied by f(x)
+      return([x_all,w_all])
+    
+    def get_grid(self,integ):
+      return(integ.map.extract_grid())
+      # actual bins
+      
+    def get_grid_inc(self,integ):
+      return(np.array(integ.map.inc))
+      # Bin widths (= dx/dy proportional, the Jacobian per bin per dim)
+     
     
     def get_all_wt_results(self):
         return(self.integresults)
