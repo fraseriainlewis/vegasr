@@ -1,6 +1,7 @@
 ####################### SETUP
 ## now use vegas to compute same integral
 library(vegasr)
+library(mvtnorm)
 ## Important - run next line in each R session to ensure python is ready
 vegas_initialize()
 

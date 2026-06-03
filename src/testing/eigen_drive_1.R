@@ -1,15 +1,21 @@
-library(RcppArmadillo)
+#library(RcppArmadillo)
 library(RcppEigen)
-library(RcppParallel)
-library(tictoc)
+#library(RcppParallel)
+#library(tictoc)
 ## provides dmvnorm_aram(x,my,cov)
 
 #Rcpp::sourceCpp("src/testing/eigen_v1.cpp")
 Rcpp::sourceCpp("src/testing/fns_imp_eigen.cpp")
 
+#mylist<-list(a=matrix(data=rnorm(3*4),ncol=1),b=matrix(data=rnorm(2*4),ncol=1))
+
+#eigen_grid(mylist)
+
 library(vegasr)
 ## Important - run next line in each R session to ensure python is ready
 vegas_initialize()
+
+library(mvtnorm)
 myf<-function(x,mu,cov){
   res<-dmvnorm(x,
                mean = mu, # this is a 1-row matrix, dmvnorm accepts this
@@ -33,4 +39,78 @@ vegas_result<-vegasip(f=myf,
 # extra_args are additional arguments needed for myf
 
 ###### COMPUTE GRID JACOBIAN and weights now check that the jac
+grid<-vegas_result$x_grid;
+y<-vegas_result$y_1 # random on [0,1]^3
+x<-vegas_result$x_1
+
+y11<-y[1,1] # which k bins is myy in
+y12<-y[1,2]
+y13<-y[1,3]
+#now get x
+inc1<-diff(grid[[1]])
+ninc1<-length(inc1)
+inc2<-diff(grid[[2]])
+ninc2<-length(inc2)
+inc3<-diff(grid[[3]])
+ninc3<-length(inc3)
+
+k11<-floor(y11*ninc1)+1 # logic y has equal increments from 0 through 1
+k12<-floor(y12*ninc2)+1 # logic ctd , y close to 0 = 0, y close = 1 ninc1-1, floor does this
+k13<-floor(y13*ninc3)+1 # +1 because R is indexes from 1 not 0, otherwise remove the +1
+
+#grid[d, k] + (y_d − k/ninc) × ninc × inc[d, k]
+x11<-grid[[1]][k11] + (y11 - (k11-1)/ninc1)*ninc1*inc1[k11] # logic y and x map into same k index so just need to find left hand edge
+x12<-grid[[2]][k12] + (y12 - (k12-1)/ninc2)*ninc2*inc2[k12] # of boundary, i.e. grid[[1]][k11] and then find out proportion of current bin used
+x13<-grid[[3]][k13] + (y13 - (k13-1)/ninc3)*ninc3*inc3[k13] # i.e. y is in [ k/ninc, (k+1)/ninc ] on 0-index, -(k11-1)/ninc then leaves just
+# the delta above the edge of the bins, then scale this by jacobian (width_x_bin/width_y_bin)
+# i.e. inc1[k11] is width of x-bin and 1/ninc1 is width of y bin
+
+# compare
+print(myx<-c(x11,x12,x13))
+print(x[1,])
+
+#################################################################################################
+## VECTOR version for one single Y "obs"
+grid<-vegas_result$x_grid;
+y<-vegas_result$y_1 # random on [0,1]^3
+x<-vegas_result$x_1
+
+y1<-c(y[1,1],y[1,2],y[1,3]) # which k bins is myy in
+
+inc<-lapply(grid,diff) # increments in each grid
+inc2<-diff_list(grid)
+ninc<-as.numeric(lapply(inc,length)) # number of bins
+#ninc2<-len_list(inc)
+k<-floor(y1*ninc)+1 # find the bind in each grid
+
+# find x using bin and scaling
+x1<-rep(0,3)
+for(i in 1:3){
+x1[i]<-grid[[i]][k[i]] + (y1[i] - (k[i]-1)/ninc[i])*ninc[i]*inc[[i]][k[i]]}
+
+# compare
+print(x1)
+print(x[1,])
+
+#jaco
+i<-1
+ninc[i]*inc[[i]][k[i]]*ninc[i+1]*inc[[i+1]][k[i+1]]*ninc[i+2]*inc[[i+2]][k[i+2]]
+
+myy<-matrix(data=y1,ncol=length(y1))
+eigen_grid(grid,myy)
+
+
+
+# jacobian is ninc*incr
+myjac<-ninc1*inc1[k11] * ninc2*inc2[k12] * ninc3*inc3[k13]
+print(myjac)
+print(vegas_result$jac1_10[1])
+print(vegas_result$jac2_10[1])
+
+# to get actual weights need to multiply by f(x)
+myXX<-matrix(data=myx,nrow=1,byrow=TRUE)
+
+# get weight for X
+myf(myXX,mu,cov)*myjac
+
 
