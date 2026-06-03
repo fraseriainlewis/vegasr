@@ -19,19 +19,19 @@ print(f"Log Evidence: {log_evidence}")
 
 x_samples = []                                                                                                      
 raw_weights = []                                                                                                          
-i=1
+#i=1
 #gvar.ranseed(99990)
 #integ.random_batch(): - faster but does in batches of x and wgt
-for x, wgt in integ.random_batch():
+for x, wgt in integ2.random_batch():
   #print(x)
-  print(i)
-  i=i+1
-  print(len(x))
-  myx = x 
-  f_vals=mx.exp(compute_log_lik(mx.transpose(mx.array(myx)), model.y,model.T,model.K)-model.l_max) #np.array([xi for xi in x])   # or vectorized
+  #print(i)
+  #i=i+1
+  #print(len(x))
+  #myx = x 
+  #f_vals=mx.exp(compute_log_lik(mx.transpose(mx.array(myx)), model.y,model.T,model.K)-model.l_max) #np.array([xi for xi in x])   # or vectorized
   #importance weight ∝ f(x) * wgt  (wgt = jac / neval from the grid)
-  mywgt=wgt
-  raw_weights.append(f_vals * wgt)
+  #mywgt=wgt
+  raw_weights.append(wgt)
   x_samples.append(x.copy())   
 
 x_all = np.concatenate(x_samples, axis=0)
@@ -48,16 +48,37 @@ print(f"ESS: {ess:.0f}")
 idx = np.random.choice(len(x_all), size=2000, replace=True, p=w_norm)
 posterior_samples = x_all[idx]
 
-amap = integ.map
-n_samples = 100000
-ndim = 8
+gvar.ranseed(99990)
+np.random.seed(42)
+amap = integ2.map
+n_samples = 10
+ndim = 3
 # Sample uniformly in y-space (unit hypercube)
 y = np.random.uniform(0, 1, (n_samples, ndim))
 x = np.empty_like(y)
 jac = np.empty(n_samples)
 # Map y → x, filling jac = dx/dy (product over dimensions)
 amap.map(y, x, jac)
-# or jac2 = integ.map.jac(y)
+jac2 = integ2.map.jac(y)
+print(jac)
+print(jac2)
+
+
+ninc = amap.ninc
+inc  = amap.inc
+ndim = amap.dim
+  
+jac3 = 1.0#np.ones(y.shape[0])
+for d in range(ndim):
+  k = np.floor(y[:, d] * ninc[d]).astype(int)
+  k = np.clip(k, 0, np.array(ninc[d]) - 1)
+  jac3 *= ninc[d] * np.array(inc)[d, k]
+print(jac3)
+
+
+
+inc = integ2.map.inc
+grid_list = integ2.map.extract_grid()
 
 # Importance weight: p_vegas(x) = 1/jac, so w ∝ f(x) * jac
 f_vals=mx.exp(compute_log_lik(mx.transpose(mx.array(x)), model.y,model.T,model.K)-model.l_max)
@@ -71,4 +92,36 @@ print(f"ESS: {ess:.0f} {100*ess/n_samples}")
 grid_list = integ2.map.extract_grid()
 # Bin widths (= dx/dy proportional, the Jacobian per bin per dim)
 inc = integ2.map.inc # shape: (ndim, ninc) # jacob is  ninc * inc where ninc is size of grid
+
+
+
+
+
+compute_jac(y,amap)
+
+ninc = amap.ninc
+inc  = amap.inc
+ndim = amap.dim
+  
+jac = 1.0#np.ones(y.shape[0])
+for d in range(ndim):
+  k = np.floor(y[:, d] * ninc[d]).astype(int)
+  k = np.clip(k, 0, np.array(ninc[d]) - 1)
+  jac *= ninc[d] * np.array(inc)[d, k]
+
+
+def compute_jac(y, amap):
+  ninc = amap.ninc
+  inc  = amap.inc
+  ndim = amap.dim
+  
+  jac = np.ones(y.shape[0])
+  for d in range(ndim):
+    k = np.floor(y[:, d] * ninc).astype(int)
+    k = np.clip(k, 0, np.array(ninc) - 1)
+    jac *= ninc * np.array(inc)[d, k]
+  return jac
+
+
+
 

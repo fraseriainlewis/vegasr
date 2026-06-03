@@ -206,6 +206,21 @@ wgts=x_wgts_list[1]
 grid_list=vegas_obj.get_grid(integ2)     # actual grid - jacob to be computed
 grid_inc=vegas_obj.get_grid_inc(integ2)     # actual grid - grid increments
 
+# short term check
+np.random.seed(42)
+amap = integ2.map
+n_samples = 10
+ndim = amap.dim
+# Sample uniformly in y-space (unit hypercube)
+y_1 = np.random.uniform(0, 1, (n_samples, ndim))
+x_1 = np.empty_like(y_1)
+jac = np.empty(n_samples)
+# Map y → x, filling jac = dx/dy (product over dimensions)
+amap.map(y_1, x_1, jac)
+jac2 = integ2.map.jac(y_1)
+#print(jac)
+#print(jac2)
+
 
 ',.trim=FALSE)
 
@@ -222,8 +237,15 @@ wgts<-reticulate::py_to_r(main$wgts)
 x_grid<-reticulate::py_to_r(main$grid_list)
 x_grid_inc<-reticulate::py_to_r(main$grid_inc)
 
-summary_res<-list(summary_res,tolSuccess,x_vals,wgts,x_grid,x_grid_inc)
-names(summary_res)<-c("mean_error","metTolerance","x_vals", "pwgts","x_grid","x_grid_inc")
+y_1<-reticulate::py_to_r(main$y_1)
+x_1<-reticulate::py_to_r(main$x_1)
+jac1_10<-reticulate::py_to_r(main$jac)
+jac2_10<-reticulate::py_to_r(main$jac2)
+
+summary_res<-list(summary_res,tolSuccess,x_vals,wgts,x_grid,x_grid_inc,
+                  y_1,x_1,jac1_10,jac2_10)
+names(summary_res)<-c("mean_error","metTolerance","x_vals", "pwgts","x_grid","x_grid_inc",
+                      "y_1","x_1","jac1_10","jac2_10")
 return(summary_res)
 
 # py$vegas$ravg(a$get_results())
