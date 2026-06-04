@@ -82,6 +82,8 @@ void eigen_grid(const Rcpp::List& xgrid, const VectorXd& y) {
   Eigen::VectorXd x(m);
   Eigen::VectorXd jac(1); jac(0)=1.0;
 
+  Rcpp::Rcout<<"k ="<<k<<std::endl;
+
   //double tmp=0.0;
   for (auto i = 0; i < m; ++i) {
     const Eigen::Map<Eigen::VectorXd> grid_i(
@@ -119,6 +121,57 @@ void eigen_grid(const Rcpp::List& xgrid, const VectorXd& y) {
 
   //Rcpp::Rcout <<"m="<<A<<std::endl;
   //return(A);
+}
+
+
+// [[Rcpp::export]]
+Rcpp::List eigen_gridM(const Rcpp::List& xgrid, const MatrixXd& y) {
+
+  int m = xgrid.size();
+  int r = y.rows();
+  int c = y.cols();
+
+  Rcpp::List result(2);
+
+  //Rcpp::Rcout<<"y maxrix"<<y<<std::endl;
+
+  Rcpp::List inc = diff_list(xgrid);
+  Eigen::VectorXd ninc = len_list(inc);
+
+  Eigen::MatrixXd X(r,c);
+  VectorXd thejac(r);
+
+  for(auto j=0;j<r;j++){// for each y vector of values, vegas internal scale vector
+
+    Eigen::VectorXd k = (y.row(j).transpose().array() * ninc.array()).floor().matrix();
+    Eigen::VectorXd x(m);
+    Eigen::VectorXd curjac(1); curjac(0)=1.0;
+    //Rcpp::Rcout<<"k="<<k<<std::endl;
+
+  for (auto i = 0; i < m; ++i) {// for each dimension within y vector
+    const Eigen::Map<Eigen::VectorXd> grid_i(
+        Rcpp::as<Eigen::Map<Eigen::VectorXd>>(xgrid[i]));
+
+    const Eigen::Map<Eigen::VectorXd> inc_i(
+        Rcpp::as<Eigen::Map<Eigen::VectorXd>>(inc[i]));
+
+    x(i)=grid_i((int)k(i)) + (y(j,i)-k(i)/ninc(i))*ninc(i)*inc_i(int(k(i)));
+
+    //Rcpp::Rcout<<"x[i]"<<x(i)<<std::endl;
+
+    curjac(0)*=ninc(i)*inc_i(int(k(i)));
+  }
+
+  //Rcpp::Rcout<<"jac"<<curjac(0)<<std::endl;
+  thejac(j)=curjac(0);
+  X.row(j) = x.transpose();
+  }
+
+  result[0]=X;
+  result[1]=thejac;
+
+  return (result);
+
 }
 
 

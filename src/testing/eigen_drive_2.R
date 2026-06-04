@@ -75,42 +75,14 @@ grid<-vegas_result$x_grid;
 y<-vegas_result$y_1 # random on [0,1]^3
 x<-vegas_result$x_1
 
-eigen_gridM(grid,y)
+# compare this with vegas_result$x
+# compare this with vegas_result$jac_10
+res<-eigen_gridM(grid,vegas_result$y_1[,])
+print(res[[1]])
+print(vegas_result$x_1)
+print(res[[2]])
+print(vegas_result$jac1_10)
 
-
-y1<-c(y[1,1],y[1,2],y[1,3]) # which k bins is myy in
-
-inc<-lapply(grid,diff) # increments in each grid
-inc2<-diff_list(grid)
-ninc<-as.numeric(lapply(inc,length)) # number of bins
-#ninc2<-len_list(inc)
-k<-floor(y1*ninc)+1 # find the bind in each grid
-
-# find x using bin and scaling
-x1<-rep(0,3)
-for(i in 1:3){
-x1[i]<-grid[[i]][k[i]] + (y1[i] - (k[i]-1)/ninc[i])*ninc[i]*inc[[i]][k[i]]}
-
-# compare
-print(x1)
-print(x[1,])
-
-#jaco
-i<-1
-ninc[i]*inc[[i]][k[i]]*ninc[i+1]*inc[[i+1]][k[i+1]]*ninc[i+2]*inc[[i+2]][k[i+2]]
-
-myy<-matrix(data=c(y1),ncol=length(y1),byrow=TRUE)
-eigen_grid(grid,myy[1,])
-
-eigen_gridM(grid,rbind(myy,myy))
-
-eigen_gridM(grid,t(myy))
-
-# jacobian is ninc*incr
-myjac<-ninc1*inc1[k11] * ninc2*inc2[k12] * ninc3*inc3[k13]
-print(myjac)
-print(vegas_result$jac1_10[1])
-print(vegas_result$jac2_10[1])
 
 # to get actual weights need to multiply by f(x)
 myXX<-matrix(data=myx,nrow=1,byrow=TRUE)
