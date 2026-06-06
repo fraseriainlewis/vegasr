@@ -24,9 +24,9 @@ upper <- c(rep( 0.9999, 2*K),  0.9999,  0.9999,   0.9999,   0.9999)
 result <- vegasBayesEvidence(
   f = vegasr::eigen_fn_log_post_2_par,
   lower = lower, upper = upper,
-  nitn_warm = 10, neval_warm = 500000,
-  nitn = 10, neval = 500000,
-  errTol = 1, maxIter = 2, seed = 99999, nsearch = 100000,
+  nitn_warm = 10, neval_warm = 1000000,
+  nitn = 10, neval = 1000000,
+  errTol = 1, maxIter = 10, seed = 99999, nsearch = 100000,
   extra_args=list(
     y=thedata$y,
     treat=thedata$treat,
@@ -35,7 +35,7 @@ result <- vegasBayesEvidence(
 )
 result$metTolerance
 
-y_rv<-matrix(data=runif(500000*length(result$x_grid)),ncol=length(result$x_grid))
+y_rv<-matrix(data=runif(5000000*length(result$x_grid)),ncol=length(result$x_grid))
 
 # get X and Jac
 res<-eigen_gridM(result$x_grid,
@@ -70,14 +70,15 @@ wgts_std <- wgts2/sum(wgts2) # standardize
 cat("ESS = ",1/sum(wgts_std^2),"\n")
 
 # 3. generate sampling from X using
-my_IP_sample<-sample.int(nrow(myX),size=100000,replace=TRUE,prob=wgts_std)
+my_IP_sample<-sample.int(nrow(myX),size=1000000,replace=TRUE,prob=wgts_std)
 myX2<-myX[my_IP_sample,]
 
 i<-1
 #plot(plot_data[,1],plot_data[,2],type="l")
 #lines(density(myVar<-myX2[,i]/(1-myX2[,i]^2)),col="red")
 
-plot(density(myVar<-myX2[,i]/(1-myX2[,i]^2),adjust=4),col="red")
+plot(density(myVar<-myX2[,i]/(1-myX2[,i]^2),adjust=3),col="red")
+myVar<-myX2[,i]/(1-myX2[,i]^2)
 print(quantile(myVar,c(0.025)))
 i<-2
 plot(density(myVar<-myX2[,i]/(1-myX2[,i]^2)),col="blue")
