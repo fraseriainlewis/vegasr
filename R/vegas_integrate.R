@@ -40,6 +40,13 @@
 #' @param adapt logical, if TRUE then grid will continue to adapt after warm-up, otherwise grid will stay fixed.
 #' @param extra_args a named list of additional arguments passed to the function f.
 #' These must be numeric vectors or matrices. See details.
+#' @return A list containing: "mean_error","metTolerance","x_grid"
+#' \itemize{
+#'   \item \code{mean_error}: A vector with two entries: 1. mean estimate of integrand; and 2. standard error of this estimate
+#'   \item \code{metTolerance}: A logical value indicating which is TRUE is relative tolerance was met
+#'   \item \code{x_grid}: A list containing the multidimensional sampling grid from the last run vegas+ iteration.
+#'   Each list entry holds the sampling bins for each dimension of the integrand.
+#' }
 #' @importFrom glue glue
 #' @examples
 #' \dontrun{
@@ -221,6 +228,28 @@ while (i==0) or (ests[1]>((RerrTol/100)*ests[0]) and i<iMax):
 if ests[1]>((RerrTol/100)*ests[0]):
     vegas_obj.success=False
 
+grid_list=vegas_obj.get_grid(integ2)     # actual grid - jacob to be computed
+#grid_inc=vegas_obj.get_grid_inc(integ2)     # actual grid - grid increments
+
+# compute x values and each of the x value weight (on p(x)) - remove later
+# and get grid
+## x_wgts_list=vegas_obj.get_x_wgts(integ2) # gives x values and p(x) weights - needs * f(x)
+## x_vals=x_wgts_list[0]
+## wgts=x_wgts_list[1]
+
+# short term check - remove this later
+## np.random.seed(42)
+## amap = integ2.map
+## n_samples = 10
+## ndim = amap.dim
+## # Sample uniformly in y-space (unit hypercube)
+## y_1 = np.random.uniform(0, 1, (n_samples, ndim))
+## x_1 = np.empty_like(y_1)
+## jac = np.empty(n_samples)
+## # Map y → x, filling jac = dx/dy (product over dimensions)
+## amap.map(y_1, x_1, jac)
+## jac2 = integ2.map.jac(y_1)
+
 ',.trim=FALSE)
 
 bigstring<-paste(stringpart,sep="")
@@ -231,8 +260,11 @@ main <- reticulate::import_main(convert = FALSE)
 #return(main$vegas_obj)
 summary_res<-reticulate::py_to_r(main$vegas_obj$get_final_wt_results())
 tolSuccess<-reticulate::py_to_r(main$vegas_obj$success)
-summary_res<-as.list(c(summary_res,tolSuccess))
-names(summary_res)<-c("mean","error","metTolerance")
+x_grid<-reticulate::py_to_r(main$grid_list)
+#x_grid_inc<-reticulate::py_to_r(main$grid_inc)
+
+summary_res<-list(summary_res,tolSuccess,x_grid)
+names(summary_res)<-c("mean_error","metTolerance","x_grid")
 return(summary_res)
 
 # py$vegas$ravg(a$get_results())
@@ -278,6 +310,16 @@ return(summary_res)
 #' @param nsearch number of points to evaluate log_posterior to find approx max value for shiftby. See details.
 #' @param extra_args a named list of additional arguments passed to the function f. This must include at
 #' least uselog and shiftby arguments which are mandatory for the function f.
+#' @return A list containing: "log_evidence","log_evidence_error","shiftby",x_grid","extra_args"
+#' \itemize{
+#'   \item \code{log_evidence}: A numerical value giving the log evidence, exp() gives esitmated mean value of integrand
+#'   \item \code{log_evidence_error}: log of the standard error of value of integrand
+#'   \item \code{metTolerance}: A logical value indicating which is TRUE is relative tolerance was met
+#'   \item \code{shiftby}: The numerical value used as an offset for numerical stability in the integrand
+#'   \item \code{x_grid}: A list containing the multidimensional sampling grid from the last run vegas+ iteration.
+#'   Each list entry holds the sampling bins for each dimension of the integrand.
+#'   \item \code{extra_args}: a list of the extra_args argument that was passed to the function
+#' }
 #' @export
 vegasBayesEvidence <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000,
                   nitn = 10, neval = 1000, errTol=1,maxIter=5,seed=99999,adapt=TRUE,
@@ -313,11 +355,18 @@ vegasBayesEvidence <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000
                 seed = seed,adapt=adapt,
                 extra_args = extra_args)
 
-  log_evidence = mymax + log(result$mean)
+  log_evidence = mymax + log(result$mean_error[1])
+  log_evidence_error = mymax + log(result$mean_error[2])
   #cat("log evidence = ",log_evidence,"\n")
-  if(result$metTolerance==0){cat("Warnings: tolerance not met\n")}
-  # should be around -129.4
-  return(log_evidence)
+  #if(result$metTolerance==0){cat("Warnings: tolerance not met\n")}
+  #
+
+  return(list(log_evidence=log_evidence,
+              log_evidence_error=log_evidence_error,
+              metTolerance = result$metTolerance,
+              shiftby=mymax,
+              x_grid=result$x_grid,
+         extra_args=extra_args))
 
 }
 

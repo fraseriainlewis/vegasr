@@ -48,7 +48,7 @@ test_that("vegas is wrapped correctly - nunmerical check 1", {
                       errTol=0.1, maxIter=20,seed=99999,
                       extra_args=list(mu=mu, cov=cov))
   # extra_args are additional arguments needed for myf
-  testthat::expect_equal(r_result[1], vegas_result$mean, tolerance = 1e-3)
+  testthat::expect_equal(r_result[1], vegas_result$mean_error[1], tolerance = 1e-3)
 
 })
 
@@ -88,7 +88,7 @@ test_that("vegas is wrapped correctly - nunmerical check 2", {
                       extra_args=list(sigma=diag(5)))
   print(vegas_result)
   # extra_args are additional arguments needed for myf
-  testthat::expect_equal(r_result[1], vegas_result$mean, tolerance = 1e-3) # fairly high as monte carlo error
+  testthat::expect_equal(r_result[1], vegas_result$mean_error[1], tolerance = 1e-3) # fairly high as monte carlo error
 
 })
 

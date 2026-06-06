@@ -48,6 +48,18 @@ vegasBayesEvidence(
 \item{extra_args}{a named list of additional arguments passed to the function f. This must include at
 least uselog and shiftby arguments which are mandatory for the function f.}
 }
+\value{
+A list containing: "log_evidence","log_evidence_error","shiftby",x_grid","extra_args"
+\itemize{
+\item \code{log_evidence}: A numerical value giving the log evidence, exp() gives esitmated mean value of integrand
+\item \code{log_evidence_error}: log of the standard error of value of integrand
+\item \code{metTolerance}: A logical value indicating which is TRUE is relative tolerance was met
+\item \code{shiftby}: The numerical value used as an offset for numerical stability in the integrand
+\item \code{x_grid}: A list containing the multidimensional sampling grid from the last run vegas+ iteration.
+Each list entry holds the sampling bins for each dimension of the integrand.
+\item \code{extra_args}: a list of the extra_args argument that was passed to the function
+}
+}
 \description{
 This function takes a log posterior density function and integrates
 in out to give the log evidence also known as log marginal likelihood.

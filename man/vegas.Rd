@@ -47,6 +47,15 @@ vegas' Python random number generator not R's.}
 \item{extra_args}{a named list of additional arguments passed to the function f.
 These must be numeric vectors or matrices. See details.}
 }
+\value{
+A list containing: "mean_error","metTolerance","x_grid"
+\itemize{
+\item \code{mean_error}: A vector with two entries: 1. mean estimate of integrand; and 2. standard error of this estimate
+\item \code{metTolerance}: A logical value indicating which is TRUE is relative tolerance was met
+\item \code{x_grid}: A list containing the multidimensional sampling grid from the last run vegas+ iteration.
+Each list entry holds the sampling bins for each dimension of the integrand.
+}
+}
 \description{
 This function is an R wrapper to the Python numerical integration library \href{https://vegas.readthedocs.io/en/latest/tutorial.html}{vegas}. Integrands are given as user provided R functions (including using Rcpp and associated packages) and passed to the Python library which implements the vegas+ numerical search algorithm. Some minimal requirements apply to the user provided functions, in particular the key argument must be a matrix as vectorization is used. See Details.
 }
