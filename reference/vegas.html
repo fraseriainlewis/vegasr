@@ -115,6 +115,13 @@ These must be numeric vectors or matrices. See details.</p></dd>
 
 </dl></div>
     <div class="section level2">
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+    <p>A list containing: "mean_error","metTolerance","x_grid"</p><ul><li><p><code>mean_error</code>: A vector with two entries: 1. mean estimate of integrand; and 2. standard error of this estimate</p></li>
+<li><p><code>metTolerance</code>: A logical value indicating which is TRUE is relative tolerance was met</p></li>
+<li><p><code>x_grid</code>: A list containing the multidimensional sampling grid from the last run vegas+ iteration.
+Each list entry holds the sampling bins for each dimension of the integrand.</p></li>
+</ul></div>
+    <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The <a href="https://pypi.org/project/vegas/" class="external-link">vegas</a> Python library implements the 2021 Vegas+ adaptive Monte Carlo numerical integration algorithm.
 This is an update of the original vegas algorithm from 1978 and by the original author G. P. Lepage, who also maintains the Python library. The vegasr library is a thin R wrapper making the key functions accessible from R. For more information on the Vegas algorithm see <a href="https://vegas.readthedocs.io/" class="external-link">https://vegas.readthedocs.io/</a> and the

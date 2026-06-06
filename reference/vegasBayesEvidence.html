@@ -121,6 +121,16 @@ least uselog and shiftby arguments which are mandatory for the function f.</p></
 
 </dl></div>
     <div class="section level2">
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+    <p>A list containing: "log_evidence","log_evidence_error","shiftby",x_grid","extra_args"</p><ul><li><p><code>log_evidence</code>: A numerical value giving the log evidence, exp() gives esitmated mean value of integrand</p></li>
+<li><p><code>log_evidence_error</code>: log of the standard error of value of integrand</p></li>
+<li><p><code>metTolerance</code>: A logical value indicating which is TRUE is relative tolerance was met</p></li>
+<li><p><code>shiftby</code>: The numerical value used as an offset for numerical stability in the integrand</p></li>
+<li><p><code>x_grid</code>: A list containing the multidimensional sampling grid from the last run vegas+ iteration.
+Each list entry holds the sampling bins for each dimension of the integrand.</p></li>
+<li><p><code>extra_args</code>: a list of the extra_args argument that was passed to the function</p></li>
+</ul></div>
+    <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The function passed must meet some specific criteria and a range of example
 functions are included in the package, e.g. see <code><a href="fn_log_post_1.html">fn_log_post_1</a></code>, in
