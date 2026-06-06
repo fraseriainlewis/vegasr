@@ -54,6 +54,7 @@
 <span>  errTol <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  maxIter <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">99999</span>,</span>
+<span>  adapt <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  extra_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -102,6 +103,10 @@ estimate and final error.</p></dd>
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
 <dd><p>random number seed for vegas sample generation. Set for reproducible results. This is
 vegas' Python random number generator not R's.</p></dd>
+
+
+<dt id="arg-adapt">adapt<a class="anchor" aria-label="anchor" href="#arg-adapt"></a></dt>
+<dd><p>logical, if TRUE then grid will continue to adapt after warm-up, otherwise grid will stay fixed.</p></dd>
 
 
 <dt id="arg-extra-args">extra_args<a class="anchor" aria-label="anchor" href="#arg-extra-args"></a></dt>
