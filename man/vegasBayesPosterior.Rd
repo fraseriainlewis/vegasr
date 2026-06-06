@@ -15,6 +15,7 @@ vegasBayesPosterior(
   errTol = 1,
   maxIter = 5,
   seed = 99999,
+  adapt = TRUE,
   nsearch = 1000,
   log_evidence = 0,
   extra_args = list()
@@ -40,6 +41,8 @@ vegasBayesPosterior(
 \item{maxIter}{max number of iteration blocks to run to achieve errTol. Each block comprises nitn iterations}
 
 \item{seed}{random number seed for vegas sample generating. Set for reproducible results.}
+
+\item{adapt}{logical, if TRUE then grid will continue to adapt after warm-up, otherwise grid will stay fixed.}
 
 \item{nsearch}{number of points to evaluate log_posterior to find approx max value for shiftby. See details.}
 

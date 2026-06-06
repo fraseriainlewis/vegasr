@@ -37,6 +37,7 @@
 #' @param maxIter max number of iteration blocks to run to achieve errTol. Each block comprises nitn iterations
 #' @param seed random number seed for vegas sample generation. Set for reproducible results. This is
 #' vegas' Python random number generator not R's.
+#' @param adapt logical, if TRUE then grid will continue to adapt after warm-up, otherwise grid will stay fixed.
 #' @param extra_args a named list of additional arguments passed to the function f.
 #' These must be numeric vectors or matrices. See details.
 #' @importFrom glue glue
@@ -90,7 +91,7 @@
 #' @export
 vegas <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000,
                                             nitn = 10, neval = 1000, errTol=1,maxIter=5,
-                                            seed = 99999,extra_args = list()) {
+                                            seed = 99999,adapt=TRUE,extra_args = list()) {
 
   if (is.null(getOption("vegas_initialized"))) {
     vegas_initialize()
@@ -149,6 +150,11 @@ str2b<-paste(c("x_copy",noms),collapse=",") # x_copy,y,z
 str3<-paste(c(noms),collapse=",") # y,z
 str4<-paste(paste("self",noms,sep="."),collapse=",") # self.y, self.z
 str5<-paste(paste(paste("        self",noms,sep="."),"=",noms),collapse="\n") # self.y=y\nself.z=y
+
+# flag for adapt after warmup
+if(adapt==FALSE){ str6<-paste(",adapt=False)")
+} else {str6<-paste(")")}
+
 #  stringpart1<-r"(
 #  #### now use R function
 #  )"
@@ -203,7 +209,7 @@ iMax=RmaxIter
 vegas_obj.success=True
 while (i==0) or (ests[1]>((RerrTol/100)*ests[0]) and i<iMax):
     # integration storing interative results, still potentially adapting grid
-    result2 = integ2(newf, nitn=nitn, neval=neval)
+    result2 = integ2(newf, nitn=nitn, neval=neval{str6} # adapt grid or not
     vegas_obj.add_results(result2) # save into object
     ests=vegas_obj.get_final_wt_results() # get the current overall estimate and error
 
@@ -268,12 +274,13 @@ return(summary_res)
 #' @param errTol  the % error target, default is 1, i.e. error is 1% of current estimated integral value
 #' @param maxIter max number of iteration blocks to run to achieve errTol. Each block comprises nitn iterations
 #' @param seed random number seed for vegas sampling generating. set for reproducible results.
+#' @param adapt logical, if TRUE then grid will continue to adapt after warm-up, otherwise grid will stay fixed.
 #' @param nsearch number of points to evaluate log_posterior to find approx max value for shiftby. See details.
 #' @param extra_args a named list of additional arguments passed to the function f. This must include at
 #' least uselog and shiftby arguments which are mandatory for the function f.
 #' @export
 vegasBayesEvidence <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000,
-                  nitn = 10, neval = 1000, errTol=1,maxIter=5,seed=99999,
+                  nitn = 10, neval = 1000, errTol=1,maxIter=5,seed=99999,adapt=TRUE,
                   nsearch=1000,
                   extra_args=list()){
 
@@ -303,7 +310,7 @@ vegasBayesEvidence <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000
 
   result<-vegas(f=f, lower=lower,upper=upper, nitn_warm = nitn_warm, neval_warm = neval_warm,
                 nitn = nitn, neval = neval, errTol=errTol,maxIter=maxIter,
-                seed = seed,
+                seed = seed,adapt=adapt,
                 extra_args = extra_args)
 
   log_evidence = mymax + log(result$mean)
@@ -341,6 +348,7 @@ vegasBayesEvidence <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000
 #' @param errTol  the % error target, default is 1, i.e. error is 1% of current estimated integral value
 #' @param maxIter max number of iteration blocks to run to achieve errTol. Each block comprises nitn iterations
 #' @param seed random number seed for vegas sample generating. Set for reproducible results.
+#' @param adapt logical, if TRUE then grid will continue to adapt after warm-up, otherwise grid will stay fixed.
 #' @param nsearch number of points to evaluate log_posterior to find approx max value for shiftby. See details.
 #' @param log_evidence the standardization constant, typically from \code{\link{vegasBayesEvidence}}
 #' but any scalar can be passed including zero to get unstandardised marginal. Default is 0.
@@ -349,7 +357,7 @@ vegasBayesEvidence <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000
 #' @export
 ##############################################################################################
 vegasBayesPosterior <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000,
-                                nitn = 10, neval = 1000, errTol=1,maxIter=5,seed=99999,
+                                nitn = 10, neval = 1000, errTol=1,maxIter=5,seed=99999,adapt=TRUE,
                                 nsearch=1000,
                                 log_evidence=0.,
                                 extra_args=list() # x must have z in f(z)
@@ -383,7 +391,7 @@ vegasBayesPosterior <- function(f, lower,upper, nitn_warm = 10, neval_warm = 100
 
   result<-vegas(f=f, lower=lower,upper=upper, nitn_warm = nitn_warm, neval_warm = neval_warm,
                 nitn = nitn, neval = neval, errTol=errTol,maxIter=maxIter,
-                seed = seed,
+                seed = seed,adapt=adapt,
                 extra_args = extra_args # this has z=value
   )
 

@@ -4,7 +4,7 @@ library(RcppEigen)
 #library(tictoc)
 ## provides dmvnorm_aram(x,my,cov)
 
-#Rcpp::sourceCpp("src/testing/eigen_v1.cpp")
+Rcpp::sourceCpp("src/testing/eigen_v1.cpp")
 Rcpp::sourceCpp("src/testing/fns_imp_eigen.cpp")
 
 #mylist<-list(a=matrix(data=rnorm(3*4),ncol=1),b=matrix(data=rnorm(2*4),ncol=1))

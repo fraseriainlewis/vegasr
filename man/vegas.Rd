@@ -15,6 +15,7 @@ vegas(
   errTol = 1,
   maxIter = 5,
   seed = 99999,
+  adapt = TRUE,
   extra_args = list()
 )
 }
@@ -40,6 +41,8 @@ estimate and final error.}
 
 \item{seed}{random number seed for vegas sample generation. Set for reproducible results. This is
 vegas' Python random number generator not R's.}
+
+\item{adapt}{logical, if TRUE then grid will continue to adapt after warm-up, otherwise grid will stay fixed.}
 
 \item{extra_args}{a named list of additional arguments passed to the function f.
 These must be numeric vectors or matrices. See details.}
