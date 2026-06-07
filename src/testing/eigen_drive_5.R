@@ -80,13 +80,20 @@ i<-1
 plot(density(myVar<-myX2[,i]/(1-myX2[,i]^2),adjust=3),col="red")
 myVar<-myX2[,i]/(1-myX2[,i]^2)
 print(quantile(myVar,c(0.025)))
+print(quantile(myVar,c(0.975)))
 i<-2
 plot(density(myVar<-myX2[,i]/(1-myX2[,i]^2)),col="blue")
 i<-5
 plot(density(myVar<-myX2[,i]/(1-myX2[,i]^2)),col="blue")
 
 
-
+#### quantiles
+X1<-myX[,1]
+X1.srt<-sort(X1)
+wgts_std.srt<-wgts_std[order(X1)]
+idx<-which(cumsum(wgts_std.srt)>0.975)[1]
+a<-X1.srt[idx];
+a/(1-a^2)
 
 
 
