@@ -3,6 +3,7 @@ import numpy as np
 import json
 import math
 import gvar
+from scipy.stats import wasserstein_distance
 
 class vegasr_wrapper:
     def __init__(self):

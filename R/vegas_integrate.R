@@ -209,6 +209,8 @@ integ2 = vegas.Integrator([[l, u] for l, u in zip(lower, upper)])
 # Adaptation phase # no results stored
 integ2(newf, nitn=nitn_warm, neval=neval_warm)
 
+curgrid=vegas_obj.get_grid(integ2)
+
 # now decide how many update blocks to run, if errTol=NULL
 # then run maxIter blocks, if errTol is not null then run until error hit
 i=0
@@ -217,6 +219,11 @@ vegas_obj.success=True
 while (i==0) or (ests[1]>((RerrTol/100)*ests[0]) and i<iMax):
     # integration storing interative results, still potentially adapting grid
     result2 = integ2(newf, nitn=nitn, neval=neval{str6} # adapt grid or not
+    newgrid=vegas_obj.get_grid(integ2)
+    print(f\"wasserstein\")
+    print(f\"{{wasserstein_distance(curgrid[0],newgrid[0]):.5f}} {{wasserstein_distance(curgrid[1],newgrid[1]):.5f}}\")
+    #print(f\"{{wasserstein_distance(curgrid[1],newgrid[1])}}\\n\")
+    curgrid=newgrid
     vegas_obj.add_results(result2) # save into object
     ests=vegas_obj.get_final_wt_results() # get the current overall estimate and error
 

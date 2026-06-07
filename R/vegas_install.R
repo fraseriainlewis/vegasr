@@ -66,7 +66,15 @@ vegas_install <- function(ask = interactive(),
     reticulate::use_virtualenv(Sys.getenv("VEGAS_PYTHON", unset = "r-vegasr"))
   }
 
-  vegas_pkg <- "vegas"
+  vegas_pkg <- c("vegas")
+
+  if (py_check_installed(vegas_pkg) & !force) {
+    warning("Skipping installation. Use `force` to force installation or update.")
+    return(invisible(NULL))
+  }
+  reticulate::py_install(vegas_pkg, envname = Sys.getenv("VEGAS_PYTHON", unset = "r-vegasr"))
+
+  vegas_pkg <- c("scipy")
 
   if (py_check_installed(vegas_pkg) & !force) {
     warning("Skipping installation. Use `force` to force installation or update.")

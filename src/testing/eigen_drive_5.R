@@ -24,9 +24,9 @@ upper <- c(rep( 0.9999, 2*K),  0.9999,  0.9999,   0.9999,   0.9999)
 result <- vegasBayesEvidence(
   f = vegasr::eigen_fn_log_post_2_par,
   lower = lower, upper = upper,
-  nitn_warm = 10, neval_warm = 1000000,
-  nitn = 10, neval = 1000000,
-  errTol = 1, maxIter = 10, seed = 99999, nsearch = 100000,
+  nitn_warm = 1, neval_warm = 100000,
+  nitn = 1, neval = 100000,
+  errTol = 0.1, maxIter = 100, seed = 99999, nsearch = 100000,
   extra_args=list(
     y=thedata$y,
     treat=thedata$treat,
@@ -54,11 +54,11 @@ wgts<-exp(result$shiftby+f_x)*myJac # need to add back in shiftby and then expon
 #wgts<-f_x*myJac
 #cliptop<-which(wgts>quantile(wgts,0.9999)) #
 desc<-summary(wgts)
-#maxwgt<-desc["3rd Qu."]+1000*(desc["3rd Qu."]-desc["1st Qu."])
-wgts2<-pmin(pmax(wgts, 0), quantile(wgts,0.9999)) # clip negative and top 0.01%
-#dropme<-which(wgts>maxwgt)
-#wgts2<-wgts[-dropme]
-#myX<-myX[-dropme,]
+maxwgt<-desc["3rd Qu."]+10*(desc["3rd Qu."]-desc["1st Qu."])
+#wgts2<-pmin(pmax(wgts, 0), quantile(wgts,0.9999)) # clip negative and top 0.01%
+dropme<-which(wgts>maxwgt)
+wgts2<-wgts[-dropme]
+myX<-myX[-dropme,]
 #plot(wgts2)
 #wgts2<-wgts
 wgts_std <- wgts2/sum(wgts2) # standardize
