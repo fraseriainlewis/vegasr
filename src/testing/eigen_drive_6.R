@@ -5,7 +5,7 @@ library(RcppEigen)
 ## provides dmvnorm_aram(x,my,cov)
 
 #Rcpp::sourceCpp("src/testing/eigen_v1.cpp")
-Rcpp::sourceCpp("src/fns_imp_eigen.cpp")
+#Rcpp::sourceCpp("src/fns_imp_eigen.cpp")
 
 #mylist<-list(a=matrix(data=rnorm(3*4),ncol=1),b=matrix(data=rnorm(2*4),ncol=1))
 
@@ -30,7 +30,7 @@ result <- vegasBayesEvidence(
   f = vegasr::eigen_fn_log_post_2_par,
   lower = lower, upper = upper,
   nitn_warm = 10, neval_warm = 100000,
-  nitn = 10, neval = 200000,
+  nitn = 10, neval = 20000,
   errTol = 1, maxIter = 10, seed = 999199, nsearch = 100000,
   extra_args=list(
     y=thedata$y,
@@ -62,10 +62,10 @@ cat("log evidence resampled from vegas = ",log_ev2,"\n")
 # 2. Use the final grid to estimate marginal quantiles
 
 # generate
-y_rv<-matrix(data=runif(5000000*length(result$x_grid)),ncol=length(result$x_grid))
+y_rv<-matrix(data=runif(500000*length(result$x_grid)),ncol=length(result$x_grid))
 
 # get X and Jac
-res<-eigen_gridM(result$x_grid,
+res<-vegasr:::eigen_gridM(result$x_grid,
                  y_rv# this is just runif(), using runif from python currently
 )
 myX<-res[[1]]

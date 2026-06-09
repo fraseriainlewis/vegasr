@@ -145,12 +145,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // eigen_grid
-void eigen_grid(const Rcpp::List& xgrid, const VectorXd& y);
+void eigen_grid(const Rcpp::List& xgrid, const Eigen::VectorXd& y);
 RcppExport SEXP _vegasr_eigen_grid(SEXP xgridSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::List& >::type xgrid(xgridSEXP);
-    Rcpp::traits::input_parameter< const VectorXd& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type y(ySEXP);
     eigen_grid(xgrid, y);
     return R_NilValue;
 END_RCPP

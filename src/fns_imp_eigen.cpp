@@ -49,7 +49,7 @@ Eigen::VectorXd len_list(const Rcpp::List& grid) {
 
 
 // [[Rcpp::export]]
-void eigen_grid(const Rcpp::List& xgrid, const VectorXd& y) {
+void eigen_grid(const Rcpp::List& xgrid, const Eigen::VectorXd& y) {
 
 
   Rcpp::Rcout <<"y="<<y<<std::endl;
