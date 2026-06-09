@@ -154,9 +154,9 @@ options(mc.cores = parallel::detectCores())
 # simulation inputs as defined by scenarios or on simulated data)
 stan_mod_1 <- stan_model(model_code = BHM_stan_1)
 # Fit model
-nsamps <- 150000       # number of posterior samples (after removing burn-in) per chain
-nburnin <- 50000       # number of burn-in samples to remove at beginning of each chain
-nchains <- 8          # number of chains
+nsamps <- 50000       # number of posterior samples (after removing burn-in) per chain
+nburnin <- 5000       # number of burn-in samples to remove at beginning of each chain
+nchains <- 4          # number of chains
 #BHM_pars_1 <- c("beta","mu0", "sigma0","mu1", "sigma1", "beta","beta_tr")     # parameters to sample
 start_time <- Sys.time()
 stan_fit_2 <- sampling(stan_mod_1, data = data_input_1,
@@ -188,16 +188,14 @@ print(round(smres,3))
 
 ```
 
-## Log Evidence
-As in the Rcpp vignette estimating the log evidence is not essential but we compute for completeness, also to a high precision. 
+## Compute quantiles for all variables
+Do this in one step as no more computation needed. gotcha is dealing with extreme weights. tbd.
 
 ```{r logpos2,include=TRUE}
-
-Rcpp::sourceCpp("/Users/work/vegasr/src/testing/fns_imp_eigen.cpp")
-
-library(vegasr)
-## Important - run next line in each R session to ensure python is ready
-vegas_initialize()
+#############################################################################################
+# 1. Run vegas to compute integrand - log evidence and then manually use importance sampling
+# from the same grid and compare result. uses different random samples but same grid (weights)
+# so should be same up to monte-carlo error.
 
 K <- length(unique(thedata$basket))
 lower <- c(rep(-0.9999, 2*K), -0.9999, -0.9999, 1e-4, 1e-4)
@@ -206,9 +204,9 @@ upper <- c(rep( 0.9999, 2*K),  0.9999,  0.9999,   0.9999,   0.9999)
 result <- vegasBayesEvidence(
   f = vegasr::eigen_fn_log_post_2_par,
   lower = lower, upper = upper,
-  nitn_warm = 1, neval_warm = 5000000,
-  nitn = 1, neval = 5000000,
-  errTol = 0.1, maxIter = 10, seed = 99999, nsearch = 100000,
+  nitn_warm = 10, neval_warm = 1000000,
+  nitn = 10, neval = 1000000,
+  errTol = 1, maxIter = 10, seed = 999199, nsearch = 100000,
   extra_args=list(
     y=thedata$y,
     treat=thedata$treat,
@@ -216,13 +214,34 @@ result <- vegasBayesEvidence(
     shiftby=0,uselog=1.)
 )
 
-```
+cat("log evidence direct from vegas = ",result$log_evidence,"\n")
 
-```{r logpos3,include=TRUE}
+#
+f_x<-vegasr:::eigen_fn_log_post_2_par(result$x_vals, # these are random samples from the final grid
+                                       y=thedata$y,
+                                       treat=thedata$treat,
+                                       basket = thedata$basket,
+                                       shiftby=result$shiftby, # need to use same offset as above
+                                       uselog=1. # use log as just function eval
+                                      )
+
+# result$pwgts - these are sampling weights - the internal jacobian and volume adjustment
+# this is usual importance sampling for integrand - function value times weight
+# this weight has n in it so it's sum below not mean (but conceptually it's mean)
+log_ev2<-log(sum(exp(result$shiftby+f_x)*result$pwgts)) # adjust by offset,
+
+cat("log evidence resampled from vegas = ",log_ev2,"\n")
+
+
+#############################################################################################
+# 2. Use the final grid to estimate marginal quantiles
+
+# generate
 y_rv<-matrix(data=runif(5000000*length(result$x_grid)),ncol=length(result$x_grid))
 
 # get X and Jac
-res<-eigen_gridM(result$x_grid,
+# note - this needs moved to multi-threaded
+res<-vegasr:::eigen_gridM(result$x_grid,
                  y_rv# this is just runif(), using runif from python currently
 )
 myX<-res[[1]]
@@ -234,117 +253,21 @@ f_x<-vegasr:::eigen_fn_log_post_2_par(myX,
                                       basket = thedata$basket,
                                       shiftby=result$shiftby,uselog=1.)
 
+
 wgts<-exp(result$shiftby+f_x)*myJac # need to add back in shiftby and then exponentiation
+wgts_std <- wgts/sum(wgts) # standardize
 
-## 
-if(TRUE){
-threshold<-quantile(wgts,0.9999)
-epsilon <- sum(wgts[wgts>threshold])/sum(wgts)  
-print(epsilon)  
+## from here we have all the info we need to compute all the quantiles for all variables with no more computation
+# consider X1
+myorder1<-order(myX[,1]) # sort asc idx
+X1o<-myX[myorder1,1] # sort X1 asc
+w1<-wgts_std[myorder1] # order weights
+w1b<-cumsum(w1); # cumsum weights
+p25X<-X1o[(which(w1b>0.025)[1])] # get 2.5% on x scale -1,+1
+p25Z<-p25X/(1-p25X^2) # transform back to -inf, + inf
 
-# these these weights in the tails
-extreme_idx <-which(wgts>threshold)
-# compare before and after removal
-# also check the high weights not in tails - for upper tail go back from top
+cat("Variable beta[1,1] = 2.5% ",p25Z,"\n")
 
-}
-
-
-
-
-if(FALSE){
-  log_wgts<-log(wgts)
-options(mc.cores = parallel::detectCores() - 1 )
-psis_result<-psis(log_wgts,r_eff=1)
-wgts2<-exp(psis_result$log_weights) # PSIS smoothed at top
-}
-if(TRUE){
-#wgts<-f_x*myJac
-#cliptop<-which(wgts>quantile(wgts,0.9999)) #
-desc<-summary(wgts)
-maxwgt<-desc["3rd Qu."]+100*(desc["3rd Qu."]-desc["1st Qu."])
-#wgts2<-pmin(pmax(wgts, 0), quantile(wgts,0.9999)) # clip negative and top 0.01%
-dropme<-which(wgts>maxwgt)
-wgts2<-wgts[-dropme]
-#wgts2<-wgts[-cliptop]
-#myX<-myX[-cliptop,]
-myX<-myX[-dropme,]
-#plot(wgts2)
-#wgts2<-wgts
-wgts_std <- wgts2/sum(wgts2) # standardize
-}
-#wgts_std[422057]<-mean(wgts_std[-422057]);
-#wgts_std<-pmin(pmax(wgts_std, 0), 1) # in case weight -ve, should not happen
-#wgts_std <- wgts_std/sum(wgts_std) # standardize
-
-cat("ESS = ",1/sum(wgts_std^2),"\n")
-
-#### quantiles
-X1<-myX[,1]
-X1.srt<-sort(X1)
-wgts_std.srt<-wgts_std[order(X1)]
-idx1<-which(cumsum(wgts_std.srt)>0.025)[1]
-idx2<-which(cumsum(wgts_std.srt)>0.975)[1]
-p25raw<-X1.srt[idx1];
-p25<-p25raw/(1-p25raw^2)
-p975raw<-X1.srt[idx2];
-p975<-p975raw/(1-p975raw^2)
-cat("beta[1,1] 2.5%=",p25, " 97.5%=",p975,"\n")
-
-X1<-myX[,1]
-X1.srt<-sort(X1)
-wgts_std.srt<-wgts_std[order(X1)]
-idx1<-which(cumsum(wgts_std.srt)>0.025)[1]
-idx2<-which(cumsum(wgts_std.srt)>0.975)[1]
-p25raw<-X1.srt[idx1];
-p25<-p25raw/(1-p25raw^2)
-p975raw<-X1.srt[idx2];
-p975<-p975raw/(1-p975raw^2)
-cat("beta[1,1] 2.5%=",p25, " 97.5%=",p975,"\n")
-
-X1<-myX[,2]
-X1.srt<-sort(X1)
-wgts_std.srt<-wgts_std[order(X1)]
-idx1<-which(cumsum(wgts_std.srt)>0.025)[1]
-idx2<-which(cumsum(wgts_std.srt)>0.975)[1]
-p25raw<-X1.srt[idx1];
-p25<-p25raw/(1-p25raw^2)
-p975raw<-X1.srt[idx2];
-p975<-p975raw/(1-p975raw^2)
-cat("beta[2,1] 2.5%=",p25, " 97.5%=",p975,"\n")
-
-X1<-myX[,3]
-X1.srt<-sort(X1)
-wgts_std.srt<-wgts_std[order(X1)]
-idx1<-which(cumsum(wgts_std.srt)>0.025)[1]
-idx2<-which(cumsum(wgts_std.srt)>0.975)[1]
-p25raw<-X1.srt[idx1];
-p25<-p25raw/(1-p25raw^2)
-p975raw<-X1.srt[idx2];
-p975<-p975raw/(1-p975raw^2)
-cat("beta[3,1] 2.5%=",p25, " 97.5%=",p975,"\n")
-
-X1<-myX[,11]
-X1.srt<-sort(X1)
-wgts_std.srt<-wgts_std[order(X1)]
-idx1<-which(cumsum(wgts_std.srt)>0.025)[1]
-idx2<-which(cumsum(wgts_std.srt)>0.975)[1]
-p25raw<-X1.srt[idx1];
-p25<-p25raw/(1-p25raw^2)
-p975raw<-X1.srt[idx2];
-p975<-p975raw/(1-p975raw^2)
-cat("mu0 2.5%=",p25, " 97.5%=",p975,"\n")
-
-X1<-myX[,13]
-X1.srt<-sort(X1)
-wgts_std.srt<-wgts_std[order(X1)]
-idx1<-which(cumsum(wgts_std.srt)>0.025)[1]
-idx2<-which(cumsum(wgts_std.srt)>0.975)[1]
-p25raw<-X1.srt[idx1];
-p25<-p25raw/(1-p25raw^2)
-p975raw<-X1.srt[idx2];
-p975<-p975raw/(1-p975raw^2)
-cat("sd0 2.5%=",p25, " 97.5%=",p975,"\n")
 
 
 ```
