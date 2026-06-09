@@ -122,6 +122,51 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// diff_list
+Rcpp::List diff_list(const Rcpp::List& grid);
+RcppExport SEXP _vegasr_diff_list(SEXP gridSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type grid(gridSEXP);
+    rcpp_result_gen = Rcpp::wrap(diff_list(grid));
+    return rcpp_result_gen;
+END_RCPP
+}
+// len_list
+Eigen::VectorXd len_list(const Rcpp::List& grid);
+RcppExport SEXP _vegasr_len_list(SEXP gridSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type grid(gridSEXP);
+    rcpp_result_gen = Rcpp::wrap(len_list(grid));
+    return rcpp_result_gen;
+END_RCPP
+}
+// eigen_grid
+void eigen_grid(const Rcpp::List& xgrid, const VectorXd& y);
+RcppExport SEXP _vegasr_eigen_grid(SEXP xgridSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type xgrid(xgridSEXP);
+    Rcpp::traits::input_parameter< const VectorXd& >::type y(ySEXP);
+    eigen_grid(xgrid, y);
+    return R_NilValue;
+END_RCPP
+}
+// eigen_gridM
+Rcpp::List eigen_gridM(const Rcpp::List& xgrid, const Eigen::MatrixXd& y);
+RcppExport SEXP _vegasr_eigen_gridM(SEXP xgridSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type xgrid(xgridSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type y(ySEXP);
+    rcpp_result_gen = Rcpp::wrap(eigen_gridM(xgrid, y));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_vegasr_arma_fn_log_post_1", (DL_FUNC) &_vegasr_arma_fn_log_post_1, 5},
@@ -131,6 +176,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_vegasr_eigen_fn_log_post_2", (DL_FUNC) &_vegasr_eigen_fn_log_post_2, 6},
     {"_vegasr_eigen_fn_log_post_2_par", (DL_FUNC) &_vegasr_eigen_fn_log_post_2_par, 6},
     {"_vegasr_eigen_fn_marg_2", (DL_FUNC) &_vegasr_eigen_fn_marg_2, 7},
+    {"_vegasr_diff_list", (DL_FUNC) &_vegasr_diff_list, 1},
+    {"_vegasr_len_list", (DL_FUNC) &_vegasr_len_list, 1},
+    {"_vegasr_eigen_grid", (DL_FUNC) &_vegasr_eigen_grid, 2},
+    {"_vegasr_eigen_gridM", (DL_FUNC) &_vegasr_eigen_gridM, 2},
     {NULL, NULL, 0}
 };
 

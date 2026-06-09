@@ -764,3 +764,22 @@ Eigen::VectorXd eigen_fn_marg_2(const Eigen::MatrixXd& theta,
 // -------------------------------------------
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// from fns_imp_eigen.cpp
+
+

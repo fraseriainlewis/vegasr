@@ -207,7 +207,20 @@ vegas_obj.clear_results()
 gvar.ranseed(Rseed)
 integ2 = vegas.Integrator([[l, u] for l, u in zip(lower, upper)])
 # Adaptation phase # no results stored
+#integ2.set(beta=0) # remove this!
 integ2(newf, nitn=nitn_warm, neval=neval_warm)
+
+#result1=integ2(newf, nitn=nitn_warm, neval=neval_warm)
+#print(result1.mean)
+#
+#total, n = 0.0,0
+#for x, wgt in integ2.random_batch():
+#    total+=np.sum(r_func_lbatch({str2})*wgt)
+#    n+=len(x)
+#I_manual=total
+#print(I_manual)
+#print(I_manual/n)
+
 
 curgrid=vegas_obj.get_grid(integ2)
 
@@ -220,8 +233,8 @@ while (i==0) or (ests[1]>((RerrTol/100)*ests[0]) and i<iMax):
     # integration storing interative results, still potentially adapting grid
     result2 = integ2(newf, nitn=nitn, neval=neval{str6} # adapt grid or not
     newgrid=vegas_obj.get_grid(integ2)
-    print(f\"wasserstein\")
-    print(f\"{{wasserstein_distance(curgrid[0],newgrid[0]):.5f}} {{wasserstein_distance(curgrid[1],newgrid[1]):.5f}}\")
+    #print(f\"wasserstein\")
+    print(f\"{{wasserstein_distance(curgrid[0],newgrid[0]):.5f}} {{wasserstein_distance(curgrid[1],newgrid[1]):.5f}} {{wasserstein_distance(curgrid[2],newgrid[2]):.5f}} {{wasserstein_distance(curgrid[3],newgrid[3]):.5f}} {{wasserstein_distance(curgrid[4],newgrid[4]):.5f}} {{wasserstein_distance(curgrid[5],newgrid[5]):.5f}} {{wasserstein_distance(curgrid[6],newgrid[6]):.5f}} {{wasserstein_distance(curgrid[7],newgrid[7]):.5f}} {{wasserstein_distance(curgrid[8],newgrid[8]):.5f}} {{wasserstein_distance(curgrid[9],newgrid[9]):.5f}} {{wasserstein_distance(curgrid[10],newgrid[10]):.5f}} {{wasserstein_distance(curgrid[11],newgrid[11]):.5f}} {{wasserstein_distance(curgrid[12],newgrid[12]):.5f}} {{wasserstein_distance(curgrid[13],newgrid[13]):.5f}}\")
     #print(f\"{{wasserstein_distance(curgrid[1],newgrid[1])}}\\n\")
     curgrid=newgrid
     vegas_obj.add_results(result2) # save into object
@@ -240,9 +253,9 @@ grid_list=vegas_obj.get_grid(integ2)     # actual grid - jacob to be computed
 
 # compute x values and each of the x value weight (on p(x)) - remove later
 # and get grid
-## x_wgts_list=vegas_obj.get_x_wgts(integ2) # gives x values and p(x) weights - needs * f(x)
-## x_vals=x_wgts_list[0]
-## wgts=x_wgts_list[1]
+x_wgts_list=vegas_obj.get_x_wgts(integ2) # gives x values and p(x) weights - needs * f(x)
+x_vals=x_wgts_list[0]
+wgts=x_wgts_list[1]
 
 # short term check - remove this later
 ## np.random.seed(42)
@@ -267,11 +280,13 @@ main <- reticulate::import_main(convert = FALSE)
 #return(main$vegas_obj)
 summary_res<-reticulate::py_to_r(main$vegas_obj$get_final_wt_results())
 tolSuccess<-reticulate::py_to_r(main$vegas_obj$success)
+x_vals<-reticulate::py_to_r(main$x_vals)
+wgts<-reticulate::py_to_r(main$wgts)
 x_grid<-reticulate::py_to_r(main$grid_list)
 #x_grid_inc<-reticulate::py_to_r(main$grid_inc)
 
-summary_res<-list(summary_res,tolSuccess,x_grid)
-names(summary_res)<-c("mean_error","metTolerance","x_grid")
+summary_res<-list(summary_res,tolSuccess,x_vals,wgts,x_grid)
+names(summary_res)<-c("mean_error","metTolerance","x_vals", "pwgts","x_grid")
 return(summary_res)
 
 # py$vegas$ravg(a$get_results())
@@ -373,6 +388,9 @@ vegasBayesEvidence <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000
               metTolerance = result$metTolerance,
               shiftby=mymax,
               x_grid=result$x_grid,
+              x_vals=result$x_vals,
+              pwgts=result$pwgts,
+
          extra_args=extra_args))
 
 }

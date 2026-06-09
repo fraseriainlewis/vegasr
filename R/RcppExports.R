@@ -226,3 +226,19 @@ eigen_fn_marg_2 <- function(theta, y, treat, basket, shiftby, uselog, z) {
     .Call(`_vegasr_eigen_fn_marg_2`, theta, y, treat, basket, shiftby, uselog, z)
 }
 
+diff_list <- function(grid) {
+    .Call(`_vegasr_diff_list`, grid)
+}
+
+len_list <- function(grid) {
+    .Call(`_vegasr_len_list`, grid)
+}
+
+eigen_grid <- function(xgrid, y) {
+    invisible(.Call(`_vegasr_eigen_grid`, xgrid, y))
+}
+
+eigen_gridM <- function(xgrid, y) {
+    .Call(`_vegasr_eigen_gridM`, xgrid, y)
+}
+

@@ -5,7 +5,7 @@ library(RcppEigen)
 ## provides dmvnorm_aram(x,my,cov)
 
 #Rcpp::sourceCpp("src/testing/eigen_v1.cpp")
-Rcpp::sourceCpp("src/testing/fns_imp_eigen.cpp")
+Rcpp::sourceCpp("src/fns_imp_eigen.cpp")
 
 #mylist<-list(a=matrix(data=rnorm(3*4),ncol=1),b=matrix(data=rnorm(2*4),ncol=1))
 
@@ -17,8 +17,10 @@ vegas_initialize()
 
 thedata<-vegasr:::fn_create_data_5(99999)
 
+#############################################################################################
 # 1. Run vegas to compute integrand - log evidence and then manually use importance sampling
-# from the same grid and compare result. should be same up to monte-carlo error.
+# from the same grid and compare result. uses different random samples but same grid (weights)
+# so should be same up to monte-carlo error.
 
 K <- length(unique(thedata$basket))
 lower <- c(rep(-0.9999, 2*K), -0.9999, -0.9999, 1e-4, 1e-4)
@@ -49,13 +51,17 @@ f_x<-vegasr:::eigen_fn_log_post_2_par(result$x_vals, # these are random samples 
                                       )
 
 # result$pwgts - these are sampling weights - the internal jacobian and volume adjustment
+# this is usual importance sampling for integrand - function value times weight
+# this weight has n in it so it's sum below not mean (but conceptually it's mean)
+log_ev2<-log(sum(exp(result$shiftby+f_x)*result$pwgts)) # adjust by offset,
 
-# this is usual importance sampling
-log_ev2<-log(sum(exp(result$shiftby+ff_x)*result$pwgts)) # adjust by offset,
+cat("log evidence resampled from vegas = ",log_ev2,"\n")
 
 
+#############################################################################################
+# 2. Use the final grid to estimate marginal quantiles
 
-
+# generate
 y_rv<-matrix(data=runif(5000000*length(result$x_grid)),ncol=length(result$x_grid))
 
 # get X and Jac
@@ -72,16 +78,26 @@ f_x<-vegasr:::eigen_fn_log_post_2_par(myX,
                                       shiftby=result$shiftby,uselog=1.)
 
 
-# sample from y get Jac and x, compute p(x)*jac and compute mean
-ff_x<-vegasr:::eigen_fn_log_post_2_par(result$x_vals,
-                                      y=thedata$y,
-                                      treat=thedata$treat,
-                                      basket = thedata$basket,
-                                      shiftby=result$shiftby,uselog=1.)
-
-log(sum(exp(result$shiftby+ff_x)*result$pwgts))
-
 wgts<-exp(result$shiftby+f_x)*myJac # need to add back in shiftby and then exponentiation
+wgts_std <- wgts/sum(wgts) # standardize
+
+## from here we have all the info we need to compute all the quantiles for all variables with no more computation
+# consider X1
+myorder1<-order(myX[,1]) # sort asc idx
+X1o<-myX[myorder1,1] # sort X1 asc
+w1<-wgts_std[myorder1] # order weights
+w1b<-cumsum(w1); # cumsum weights
+p25X<-X1o[(which(w1b>0.025)[1])] # get 2.5% on x scale -1,+!
+p25Z<-p25X/(1-p25X^2) # transform back to -inf, + inf
+
+cat("Variable X1 = 2.5% ",p25Z,"\n")
+
+# 3. generate sampling from X using
+my_IP_sample<-sample.int(nrow(myX),size=1000000,replace=TRUE,prob=wgts_std)
+myX2<-myX[my_IP_sample,]
+
+
+
 #wgts<-f_x*myJac
 #cliptop<-which(wgts>quantile(wgts,0.9999)) #
 desc<-summary(wgts)

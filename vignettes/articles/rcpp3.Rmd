@@ -1,0 +1,353 @@
+---
+title: "Comparing Stan v Vegasr - Basket Trial"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+vignette: >
+  %\VignetteIndexEntry{Comparing Stan v Vegasr - Basket Trial}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE, eval=TRUE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+# options(pkgdown.parallel_vignettes = FALSE)
+# Check if running on GitHub Actions
+# This is important as otherwise Github will attempt to build this and it's missing the python libraries and will fail
+on_github <- Sys.getenv("GITHUB_ACTIONS") == "true"
+
+   
+# If on GitHub, set eval = FALSE for all subsequent chunks
+knitr::opts_chunk$set(eval = !on_github)
+
+knitr::opts_chunk$set(eval=TRUE)
+
+```
+
+```{r cran_check_setting,include=FALSE}
+# this is to de-tune all examples to get past cran checks
+#is_checking <- nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))
+#if (is_checking) {
+#     n_cores <- 2 # number of cores for computing marginal density on cran
+#     no_den_pts<-5 # very ligth grid for on cran
+#    } else { # running locally to go higher
+#    n_cores <- parallel::detectCores() - 1
+#no_den_pts=50
+#}
+
+```
+
+## Quickstart
+This article is a more complex version of the vegasr vignette [Rcpp](https://fraseriainlewis.github.io/vegasr/articles/rcpp.html) where the hierarchical Bayesian model now being estimated is a basket trial comprising of five baskets and binary response with logistic link function. This model has 14 parameters. This article includes a comparison with results from rstan. 
+
+
+## Model Formulation
+
+The model implemented is given below where $k$ denotes the basket, with $\beta_{0,k}$ and $\beta_{1,k}$ basket specific intercept and slope terms.
+
+$$
+\begin{aligned}
+\mu_0 &\sim \text{Normal}(0, 2.5)\\
+\sigma_0 &\sim \text{Half-Normal}(0, 2.5) \\
+\mu_1 &\sim \text{Normal}(0, 2.5) \\
+\sigma_1 &\sim \text{Half-Normal}(0, 2.5) \\
+\beta_{0,k} &\sim \text{Normal}(\mu_0, \sigma_0)\hspace{0.95cm}\text{for}\enspace{k=0,\dots,4} \\
+\beta_{1,k} &\sim \text{Normal}(\mu_1, \sigma_1) \hspace{0.95cm}\text{for}\enspace{k=0,\dots,4}\\
+\text{logit(}{p_{i}}) &= \beta_{0,k} + \beta_{1,k} z_i\hspace{1.49cm}\text{for}\enspace{i=1,\dots,N}  \\
+y_i &\sim \text{Bernoulli}(p_i)
+\end{aligned}
+$$
+
+
+## Data set
+The R chunk below creates a simple dataset of three cols:
+
+-   a binary response variable y (0/1 = non-responder/responder),
+-   a basket ID variable (1,2,3,4,5)
+-   a binary treatment variable (0/1 = control/test treatment)
+
+The basket ID is currently set fixed at 1, denoting there is only one basket in this trial, i.e. it's a classical two arm randomized trial design.
+
+```{r datasets, include=TRUE}
+library(vegasr)
+library(loo)
+library(parallel)
+vegas_initialize()
+thedata<-vegasr:::fn_create_data_5(99999) # a list of y and treat as matrices
+# this function is in vegasr/R/fn_internal.R
+```
+
+## Fit Model via MCMC using RStan
+Below are code chunks that implement the above model in Stan using a non-centralised parameterization (as recommended for Hamiltonian samplers).
+
+```{r rsetup, include=FALSE}
+library(rstan)
+library(bayesplot)
+library(ggplot2)
+library(vegasr)
+```
+
+```{r stanmodeldef,include=TRUE,echo=TRUE}
+### Stan model
+  BHM_stan_1 <- "data {
+  int<lower = 0> K;                     // number of baskets (K >= 2)
+  int<lower = 0> N;                     // total number of participants
+  //int<lower = 0, upper = N> N_k[K];     // K x 1 vector of basket sample sizes
+  //int<lower = 0, upper = N> N_k;
+  int<lower = 1, upper = K> k_vec[N];   // N x 1 vector of basket indicators
+  int<lower = 0, upper = 1> z_vec[N];   // N x 1 vector of treatment indicators for active treatment arm
+  int<lower = 0, upper = 1> y[N];       // N x 1 vector of binary responses
+}
+parameters {
+  matrix[K,2] beta_tr;                  // K x 2 matrix of transformed regression coefficients
+  real mu1;                              // scalar of hierarchical mean (log odds ratio)
+  real<lower = 0> sigma1;                  // scalar of hierarchical SD (log odds ratio)
+  real mu0;                              // scalar of hierarchical mean (log odds ratio)
+  real<lower = 0> sigma0;                  // scalar of hierarchical SD (log odds ratio)
+
+}
+transformed parameters {
+  matrix[K,2] beta;                     // K x 2 matrix of regression coefficients (without transformation)
+  // Calculate beta coefs using transformed betas (leads to better mixing)
+  for (k in 1:K){
+    beta[k,1] = mu0 + sigma0 * beta_tr[k,1];
+    beta[k,2] = mu1 + sigma1 * beta_tr[k,2];
+  }
+
+}
+model {
+  mu0 ~ normal(0, 2.5);    // vectorized normal priors for hierarchical means (specify SD in normal distn)
+  sigma0 ~ normal(0, 2.5);       // vectorized half-normal priors for hierarchical SDs (specify SD in normal distn)
+  mu1 ~ normal(0, 2.5);    // vectorized normal priors for hierarchical means (specify SD in normal distn)
+  sigma1 ~ normal(0, 2.5);       // vectorized half-normal priors for hierarchical SDs (specify SD in normal distn)
+  beta_tr[,1] ~ normal(0, 1);  // vectorized normal prior for the log odds for the control arm
+  beta_tr[,2] ~ normal(0, 1);  // vectorized normal prior for the log odds ratios
+  for (i in 1:N)
+    y[i] ~ bernoulli_logit(beta[k_vec[i], 1] + beta[k_vec[i], 2] * z_vec[i]);
+}
+"
+
+```
+
+```{r stansample,echo=TRUE,results='hide'}
+
+# Create list with input values for Stan model
+data_input_1 <- list(
+  K = length(unique(thedata$basket)),                # number of subgroups
+  N = length(thedata$basket),                # total sample size
+  #N_k = N-k,            # sample size per basket
+  k_vec = as.integer(thedata$basket),        # N x 1 vector of subgroup indicators
+  z_vec =as.integer(thedata$treat),        # N x 1 vector of active treatment arm indicators
+  y = as.integer(thedata$y)                 # N x 1 vector of binary responses
+  )
+
+
+### Compile and fit model
+options(mc.cores = parallel::detectCores())
+# Compile model (only run the line below once for a simulation study - compilation not dependent on any
+# simulation inputs as defined by scenarios or on simulated data)
+stan_mod_1 <- stan_model(model_code = BHM_stan_1)
+# Fit model
+nsamps <- 150000       # number of posterior samples (after removing burn-in) per chain
+nburnin <- 50000       # number of burn-in samples to remove at beginning of each chain
+nchains <- 8          # number of chains
+#BHM_pars_1 <- c("beta","mu0", "sigma0","mu1", "sigma1", "beta","beta_tr")     # parameters to sample
+start_time <- Sys.time()
+stan_fit_2 <- sampling(stan_mod_1, data = data_input_1,
+                       iter = nsamps + nburnin, warmup = nburnin, chains = nchains)
+end_time <- Sys.time()
+end_time - start_time
+post_draws_2 <- as.matrix(stan_fit_2)           # posterior samples of each parameter
+
+```
+```{r stanresults2,fig.width=10, fig.height=6, out.width="100%"}
+library(bayesplot)
+color_scheme_set("viridisA")
+p<-mcmc_trace(stan_fit_2,"beta[1,1]")
+#ggsave("precomputed/vg2_traceplot1_stan.png", p)
+print(p)
+print(summary(stan_fit_2))
+```
+
+## Example of calling log posterior functions
+These functions are available in the source package in fns_arma.cpp or fns_eigen.cpp in /src.
+
+```{r logpos,include=TRUE}
+### Call the Rcpp functions to demonstrate correct input and output values
+
+#print(mcmc_sum<-summary(stan_fit_2))
+mcmc_sum<-summary(stan_fit_2)
+smres<-mcmc_sum[[1]][11:24,c(4,8,9)]
+print(round(smres,3))
+
+```
+
+## Log Evidence
+As in the Rcpp vignette estimating the log evidence is not essential but we compute for completeness, also to a high precision. 
+
+```{r logpos2,include=TRUE}
+
+Rcpp::sourceCpp("/Users/work/vegasr/src/testing/fns_imp_eigen.cpp")
+
+library(vegasr)
+## Important - run next line in each R session to ensure python is ready
+vegas_initialize()
+
+K <- length(unique(thedata$basket))
+lower <- c(rep(-0.9999, 2*K), -0.9999, -0.9999, 1e-4, 1e-4)
+upper <- c(rep( 0.9999, 2*K),  0.9999,  0.9999,   0.9999,   0.9999)
+
+result <- vegasBayesEvidence(
+  f = vegasr::eigen_fn_log_post_2_par,
+  lower = lower, upper = upper,
+  nitn_warm = 1, neval_warm = 5000000,
+  nitn = 1, neval = 5000000,
+  errTol = 0.1, maxIter = 10, seed = 99999, nsearch = 100000,
+  extra_args=list(
+    y=thedata$y,
+    treat=thedata$treat,
+    basket = thedata$basket,
+    shiftby=0,uselog=1.)
+)
+
+```
+
+```{r logpos3,include=TRUE}
+y_rv<-matrix(data=runif(5000000*length(result$x_grid)),ncol=length(result$x_grid))
+
+# get X and Jac
+res<-eigen_gridM(result$x_grid,
+                 y_rv# this is just runif(), using runif from python currently
+)
+myX<-res[[1]]
+myJac<-res[[2]]
+# now compute f(x) and weights - note using shiftby and uselog, so need to revert those
+f_x<-vegasr:::eigen_fn_log_post_2_par(myX,
+                                      y=thedata$y,
+                                      treat=thedata$treat,
+                                      basket = thedata$basket,
+                                      shiftby=result$shiftby,uselog=1.)
+
+wgts<-exp(result$shiftby+f_x)*myJac # need to add back in shiftby and then exponentiation
+
+## 
+if(TRUE){
+threshold<-quantile(wgts,0.9999)
+epsilon <- sum(wgts[wgts>threshold])/sum(wgts)  
+print(epsilon)  
+
+# these these weights in the tails
+extreme_idx <-which(wgts>threshold)
+# compare before and after removal
+# also check the high weights not in tails - for upper tail go back from top
+
+}
+
+
+
+
+if(FALSE){
+  log_wgts<-log(wgts)
+options(mc.cores = parallel::detectCores() - 1 )
+psis_result<-psis(log_wgts,r_eff=1)
+wgts2<-exp(psis_result$log_weights) # PSIS smoothed at top
+}
+if(TRUE){
+#wgts<-f_x*myJac
+#cliptop<-which(wgts>quantile(wgts,0.9999)) #
+desc<-summary(wgts)
+maxwgt<-desc["3rd Qu."]+100*(desc["3rd Qu."]-desc["1st Qu."])
+#wgts2<-pmin(pmax(wgts, 0), quantile(wgts,0.9999)) # clip negative and top 0.01%
+dropme<-which(wgts>maxwgt)
+wgts2<-wgts[-dropme]
+#wgts2<-wgts[-cliptop]
+#myX<-myX[-cliptop,]
+myX<-myX[-dropme,]
+#plot(wgts2)
+#wgts2<-wgts
+wgts_std <- wgts2/sum(wgts2) # standardize
+}
+#wgts_std[422057]<-mean(wgts_std[-422057]);
+#wgts_std<-pmin(pmax(wgts_std, 0), 1) # in case weight -ve, should not happen
+#wgts_std <- wgts_std/sum(wgts_std) # standardize
+
+cat("ESS = ",1/sum(wgts_std^2),"\n")
+
+#### quantiles
+X1<-myX[,1]
+X1.srt<-sort(X1)
+wgts_std.srt<-wgts_std[order(X1)]
+idx1<-which(cumsum(wgts_std.srt)>0.025)[1]
+idx2<-which(cumsum(wgts_std.srt)>0.975)[1]
+p25raw<-X1.srt[idx1];
+p25<-p25raw/(1-p25raw^2)
+p975raw<-X1.srt[idx2];
+p975<-p975raw/(1-p975raw^2)
+cat("beta[1,1] 2.5%=",p25, " 97.5%=",p975,"\n")
+
+X1<-myX[,1]
+X1.srt<-sort(X1)
+wgts_std.srt<-wgts_std[order(X1)]
+idx1<-which(cumsum(wgts_std.srt)>0.025)[1]
+idx2<-which(cumsum(wgts_std.srt)>0.975)[1]
+p25raw<-X1.srt[idx1];
+p25<-p25raw/(1-p25raw^2)
+p975raw<-X1.srt[idx2];
+p975<-p975raw/(1-p975raw^2)
+cat("beta[1,1] 2.5%=",p25, " 97.5%=",p975,"\n")
+
+X1<-myX[,2]
+X1.srt<-sort(X1)
+wgts_std.srt<-wgts_std[order(X1)]
+idx1<-which(cumsum(wgts_std.srt)>0.025)[1]
+idx2<-which(cumsum(wgts_std.srt)>0.975)[1]
+p25raw<-X1.srt[idx1];
+p25<-p25raw/(1-p25raw^2)
+p975raw<-X1.srt[idx2];
+p975<-p975raw/(1-p975raw^2)
+cat("beta[2,1] 2.5%=",p25, " 97.5%=",p975,"\n")
+
+X1<-myX[,3]
+X1.srt<-sort(X1)
+wgts_std.srt<-wgts_std[order(X1)]
+idx1<-which(cumsum(wgts_std.srt)>0.025)[1]
+idx2<-which(cumsum(wgts_std.srt)>0.975)[1]
+p25raw<-X1.srt[idx1];
+p25<-p25raw/(1-p25raw^2)
+p975raw<-X1.srt[idx2];
+p975<-p975raw/(1-p975raw^2)
+cat("beta[3,1] 2.5%=",p25, " 97.5%=",p975,"\n")
+
+X1<-myX[,11]
+X1.srt<-sort(X1)
+wgts_std.srt<-wgts_std[order(X1)]
+idx1<-which(cumsum(wgts_std.srt)>0.025)[1]
+idx2<-which(cumsum(wgts_std.srt)>0.975)[1]
+p25raw<-X1.srt[idx1];
+p25<-p25raw/(1-p25raw^2)
+p975raw<-X1.srt[idx2];
+p975<-p975raw/(1-p975raw^2)
+cat("mu0 2.5%=",p25, " 97.5%=",p975,"\n")
+
+X1<-myX[,13]
+X1.srt<-sort(X1)
+wgts_std.srt<-wgts_std[order(X1)]
+idx1<-which(cumsum(wgts_std.srt)>0.025)[1]
+idx2<-which(cumsum(wgts_std.srt)>0.975)[1]
+p25raw<-X1.srt[idx1];
+p25<-p25raw/(1-p25raw^2)
+p975raw<-X1.srt[idx2];
+p975<-p975raw/(1-p975raw^2)
+cat("sd0 2.5%=",p25, " 97.5%=",p975,"\n")
+
+
+```
+
+
+
