@@ -208,7 +208,7 @@ upper <- c(rep( 0.9999, 2*K),  0.9999,  0.9999,   0.9999,   0.9999)
 result <- vegasBayesEvidence(
   f = vegasr::eigen_fn_log_post_2_par,
   lower = lower, upper = upper,
-  nitn_warm = 10, neval_warm = 5000000,
+  nitn_warm = 10, neval_warm = 1000000,
   nitn = 10, neval = 1000000,
   errTol = 0.1, maxIter = 20, seed = 999199, nsearch = 100000,
   extra_args=list(
@@ -219,6 +219,30 @@ result <- vegasBayesEvidence(
 )
 
 cat("log evidence direct from vegas = ",result$log_evidence,"\n")
+
+inver<-function(x){
+  #if(x>0){
+  return( (sqrt(1+4*x^2)-1)/(2*x) )
+  #} else {return( -(sqrt(1+4*x^2)-1)/(2*x) )}
+  }
+  
+upper[1]<-inver(-1.36)
+result25 <- vegasBayesEvidence(
+  f = vegasr::eigen_fn_log_post_2_par,
+  lower = lower, upper = upper,
+  nitn_warm = 10, neval_warm = 1000000,
+  nitn = 10, neval = 1000000,
+  errTol = 0.1, maxIter = 20, seed = 999199, nsearch = 100000,
+  extra_args=list(
+    y=thedata$y,
+    treat=thedata$treat,
+    basket = thedata$basket,
+    shiftby=0,uselog=1.)
+)
+
+cat("log evidence direct from vegas = ",result25$log_evidence,"\n")
+
+cat("area under 2.5% from stan ", exp(result25$log_evidence-(result$log_evidence)),"\n")
 
 #
 f_x<-vegasr:::eigen_fn_log_post_2_par(result$x_vals, # these are random samples from the final grid
