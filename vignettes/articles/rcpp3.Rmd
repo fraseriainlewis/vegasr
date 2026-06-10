@@ -226,7 +226,7 @@ inver<-function(x){
   #} else {return( -(sqrt(1+4*x^2)-1)/(2*x) )}
   }
   
-upper[1]<-inver(-1.36)
+upper[1]<-inver(-1.360595)
 result25 <- vegasBayesEvidence(
   f = vegasr::eigen_fn_log_post_2_par,
   lower = lower, upper = upper,
