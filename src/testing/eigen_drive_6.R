@@ -87,10 +87,36 @@ myorder1<-order(myX[,1]) # sort asc idx
 X1o<-myX[myorder1,1] # sort X1 asc
 w1<-wgts_std[myorder1] # order weights
 w1b<-cumsum(w1); # cumsum weights
+
 p25X<-X1o[(which(w1b>0.025)[1])] # get 2.5% on x scale -1,+!
 p25Z<-p25X/(1-p25X^2) # transform back to -inf, + inf
 
 cat("Variable X1 = 2.5% ",p25Z,"\n")
+
+my25<-rep(14,0)
+for(i in 1:14){my25[i]<-getperc(myX,i,0.025,wgts_std)}
+
+
+getperc<-function(X.loc,idx.loc,p.loc,wgts.loc){
+  myorder<-order(X.loc[,idx.loc]) # sort asc idx
+  Xo<-myX[myorder,idx.loc] # sort X1 asc
+  w1<-wgts.loc[myorder] # order weights
+  w1b<-cumsum(w1); # cumsum weights
+  pX<-Xo[(which(w1b>p.loc)[1])] # get 2.5% on x scale -1,+!
+  pZ<-pX/(1-pX^2) # transform back to -inf, + inf
+  return(pZ)
+}
+
+
+
+
+}
+
+
+
+
+
+
 
 # 3. generate sampling from X using
 my_IP_sample<-sample.int(nrow(myX),size=1000000,replace=TRUE,prob=wgts_std)

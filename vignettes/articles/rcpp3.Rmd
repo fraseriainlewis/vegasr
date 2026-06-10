@@ -154,7 +154,7 @@ options(mc.cores = parallel::detectCores())
 # simulation inputs as defined by scenarios or on simulated data)
 stan_mod_1 <- stan_model(model_code = BHM_stan_1)
 # Fit model
-nsamps <- 50000       # number of posterior samples (after removing burn-in) per chain
+nsamps <- 10000       # number of posterior samples (after removing burn-in) per chain
 nburnin <- 5000       # number of burn-in samples to remove at beginning of each chain
 nchains <- 4          # number of chains
 #BHM_pars_1 <- c("beta","mu0", "sigma0","mu1", "sigma1", "beta","beta_tr")     # parameters to sample
@@ -182,9 +182,13 @@ These functions are available in the source package in fns_arma.cpp or fns_eigen
 ### Call the Rcpp functions to demonstrate correct input and output values
 
 #print(mcmc_sum<-summary(stan_fit_2))
-mcmc_sum<-summary(stan_fit_2)
-smres<-mcmc_sum[[1]][11:24,c(4,8,9)]
-print(round(smres,3))
+print(stan_fit_2)
+#smres<-mcmc_sum[[1]][11:24,c(4,8,9)]
+#print(round(smres,3))
+
+stansum<-summary(stan_fit_2)$summary
+
+my25Stan<-stansum[c("mu1","sigma1","mu0","sigma0","beta[1,1]","beta[1,2]","beta[2,1]","beta[2,2]","beta[3,1]","beta[3,2]","beta[4,1]",   "beta[4,2]","beta[5,1]","beta[5,2]"),4]
 
 ```
 
@@ -204,9 +208,9 @@ upper <- c(rep( 0.9999, 2*K),  0.9999,  0.9999,   0.9999,   0.9999)
 result <- vegasBayesEvidence(
   f = vegasr::eigen_fn_log_post_2_par,
   lower = lower, upper = upper,
-  nitn_warm = 10, neval_warm = 1000000,
+  nitn_warm = 10, neval_warm = 5000000,
   nitn = 10, neval = 1000000,
-  errTol = 1, maxIter = 10, seed = 999199, nsearch = 100000,
+  errTol = 0.1, maxIter = 20, seed = 999199, nsearch = 100000,
   extra_args=list(
     y=thedata$y,
     treat=thedata$treat,
@@ -237,7 +241,7 @@ cat("log evidence resampled from vegas = ",log_ev2,"\n")
 # 2. Use the final grid to estimate marginal quantiles
 
 # generate
-y_rv<-matrix(data=runif(5000000*length(result$x_grid)),ncol=length(result$x_grid))
+y_rv<-matrix(data=runif(10000000*length(result$x_grid)),ncol=length(result$x_grid))
 
 # get X and Jac
 # note - this needs moved to multi-threaded
@@ -255,7 +259,16 @@ f_x<-vegasr:::eigen_fn_log_post_2_par(myX,
 
 
 wgts<-exp(result$shiftby+f_x)*myJac # need to add back in shiftby and then exponentiation
+idx<-which(wgts>0)
+wgts<-wgts[idx]
+myX<-myX[idx,]
+
+#wgts<-pmin(pmax(wgts, 0), quantile(wgts,0.9999))
 wgts_std <- wgts/sum(wgts) # standardize
+#length(which(wgts_std==0))/length(wgts)
+
+quantile(sample(myX[,14],size=1E6,prob = wgts_std,replace=TRUE),0.025)
+
 
 ## from here we have all the info we need to compute all the quantiles for all variables with no more computation
 # consider X1
@@ -268,8 +281,29 @@ p25Z<-p25X/(1-p25X^2) # transform back to -inf, + inf
 
 cat("Variable beta[1,1] = 2.5% ",p25Z,"\n")
 
+getperc<-function(X.loc,idx.loc,p.loc,wgts.loc){
+  myorder<-order(X.loc[,idx.loc]) # sort asc idx
+  Xo<-myX[myorder,idx.loc] # sort X1 asc
+  w1<-wgts.loc[myorder] # order weights
+  w1b<-cumsum(w1); # cumsum weights
+  pX<-Xo[(which(w1b>p.loc)[1])] # get 2.5% on x scale -1,+!
+  pZ<-pX/(1-pX^2) # transform back to -inf, + inf
+  return(pZ)
+}
+
+my25<-rep(0,14)
+names(my25)<-c("beta[1,1]","beta[2,1]","beta[3,1]","beta[4,1]","beta[5,1]",
+               "beta[1,2]","beta[2,2]","beta[3,2]","beta[4,2]","beta[5,2]",
+               "mu0","mu1","sigma0","sigma1")
+for(i in 1:14){my25[i]<-getperc(myX,i,0.025,wgts_std)}
 
 
+my25<-my25[c("mu1","sigma1","mu0","sigma0","beta[1,1]","beta[1,2]","beta[2,1]","beta[2,2]","beta[3,1]","beta[3,2]","beta[4,1]",   "beta[4,2]","beta[5,1]","beta[5,2]")]
+
+
+m<-cbind(my25Stan,my25,100*(my25Stan-my25)/my25Stan)
+colnames(m)<-c("stan","vegas","% diff")
+print(m)
 ```
 
 
