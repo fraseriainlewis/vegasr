@@ -154,7 +154,7 @@ options(mc.cores = parallel::detectCores())
 # simulation inputs as defined by scenarios or on simulated data)
 stan_mod_1 <- stan_model(model_code = BHM_stan_1)
 # Fit model
-nsamps <- 10000       # number of posterior samples (after removing burn-in) per chain
+nsamps <- 50000       # number of posterior samples (after removing burn-in) per chain
 nburnin <- 5000       # number of burn-in samples to remove at beginning of each chain
 nchains <- 4          # number of chains
 #BHM_pars_1 <- c("beta","mu0", "sigma0","mu1", "sigma1", "beta","beta_tr")     # parameters to sample
@@ -208,8 +208,8 @@ upper <- c(rep( 0.9999, 2*K),  0.9999,  0.9999,   0.9999,   0.9999)
 result <- vegasBayesEvidence(
   f = vegasr::eigen_fn_log_post_2_par,
   lower = lower, upper = upper,
-  nitn_warm = 10, neval_warm = 1000000,
-  nitn = 10, neval = 1000000,
+  nitn_warm = 10, neval_warm = 500000,
+  nitn = 10, neval = 500000,
   errTol = 0.1, maxIter = 20, seed = 999199, nsearch = 100000,
   extra_args=list(
     y=thedata$y,
@@ -225,13 +225,16 @@ inver<-function(x){
   return( (sqrt(1+4*x^2)-1)/(2*x) )
   #} else {return( -(sqrt(1+4*x^2)-1)/(2*x) )}
   }
-  
-upper[1]<-inver(-1.360595)
+
+K <- length(unique(thedata$basket))
+lower <- c(rep(-0.9999, 2*K), -0.9999, -0.9999, 1e-4, 1e-4)
+upper <- c(rep( 0.9999, 2*K),  0.9999,  0.9999,   0.9999,   0.9999)
+upper[6]<-inver(my25Stan["beta[1,2]"])
 result25 <- vegasBayesEvidence(
   f = vegasr::eigen_fn_log_post_2_par,
   lower = lower, upper = upper,
-  nitn_warm = 10, neval_warm = 1000000,
-  nitn = 10, neval = 1000000,
+  nitn_warm = 10, neval_warm = 500000,
+  nitn = 10, neval = 500000,
   errTol = 0.1, maxIter = 20, seed = 999199, nsearch = 100000,
   extra_args=list(
     y=thedata$y,
@@ -243,6 +246,36 @@ result25 <- vegasBayesEvidence(
 cat("log evidence direct from vegas = ",result25$log_evidence,"\n")
 
 cat("area under 2.5% from stan ", exp(result25$log_evidence-(result$log_evidence)),"\n")
+
+if(FALSE){
+K <- length(unique(thedata$basket))
+lower <- c(rep(-0.9999, 2*K), -0.9999, -0.9999, 1e-4, 1e-4)
+upper <- c(rep( 0.9999, 2*K),  0.9999,  0.9999,   0.9999,   0.9999)
+#upper[14]<-inver(0.38)
+lower[14]<-inver()
+result25 <- vegasBayesEvidence(
+  f = vegasr::eigen_fn_log_post_2_par,
+  lower = lower, upper = upper,
+  nitn_warm = 10, neval_warm = 500000,
+  nitn = 10, neval = 500000,
+  errTol = 0.1, maxIter = 20, seed = 999199, nsearch = 100000,
+  extra_args=list(
+    y=thedata$y,
+    treat=thedata$treat,
+    basket = thedata$basket,
+    shiftby=0,uselog=1.)
+)
+
+cat("log evidence direct from vegas = ",result25$log_evidence,"\n")
+
+cat("area under 2.5% from stan ", exp(result25$log_evidence-(result$log_evidence)),"\n")
+}
+
+
+
+```
+
+```{r logpos2a,include=TRUE}
 
 #
 f_x<-vegasr:::eigen_fn_log_post_2_par(result$x_vals, # these are random samples from the final grid
