@@ -200,6 +200,9 @@ Do this in one step as no more computation needed. gotcha is dealing with extrem
 # 1. Run vegas to compute integrand - log evidence and then manually use importance sampling
 # from the same grid and compare result. uses different random samples but same grid (weights)
 # so should be same up to monte-carlo error.
+library(vegasr)
+vegas_initialize()
+thedata<-vegasr:::fn_create_data_5(99999) #
 
 K <- length(unique(thedata$basket))
 lower <- c(rep(-0.9999, 2*K), -0.9999, -0.9999, 1e-4, 1e-4)
@@ -208,15 +211,32 @@ upper <- c(rep( 0.9999, 2*K),  0.9999,  0.9999,   0.9999,   0.9999)
 result <- vegasBayesEvidence(
   f = vegasr::eigen_fn_log_post_2_par,
   lower = lower, upper = upper,
-  nitn_warm = 10, neval_warm = 500000,
-  nitn = 10, neval = 500000,
-  errTol = 0.1, maxIter = 20, seed = 999199, nsearch = 100000,
+  nitn_warm = 10, neval_warm = 10000,
+  nitn = 10, neval = 10000,
+  errTol = 0.1, maxIter = 2, seed = 999199,fresh=TRUE,
+  nsearch = 10000,
   extra_args=list(
     y=thedata$y,
     treat=thedata$treat,
     basket = thedata$basket,
     shiftby=0,uselog=1.)
 )
+cat("log evidence direct from vegas = ",result$log_evidence,"\n")
+
+result <- vegasBayesEvidence(
+  f = vegasr::eigen_fn_log_post_2_par,
+  lower = lower, upper = upper,
+  nitn_warm = 1, neval_warm = 10000,
+  nitn = 1, neval = 10000,
+  errTol = 0.1, maxIter = 0, seed = 999199,fresh=FALSE,
+  nsearch = 10000,
+  extra_args=list(
+    y=thedata$y,
+    treat=thedata$treat,
+    basket = thedata$basket,
+    shiftby=0,uselog=1.)
+)
+
 
 cat("log evidence direct from vegas = ",result$log_evidence,"\n")
 

@@ -16,6 +16,7 @@ vegas(
   maxIter = 5,
   seed = 99999,
   adapt = TRUE,
+  fresh = TRUE,
   extra_args = list()
 )
 }
@@ -43,6 +44,8 @@ estimate and final error.}
 vegas' Python random number generator not R's.}
 
 \item{adapt}{logical, if TRUE then grid will continue to adapt after warm-up, otherwise grid will stay fixed.}
+
+\item{fresh}{logical, if TRUE then a new grid is created, otherwise the existing grid is used from the last call}
 
 \item{extra_args}{a named list of additional arguments passed to the function f.
 These must be numeric vectors or matrices. See details.}

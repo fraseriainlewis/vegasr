@@ -38,6 +38,7 @@
 #' @param seed random number seed for vegas sample generation. Set for reproducible results. This is
 #' vegas' Python random number generator not R's.
 #' @param adapt logical, if TRUE then grid will continue to adapt after warm-up, otherwise grid will stay fixed.
+#' @param fresh logical, if TRUE then a new grid is created, otherwise the existing grid is used from the last call
 #' @param extra_args a named list of additional arguments passed to the function f.
 #' These must be numeric vectors or matrices. See details.
 #' @return A list containing: "mean_error","metTolerance","x_grid"
@@ -98,7 +99,8 @@
 #' @export
 vegas <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000,
                                             nitn = 10, neval = 1000, errTol=1,maxIter=5,
-                                            seed = 99999,adapt=TRUE,extra_args = list()) {
+                                            seed = 99999,adapt=TRUE,fresh=TRUE,
+                  extra_args = list()) {
 
   if (is.null(getOption("vegas_initialized"))) {
     vegas_initialize()
@@ -162,6 +164,8 @@ str5<-paste(paste(paste("        self",noms,sep="."),"=",noms),collapse="\n") # 
 if(adapt==FALSE){ str6<-paste(",adapt=False)")
 } else {str6<-paste(")")}
 
+if(fresh==TRUE){ str7<-"True"} else {str7<-"False"}
+
 #  stringpart1<-r"(
 #  #### now use R function
 #  )"
@@ -205,22 +209,12 @@ upper = np.array(Rupper,dtype=np.float64)
 vegas_obj.clear_results()
 #explicitly set seed
 gvar.ranseed(Rseed)
-integ2 = vegas.Integrator([[l, u] for l, u in zip(lower, upper)])
-# Adaptation phase # no results stored
-#integ2.set(beta=0) # remove this!
+if {str7}:
+    integ2 = vegas.Integrator([[l, u] for l, u in zip(lower, upper)])
+    print("fresh")
+
+# Adaptation-warmup phase # no results stored
 integ2(newf, nitn=nitn_warm, neval=neval_warm)
-
-#result1=integ2(newf, nitn=nitn_warm, neval=neval_warm)
-#print(result1.mean)
-#
-#total, n = 0.0,0
-#for x, wgt in integ2.random_batch():
-#    total+=np.sum(r_func_lbatch({str2})*wgt)
-#    n+=len(x)
-#I_manual=total
-#print(I_manual)
-#print(I_manual/n)
-
 
 curgrid=vegas_obj.get_grid(integ2)
 
@@ -234,7 +228,7 @@ while (i==0) or (ests[1]>((RerrTol/100)*ests[0]) and i<iMax):
     result2 = integ2(newf, nitn=nitn, neval=neval{str6} # adapt grid or not
     newgrid=vegas_obj.get_grid(integ2)
     #print(f\"wasserstein\")
-    print(f\"{{wasserstein_distance(curgrid[0],newgrid[0]):.5f}} {{wasserstein_distance(curgrid[1],newgrid[1]):.5f}} {{wasserstein_distance(curgrid[2],newgrid[2]):.5f}} {{wasserstein_distance(curgrid[3],newgrid[3]):.5f}} {{wasserstein_distance(curgrid[4],newgrid[4]):.5f}} {{wasserstein_distance(curgrid[5],newgrid[5]):.5f}} {{wasserstein_distance(curgrid[6],newgrid[6]):.5f}} {{wasserstein_distance(curgrid[7],newgrid[7]):.5f}} {{wasserstein_distance(curgrid[8],newgrid[8]):.5f}} {{wasserstein_distance(curgrid[9],newgrid[9]):.5f}} {{wasserstein_distance(curgrid[10],newgrid[10]):.5f}} {{wasserstein_distance(curgrid[11],newgrid[11]):.5f}} {{wasserstein_distance(curgrid[12],newgrid[12]):.5f}} {{wasserstein_distance(curgrid[13],newgrid[13]):.5f}}\")
+    #print(f\"{{wasserstein_distance(curgrid[0],newgrid[0]):.5f}} {{wasserstein_distance(curgrid[1],newgrid[1]):.5f}} {{wasserstein_distance(curgrid[2],newgrid[2]):.5f}} {{wasserstein_distance(curgrid[3],newgrid[3]):.5f}} {{wasserstein_distance(curgrid[4],newgrid[4]):.5f}} {{wasserstein_distance(curgrid[5],newgrid[5]):.5f}} {{wasserstein_distance(curgrid[6],newgrid[6]):.5f}} {{wasserstein_distance(curgrid[7],newgrid[7]):.5f}} {{wasserstein_distance(curgrid[8],newgrid[8]):.5f}} {{wasserstein_distance(curgrid[9],newgrid[9]):.5f}} {{wasserstein_distance(curgrid[10],newgrid[10]):.5f}} {{wasserstein_distance(curgrid[11],newgrid[11]):.5f}} {{wasserstein_distance(curgrid[12],newgrid[12]):.5f}} {{wasserstein_distance(curgrid[13],newgrid[13]):.5f}}\")
     #print(f\"{{wasserstein_distance(curgrid[1],newgrid[1])}}\\n\")
     curgrid=newgrid
     vegas_obj.add_results(result2) # save into object
@@ -329,6 +323,7 @@ return(summary_res)
 #' @param maxIter max number of iteration blocks to run to achieve errTol. Each block comprises nitn iterations
 #' @param seed random number seed for vegas sampling generating. set for reproducible results.
 #' @param adapt logical, if TRUE then grid will continue to adapt after warm-up, otherwise grid will stay fixed.
+#' @param fresh logical, if TRUE then a new grid is created, otherwise the existing grid is used from the last call
 #' @param nsearch number of points to evaluate log_posterior to find approx max value for shiftby. See details.
 #' @param extra_args a named list of additional arguments passed to the function f. This must include at
 #' least uselog and shiftby arguments which are mandatory for the function f.
@@ -344,7 +339,7 @@ return(summary_res)
 #' }
 #' @export
 vegasBayesEvidence <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000,
-                  nitn = 10, neval = 1000, errTol=1,maxIter=5,seed=99999,adapt=TRUE,
+                  nitn = 10, neval = 1000, errTol=1,maxIter=5,seed=99999,adapt=TRUE,fresh=TRUE,
                   nsearch=1000,
                   extra_args=list()){
 
@@ -374,7 +369,7 @@ vegasBayesEvidence <- function(f, lower,upper, nitn_warm = 10, neval_warm = 1000
 
   result<-vegas(f=f, lower=lower,upper=upper, nitn_warm = nitn_warm, neval_warm = neval_warm,
                 nitn = nitn, neval = neval, errTol=errTol,maxIter=maxIter,
-                seed = seed,adapt=adapt,
+                seed = seed,adapt=adapt,fresh=fresh,
                 extra_args = extra_args)
 
   log_evidence = mymax + log(result$mean_error[1])

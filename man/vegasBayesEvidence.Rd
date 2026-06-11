@@ -16,6 +16,7 @@ vegasBayesEvidence(
   maxIter = 5,
   seed = 99999,
   adapt = TRUE,
+  fresh = TRUE,
   nsearch = 1000,
   extra_args = list()
 )
@@ -42,6 +43,8 @@ vegasBayesEvidence(
 \item{seed}{random number seed for vegas sampling generating. set for reproducible results.}
 
 \item{adapt}{logical, if TRUE then grid will continue to adapt after warm-up, otherwise grid will stay fixed.}
+
+\item{fresh}{logical, if TRUE then a new grid is created, otherwise the existing grid is used from the last call}
 
 \item{nsearch}{number of points to evaluate log_posterior to find approx max value for shiftby. See details.}
 
